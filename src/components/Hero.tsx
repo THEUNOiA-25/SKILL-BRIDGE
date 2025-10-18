@@ -4,7 +4,7 @@ const Hero = () => {
   return (
     <section className="flex w-full flex-col overflow-hidden items-stretch pb-24 max-md:pb-16">
       <div className="flex w-full flex-col items-center">
-        <div className="bg-background flex w-fit items-center gap-2 mt-20 px-6 py-2 rounded-full max-md:mt-10">
+        <div className="bg-background flex w-fit items-center gap-2 mt-20 px-6 py-2 rounded-full max-md:mt-10 animate-fade-up">
           <div className="flex -space-x-1">
             <img
               src="https://api.builder.io/api/v1/image/assets/TEMP/0cc57d49534d4c00e23b9909961e0307c1e85614?placeholderIfAbsent=true"
@@ -26,11 +26,11 @@ const Hero = () => {
             4900+ 5 Stars Reviews
           </div>
         </div>
-        <h1 className="text-foreground text-6xl font-bold tracking-tight text-center mt-10 max-md:text-4xl">
+        <h1 className="text-foreground text-6xl font-bold tracking-tight text-center mt-10 max-md:text-4xl animate-fade-up animation-delay-200">
           A Platform where Skills
         </h1>
       </div>
-      <div className="self-center flex w-[961px] max-w-full flex-col mt-8">
+      <div className="self-center flex w-[961px] max-w-full flex-col mt-8 animate-fade-up animation-delay-400">
         <div className="bg-accent flex items-center text-[13px] text-accent-foreground font-medium w-fit px-4 py-2 rounded-2xl rounded-tl-none">
           <div>You</div>
         </div>
@@ -69,7 +69,7 @@ const Hero = () => {
         <img
           src="https://api.builder.io/api/v1/image/assets/TEMP/19fb853e5e73b8e2fa5272861742f9cfd3a538de?placeholderIfAbsent=true"
           alt="Platform dashboard preview"
-          className="aspect-[1.45] object-contain w-full max-w-4xl mx-auto rounded-3xl"
+          className="aspect-[1.45] object-contain w-full max-w-4xl mx-auto rounded-3xl animate-scale-in animation-delay-600"
         />
       </div>
     </section>

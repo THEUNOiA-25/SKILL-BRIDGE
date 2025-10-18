@@ -26,17 +26,17 @@ const HowItWorks = () => {
   return (
     <section className="bg-background flex w-full flex-col items-center py-20 px-5 md:px-20">
       <div className="flex w-full max-w-7xl flex-col items-center">
-        <h2 className="text-foreground text-5xl font-bold tracking-tight text-center max-md:text-4xl">
+        <h2 className="text-foreground text-5xl font-bold tracking-tight text-center max-md:text-4xl animate-fade-up">
           How It Works
         </h2>
-        <p className="text-muted-foreground text-base font-normal text-center mt-10 max-w-3xl">
+        <p className="text-muted-foreground text-base font-normal text-center mt-10 max-w-3xl animate-fade-up animation-delay-200">
           Getting things done is simple. Just post what you need, receive bids from skilled individuals, and pick the one that fits your budget and timeline.
         </p>
         <div className="w-full mt-16 max-md:mt-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {steps.map((step, index) => (
               <article key={index} className="flex flex-col">
-                <div className="bg-secondary flex flex-col w-full px-7 py-12 rounded-3xl h-full">
+                <div className={`bg-secondary flex flex-col w-full px-7 py-12 rounded-3xl h-full hover-lift animate-fade-up ${index === 0 ? 'animation-delay-200' : index === 1 ? 'animation-delay-400' : 'animation-delay-600'}`}>
                   <img
                     src={step.icon}
                     alt={`${step.title} icon`}

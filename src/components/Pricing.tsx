@@ -34,10 +34,10 @@ const Pricing = () => {
     <section className="bg-white flex w-full flex-col items-center pt-[142px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
       <div className="flex w-[1040px] max-w-full flex-col items-stretch">
         <div className="flex w-[716px] max-w-full flex-col mr-[42px] max-md:mr-2.5">
-          <h2 className="text-[rgba(18,10,11,1)] text-[53px] font-bold leading-none tracking-[-1.5px] text-center max-md:max-w-full max-md:text-[40px]">
+          <h2 className="text-[rgba(18,10,11,1)] text-[53px] font-bold leading-none tracking-[-1.5px] text-center max-md:max-w-full max-md:text-[40px] animate-fade-up">
             Affordable Courses
           </h2>
-          <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-[31px] text-center ml-[95px] mt-[55px] max-md:ml-2.5 max-md:mt-10">
+          <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-[31px] text-center ml-[95px] mt-[55px] max-md:ml-2.5 max-md:mt-10 animate-fade-up animation-delay-200">
             all with THEUNOiA task management solution
           </p>
           <div className="flex w-[628px] max-w-full items-stretch gap-5 flex-wrap justify-between mt-[52px] max-md:mt-10">
@@ -70,7 +70,7 @@ const Pricing = () => {
           <div className="gap-5 flex max-md:flex-col max-md:items-stretch">
             {plans.map((plan, index) => (
               <article key={index} className="w-6/12 max-md:w-full max-md:ml-0">
-                <div className="bg-[rgba(248,244,241,1)] flex w-full flex-col mx-auto p-10 rounded-[32px] max-md:max-w-full max-md:mt-10 max-md:px-5">
+                <div className={`bg-[rgba(248,244,241,1)] flex w-full flex-col mx-auto p-10 rounded-[32px] max-md:max-w-full max-md:mt-10 max-md:px-5 hover-lift animate-scale-in ${index === 0 ? 'animation-delay-400' : 'animation-delay-600'}`}>
                   <div className="bg-white self-stretch flex w-full flex-col overflow-hidden pl-4 pr-20 py-6 rounded-3xl max-md:pr-5">
                     <div className="bg-[rgba(255,216,111,1)] flex w-[89px] flex-col text-[17px] text-[rgba(18,10,11,1)] font-bold whitespace-nowrap leading-loose justify-center px-4 py-[13px] rounded-[100px] max-md:pr-5">
                       <div>{plan.name}</div>
@@ -99,7 +99,7 @@ const Pricing = () => {
                       </div>
                     ))}
                   </div>
-                  <button className="bg-[rgba(18,10,11,1)] self-stretch flex flex-col overflow-hidden items-center text-[15px] text-white font-bold leading-[1.8] justify-center mt-9 px-[70px] py-5 rounded-[100px] max-md:px-5 hover:bg-gray-800 transition-colors">
+                  <button className="bg-[rgba(18,10,11,1)] self-stretch flex flex-col overflow-hidden items-center text-[15px] text-white font-bold leading-[1.8] justify-center mt-9 px-[70px] py-5 rounded-[100px] max-md:px-5 hover:bg-gray-800 hover:scale-105 transition-all duration-300">
                     Select Plan
                   </button>
                 </div>

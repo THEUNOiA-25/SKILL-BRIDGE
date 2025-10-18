@@ -31,20 +31,20 @@ const Testimonials = () => {
   return (
     <section className="bg-white flex w-full flex-col overflow-hidden items-center pt-[142px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
       <div className="flex w-[1200px] max-w-full flex-col items-center">
-        <h2 className="text-[rgba(18,10,11,1)] text-[53px] font-bold leading-none tracking-[-1.5px] text-center max-md:max-w-full max-md:text-[40px]">
+        <h2 className="text-[rgba(18,10,11,1)] text-[53px] font-bold leading-none tracking-[-1.5px] text-center max-md:max-w-full max-md:text-[40px] animate-fade-up">
           What our users are saying
         </h2>
-        <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-loose text-center mt-7 max-md:max-w-full">
+        <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-loose text-center mt-7 max-md:max-w-full animate-fade-up animation-delay-200">
           Simplify project planning, streamline collaboration, and boost productivity{" "}
         </p>
-        <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-[31px] text-center">
+        <p className="text-[rgba(69,65,64,1)] text-[17px] font-normal leading-[31px] text-center animate-fade-up animation-delay-200">
           all with THEUNOiA task management solution
         </p>
         <div className="self-stretch mt-[55px] max-md:max-w-full max-md:mt-10">
           <div className="gap-5 flex max-md:flex-col max-md:items-stretch">
             {testimonials.map((testimonial, index) => (
               <article key={index} className="w-[33%] max-md:w-full max-md:ml-0">
-                <div className="border flex w-full flex-col items-stretch px-[35px] py-10 rounded-[20px] border-[rgba(248,244,241,1)] border-solid max-md:mt-6 max-md:px-5">
+                <div className={`border flex w-full flex-col items-stretch px-[35px] py-10 rounded-[20px] border-[rgba(248,244,241,1)] border-solid max-md:mt-6 max-md:px-5 hover-lift animate-fade-up ${index === 0 ? 'animation-delay-400' : index === 1 ? 'animation-delay-600' : 'animation-delay-800'}`}>
                   <img
                     src={testimonial.rating}
                     alt="5 star rating"
