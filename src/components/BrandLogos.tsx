@@ -2,7 +2,7 @@ import React from 'react';
 
 const BrandLogos = () => {
   return (
-    <section className="bg-background flex w-full flex-col items-center text-lg text-foreground font-medium text-center py-20 px-5">
+    <section className="bg-white flex w-full flex-col items-center text-lg text-foreground font-medium text-center py-20 px-5">
       <div className="flex w-full max-w-7xl flex-col items-stretch">
         <h2 className="self-center max-w-full">
           Our Trusted Organisations for Internship Collaboration

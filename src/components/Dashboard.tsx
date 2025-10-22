@@ -2,7 +2,7 @@ import React from 'react';
 
 const Dashboard = () => {
   return (
-    <section className="bg-background flex w-full flex-col items-center py-20 px-5 md:px-20">
+    <section className="bg-white flex w-full flex-col items-center py-20 px-5 md:px-20">
       <div className="flex w-full max-w-7xl flex-col items-center">
         <h2 className="text-foreground text-5xl font-bold tracking-tight text-center max-md:text-4xl">
           A clear and intuitive dashboard

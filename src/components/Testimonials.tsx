@@ -29,7 +29,7 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="bg-background flex w-full flex-col overflow-hidden items-center pt-[142px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
+    <section className="bg-white flex w-full flex-col overflow-hidden items-center pt-[142px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
       <div className="flex w-[1200px] max-w-full flex-col items-center">
         <h2 className="text-foreground text-[53px] font-bold leading-none tracking-[-1.5px] text-center max-md:max-w-full max-md:text-[40px]">
           What our users are saying

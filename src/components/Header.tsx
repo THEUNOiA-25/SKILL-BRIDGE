@@ -2,8 +2,8 @@ import React from 'react';
 
 const Header = () => {
   return (
-    <header className="bg-secondary self-stretch w-full text-[15px] whitespace-nowrap max-md:max-w-full">
-      <div className="bg-background flex w-full items-stretch gap-5 flex-wrap justify-between px-20 py-6 max-md:max-w-full max-md:px-5">
+    <header className="bg-white self-stretch w-full text-[15px] whitespace-nowrap max-md:max-w-full">
+      <div className="bg-white flex w-full items-stretch gap-5 flex-wrap justify-between px-20 py-6 max-md:max-w-full max-md:px-5">
         <nav className="flex items-stretch gap-12 text-foreground font-medium flex-wrap my-auto max-md:max-w-full">
           <div className="flex items-stretch gap-1 text-lg font-bold">
             <img

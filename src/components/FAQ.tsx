@@ -27,7 +27,7 @@ const FAQ = () => {
   ];
 
   return (
-    <section className="bg-background flex w-full flex-col items-center pt-[130px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
+    <section className="bg-white flex w-full flex-col items-center pt-[130px] px-20 max-md:max-w-full max-md:pt-[100px] max-md:px-5">
       <div className="z-10 mb-[-193px] w-[1200px] max-w-full max-md:mb-2.5">
         <div className="flex w-full flex-col items-stretch px-10 max-md:max-w-full max-md:px-5">
           <div className="max-md:max-w-full">

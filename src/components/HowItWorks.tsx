@@ -24,7 +24,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="bg-background flex w-full flex-col items-center py-20 px-5 md:px-20">
+    <section className="bg-white flex w-full flex-col items-center py-20 px-5 md:px-20">
       <div className="flex w-full max-w-7xl flex-col items-center">
         <div className="bg-yellow flex items-center text-[13px] text-yellow-foreground font-medium w-fit px-6 py-2 rounded-full mb-6">
           Why choose us

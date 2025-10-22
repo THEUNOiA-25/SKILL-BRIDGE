@@ -2,7 +2,7 @@ import React from 'react';
 
 const Integrations = () => {
   return (
-    <section className="bg-background flex w-full flex-col items-center text-foreground font-bold py-20 px-5 md:px-20">
+    <section className="bg-white flex w-full flex-col items-center text-foreground font-bold py-20 px-5 md:px-20">
       <div className="flex w-full max-w-6xl flex-col items-center">
         <h2 className="text-5xl tracking-tight text-center max-md:text-4xl">
           Integrations with your favorite tools

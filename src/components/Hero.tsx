@@ -4,7 +4,7 @@ const Hero = () => {
   return (
     <section className="flex w-full flex-col overflow-hidden items-stretch pb-24 max-md:pb-16">
       <div className="flex w-full flex-col items-center">
-        <div className="bg-background flex w-fit items-center gap-2 mt-20 px-6 py-2 rounded-full max-md:mt-10 animate-subtle-fade">
+        <div className="bg-secondary flex w-fit items-center gap-2 mt-20 px-6 py-2 rounded-full max-md:mt-10 animate-subtle-fade">
           <div className="flex -space-x-1">
             <img
               src="https://api.builder.io/api/v1/image/assets/TEMP/0cc57d49534d4c00e23b9909961e0307c1e85614?placeholderIfAbsent=true"
@@ -31,7 +31,7 @@ const Hero = () => {
         </h1>
       </div>
       <div className="self-center flex w-[961px] max-w-full flex-col mt-8 animate-subtle-fade animation-delay-400">
-        <div className="bg-accent flex items-center text-[13px] text-accent-foreground font-medium w-fit px-4 py-2 rounded-2xl rounded-tl-none">
+        <div className="bg-secondary flex items-center text-[13px] text-foreground font-medium w-fit px-4 py-2 rounded-2xl rounded-tl-none">
           <div>You</div>
         </div>
         <div className="self-center z-10 -mt-20 w-[635px] max-w-full flex flex-col items-stretch text-foreground font-bold">
@@ -48,7 +48,7 @@ const Hero = () => {
             <button className="bg-yellow flex items-center justify-center text-yellow-foreground font-bold px-10 py-4 rounded-full hover:opacity-90 transition-opacity">
               Post Work
             </button>
-            <button className="bg-background flex items-center justify-center text-foreground font-bold px-11 py-4 rounded-full hover:bg-secondary transition-colors">
+            <button className="bg-secondary flex items-center justify-center text-foreground font-bold px-11 py-4 rounded-full hover:bg-muted transition-colors">
               Find Work
             </button>
             <button className="border border-yellow flex items-center justify-center text-foreground font-bold px-6 py-4 rounded-full hover:bg-yellow/10 transition-colors">
