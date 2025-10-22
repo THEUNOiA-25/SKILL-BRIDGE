@@ -66,7 +66,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex lg:min-h-screen">
       {/* Left Side - Branding & Images */}
       <div className="hidden lg:flex lg:w-1/2 bg-muted flex-col justify-between p-12">
         <div className="flex items-center gap-3">
@@ -105,7 +105,7 @@ const Login = () => {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-screen lg:min-h-0">
         <div className="flex justify-end p-6">
           <Link to="/signup">
             <Button variant="ghost" className="text-base font-medium">
@@ -114,7 +114,7 @@ const Login = () => {
           </Link>
         </div>
 
-        <div className="flex-1 flex items-start justify-center px-6 pt-8 pb-6">
+        <div className="flex-1 flex items-center justify-center px-6 py-8">
           <div className="w-full max-w-[400px] space-y-5">
             <div className="space-y-3 text-center">
               <h1 className="text-3xl font-bold text-foreground">Welcome back</h1>
