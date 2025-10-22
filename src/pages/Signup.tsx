@@ -9,53 +9,28 @@ import { z } from 'zod';
 import slide1 from '@/assets/auth-slide-1.png';
 import slide2 from '@/assets/auth-slide-2.png';
 import slide3 from '@/assets/auth-slide-3.png';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-const basicInfoSchema = z.object({
+const signupSchema = z.object({
   firstName: z.string().trim().min(2, 'First name must be at least 2 characters').max(50),
   lastName: z.string().trim().min(2, 'Last name must be at least 2 characters').max(50),
   email: z.string().trim().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  dateOfBirth: z.string().refine((date) => {
-    const dob = new Date(date);
-    const age = (Date.now() - dob.getTime()) / (1000 * 60 * 60 * 24 * 365);
-    return age >= 13 && age <= 120;
-  }, 'You must be at least 13 years old'),
-  gender: z.string().min(1, 'Please select a gender'),
-  city: z.string().trim().min(2, 'City must be at least 2 characters').max(100),
-});
-
-const studentInfoSchema = z.object({
-  instituteName: z.string().trim().min(2, 'Institute name must be at least 2 characters').max(200),
-  enrollmentId: z.string().trim().max(100).optional(),
-  instituteEmail: z.string().trim().email('Invalid email address').optional(),
-}).refine((data) => data.enrollmentId || data.instituteEmail, {
-  message: 'Please provide either Enrollment ID or Institute Email',
-  path: ['enrollmentId'],
+  userType: z.enum(['student', 'non-student'], {
+    required_error: 'Please select a user type',
+  }),
 });
 
 const Signup = () => {
-  const [step, setStep] = useState(1);
-  const [isStudent, setIsStudent] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  // Step 1 - Basic Info
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [gender, setGender] = useState('');
-  const [city, setCity] = useState('');
-
-  // Step 2 - Student Info (optional)
-  const [instituteName, setInstituteName] = useState('');
-  const [enrollmentId, setEnrollmentId] = useState('');
-  const [instituteEmail, setInstituteEmail] = useState('');
+  const [userType, setUserType] = useState<'student' | 'non-student'>('student');
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const slides = [slide1, slide2, slide3];
 
@@ -75,44 +50,19 @@ const Signup = () => {
     });
   }, [navigate]);
 
-  const handleStep1Submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      basicInfoSchema.parse({
-        firstName,
-        lastName,
-        email,
-        password,
-        dateOfBirth,
-        gender,
-        city,
-      });
-      setStep(2);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: 'Validation Error',
-          description: error.errors[0].message,
-          variant: 'destructive',
-        });
-      }
-    }
-  };
-
-  const handleFinalSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Validate student info if user is a student
-      if (isStudent) {
-        studentInfoSchema.parse({
-          instituteName,
-          enrollmentId: enrollmentId || undefined,
-          instituteEmail: instituteEmail || undefined,
-        });
-      }
+      // Validate form data
+      signupSchema.parse({
+        firstName,
+        lastName,
+        email,
+        password,
+        userType,
+      });
 
       // Sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -126,7 +76,7 @@ const Signup = () => {
       if (authError) throw authError;
       if (!authData.user) throw new Error('Signup failed');
 
-      // Create user profile
+      // Create minimal user profile
       const { error: profileError } = await supabase
         .from('user_profiles')
         .insert({
@@ -134,42 +84,35 @@ const Signup = () => {
           first_name: firstName,
           last_name: lastName,
           email: email,
-          date_of_birth: dateOfBirth,
-          gender: gender,
-          city: city,
+          user_type: userType,
+          profile_completed: false,
         });
 
       if (profileError) throw profileError;
 
-      // If student, create student verification record
-      if (isStudent) {
-        const { error: studentError } = await supabase
-          .from('student_verifications')
-          .insert({
-            user_id: authData.user.id,
-            institute_name: instituteName,
-            enrollment_id: enrollmentId || null,
-            institute_email: instituteEmail || null,
-          });
-
-        if (studentError) throw studentError;
-      }
-
       toast({
         title: 'Account created successfully!',
-        description: isStudent 
-          ? 'Your student verification is pending. You will be notified once approved.'
-          : 'Welcome to THEUNOiA!',
+        description: 'Please complete your profile to continue.',
       });
 
-      navigate('/');
+      // Redirect to profile completion
+      navigate('/profile-completion');
     } catch (error: any) {
       console.error('Signup error:', error);
-      toast({
-        title: 'Signup Failed',
-        description: error.message || 'An error occurred during signup',
-        variant: 'destructive',
-      });
+      
+      if (error instanceof z.ZodError) {
+        toast({
+          title: 'Validation Error',
+          description: error.errors[0].message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Signup Failed',
+          description: error.message || 'An error occurred during signup',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -229,187 +172,88 @@ const Signup = () => {
             <div className="space-y-3 text-center">
               <h1 className="text-3xl font-bold text-foreground">Create an account</h1>
               <p className="text-muted-foreground text-base">
-                Step {step} of 2: {step === 1 ? 'Basic Information' : 'Student Verification'}
+                Get started with just a few details
               </p>
             </div>
 
-            {step === 1 ? (
-              <form onSubmit={handleStep1Submit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      type="text"
-                      placeholder="John"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      type="text"
-                      placeholder="Doe"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      required
-                      className="h-11"
-                    />
-                  </div>
-                </div>
-
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="firstName">First Name</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="h-11"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="At least 8 characters"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="h-11"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={dateOfBirth}
-                    onChange={(e) => setDateOfBirth(e.target.value)}
-                    required
-                    className="h-11"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select value={gender} onValueChange={setGender} required>
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
+                    id="firstName"
                     type="text"
-                    placeholder="Your city"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="John"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                     required
                     className="h-11"
                   />
                 </div>
-
-                <Button type="submit" className="w-full h-11 text-base font-bold rounded-full">
-                  Continue
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={handleFinalSubmit} className="space-y-4">
-                <div className="flex items-center space-x-2 p-4 bg-muted rounded-lg">
-                  <Checkbox
-                    id="isStudent"
-                    checked={isStudent}
-                    onCheckedChange={(checked) => setIsStudent(checked as boolean)}
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Doe"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    className="h-11"
                   />
-                  <Label htmlFor="isStudent" className="cursor-pointer">
-                    I am a student (unlock freelancing features)
-                  </Label>
                 </div>
+              </div>
 
-                {isStudent && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="instituteName">Institute Name</Label>
-                      <Input
-                        id="instituteName"
-                        type="text"
-                        placeholder="University or College name"
-                        value={instituteName}
-                        onChange={(e) => setInstituteName(e.target.value)}
-                        required={isStudent}
-                        className="h-11"
-                      />
-                    </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-11"
+                />
+              </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="enrollmentId">Enrollment ID (Optional)</Label>
-                      <Input
-                        id="enrollmentId"
-                        type="text"
-                        placeholder="Your enrollment/student ID"
-                        value={enrollmentId}
-                        onChange={(e) => setEnrollmentId(e.target.value)}
-                        className="h-11"
-                      />
-                    </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="At least 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="h-11"
+                />
+              </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="instituteEmail">Institute Email (Optional)</Label>
-                      <Input
-                        id="instituteEmail"
-                        type="email"
-                        placeholder="your.name@university.edu"
-                        value={instituteEmail}
-                        onChange={(e) => setInstituteEmail(e.target.value)}
-                        className="h-11"
-                      />
-                    </div>
+              <div className="space-y-3">
+                <Label>I am a</Label>
+                <RadioGroup value={userType} onValueChange={(value) => setUserType(value as 'student' | 'non-student')}>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <RadioGroupItem value="student" id="student" />
+                    <Label htmlFor="student" className="flex-1 cursor-pointer">
+                      <div className="font-medium">Student</div>
+                      <div className="text-sm text-muted-foreground">Access freelancing features after verification</div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <RadioGroupItem value="non-student" id="non-student" />
+                    <Label htmlFor="non-student" className="flex-1 cursor-pointer">
+                      <div className="font-medium">Non-Student</div>
+                      <div className="text-sm text-muted-foreground">Post projects and hire freelancers</div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
 
-                    <p className="text-sm text-muted-foreground">
-                      * Provide either Enrollment ID or Institute Email for verification
-                    </p>
-                  </>
-                )}
-
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setStep(1)}
-                    className="flex-1 h-11 rounded-full"
-                    disabled={loading}
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="flex-1 h-11 text-base font-bold rounded-full"
-                    disabled={loading}
-                  >
-                    {loading ? 'Creating Account...' : 'Create Account'}
-                  </Button>
-                </div>
-              </form>
-            )}
+              <Button type="submit" className="w-full h-11 text-base font-bold rounded-full" disabled={loading}>
+                {loading ? 'Creating Account...' : 'Create Account'}
+              </Button>
+            </form>
 
             <p className="text-center text-sm text-muted-foreground">
               By clicking continue, you agree to our{' '}

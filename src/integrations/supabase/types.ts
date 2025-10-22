@@ -85,40 +85,46 @@ export type Database = {
       }
       user_profiles: {
         Row: {
-          city: string
+          city: string | null
           created_at: string | null
-          date_of_birth: string
+          date_of_birth: string | null
           email: string
           first_name: string
-          gender: string
+          gender: string | null
           id: string
           last_name: string
+          profile_completed: boolean | null
           updated_at: string | null
           user_id: string
+          user_type: string | null
         }
         Insert: {
-          city: string
+          city?: string | null
           created_at?: string | null
-          date_of_birth: string
+          date_of_birth?: string | null
           email: string
           first_name: string
-          gender: string
+          gender?: string | null
           id?: string
           last_name: string
+          profile_completed?: boolean | null
           updated_at?: string | null
           user_id: string
+          user_type?: string | null
         }
         Update: {
-          city?: string
+          city?: string | null
           created_at?: string | null
-          date_of_birth?: string
+          date_of_birth?: string | null
           email?: string
           first_name?: string
-          gender?: string
+          gender?: string | null
           id?: string
           last_name?: string
+          profile_completed?: boolean | null
           updated_at?: string | null
           user_id?: string
+          user_type?: string | null
         }
         Relationships: []
       }
