@@ -1,4 +1,5 @@
 import React from 'react';
+import dashboardPreview from '@/assets/dashboard-preview.png';
 
 const Hero = () => {
   return (
@@ -67,7 +68,7 @@ const Hero = () => {
           className="aspect-[1.33] object-contain w-20 -mt-10"
         />
         <img
-          src="https://api.builder.io/api/v1/image/assets/TEMP/19fb853e5e73b8e2fa5272861742f9cfd3a538de?placeholderIfAbsent=true"
+          src={dashboardPreview}
           alt="Platform dashboard preview"
           className="aspect-[1.45] object-contain w-full max-w-4xl mx-auto rounded-3xl animate-subtle-fade animation-delay-600"
         />
