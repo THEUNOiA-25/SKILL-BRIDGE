@@ -43,8 +43,8 @@ const Testimonials = () => {
         <div className="self-stretch mt-[55px] max-md:max-w-full max-md:mt-10">
           <div className="gap-5 flex max-md:flex-col max-md:items-stretch">
             {testimonials.map((testimonial, index) => (
-              <article key={index} className="w-[33%] max-md:w-full max-md:ml-0">
-                <div className="border flex w-full flex-col items-stretch px-[35px] py-10 rounded-[20px] border-border max-md:mt-6 max-md:px-5 hover-lift">
+              <article key={index} className="w-[33%] max-md:w-full max-md:ml-0 flex">
+                <div className="border flex w-full flex-col items-stretch px-[35px] py-10 rounded-[20px] border-border max-md:mt-6 max-md:px-5 hover-lift h-full">
                   <img
                     src={testimonial.rating}
                     alt="5 star rating"
