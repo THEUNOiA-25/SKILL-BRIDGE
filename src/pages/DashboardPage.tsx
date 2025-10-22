@@ -20,7 +20,7 @@ const DashboardPage = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex flex-col gap-2">
+          <nav className="flex flex-col gap-1.5">
             <a
               href="#"
               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-light text-primary font-semibold transition-all"
