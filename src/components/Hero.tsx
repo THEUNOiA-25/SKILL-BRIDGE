@@ -1,5 +1,5 @@
 import React from 'react';
-import dashboardPreview from '@/assets/dashboard-preview.png';
+import dashboardPreview from '@/assets/dashboard-hero.png';
 
 const Hero = () => {
   return (
