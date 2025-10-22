@@ -40,31 +40,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, metadata: { firstName: string; lastName: string; userType: 'student' | 'non-student' }) => {
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            firstName: metadata.firstName,
+            lastName: metadata.lastName,
+            userType: metadata.userType,
+          },
         },
       });
 
       if (authError) throw authError;
-      if (!authData.user) throw new Error('Signup failed');
-
-      // Create user profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: authData.user.id,
-          first_name: metadata.firstName,
-          last_name: metadata.lastName,
-          email: email,
-          user_type: metadata.userType,
-          profile_completed: false,
-        });
-
-      if (profileError) throw profileError;
-
       return { error: null };
     } catch (error: any) {
       return { error };
