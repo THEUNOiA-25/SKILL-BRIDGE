@@ -42,7 +42,7 @@ const Login = () => {
 
         <div className="space-y-6">
           <div className="bg-transparent rounded-3xl p-4 relative overflow-hidden">
-            <div className="relative h-96 w-full flex items-center justify-center">
+            <div className="relative h-[550px] w-full flex items-center justify-center">
               {slides.map((slide, index) => (
                 <img
                   key={index}
