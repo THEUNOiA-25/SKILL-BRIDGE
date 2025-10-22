@@ -9,7 +9,7 @@ const DashboardPage = () => {
   return (
     <div className="flex min-h-screen w-full bg-background">
       {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border/60 p-5 flex flex-col justify-between">
+      <aside className="w-64 bg-card border-r border-border/60 p-5 flex flex-col justify-between fixed left-0 top-0 h-screen">
         <div className="flex flex-col gap-8">
           {/* Logo */}
           <div className="flex items-center gap-3">
@@ -83,7 +83,7 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
         <header className="flex items-center justify-between whitespace-nowrap px-10 py-6 bg-background border-b border-border/60">
           <div className="flex-1 max-w-xl">
