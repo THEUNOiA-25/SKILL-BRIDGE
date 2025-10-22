@@ -119,9 +119,9 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex lg:min-h-screen">
+    <div className="flex min-h-screen">
       {/* Left Side - Branding & Images */}
-      <div className="hidden lg:flex lg:w-1/2 bg-muted flex-col justify-between lg:p-8 xl:p-12">
+      <div className="hidden lg:flex lg:w-1/2 bg-muted flex-col justify-between p-12">
         <div className="flex items-center gap-3">
           <img
             src="https://api.builder.io/api/v1/image/assets/TEMP/92d972effd43063f68165dc5639029d3b68f7576?placeholderIfAbsent=true"
@@ -133,7 +133,7 @@ const Signup = () => {
 
         <div className="space-y-6">
           <div className="bg-transparent rounded-3xl p-4 relative overflow-hidden">
-            <div className="relative h-64 xl:h-[550px] w-full flex items-center justify-center">
+            <div className="relative h-[550px] w-full flex items-center justify-center">
               {slides.map((slide, index) => (
                 <img
                   key={index}
@@ -167,8 +167,8 @@ const Signup = () => {
           </Link>
         </div>
 
-        <div className="flex-1 flex items-center justify-center px-6 py-8">
-          <div className="w-full max-w-[450px] space-y-5">
+        <div className="flex-1 flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-[450px] space-y-8">
             <div className="space-y-3 text-center">
               <h1 className="text-3xl font-bold text-foreground">Create an account</h1>
               <p className="text-muted-foreground text-base">
@@ -176,7 +176,7 @@ const Signup = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
