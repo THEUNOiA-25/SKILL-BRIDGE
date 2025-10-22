@@ -23,7 +23,7 @@ const DashboardPage = () => {
           <nav className="flex flex-col gap-2">
             <a
               href="#"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-light text-primary font-semibold transition-all"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-light text-primary font-semibold transition-all"
             >
               <Grid3X3 className="w-[18px] h-[18px]" />
               <p className="text-[0.9375rem]">Dashboard</p>
@@ -160,7 +160,7 @@ const DashboardPage = () => {
                       </div>
                       <Progress value={65} className="h-2.5 bg-muted" />
                     </div>
-                    <Button variant="secondary" className="mt-2 rounded-xl bg-primary-light text-primary hover:bg-primary-light/80 font-medium text-[0.9375rem]">
+                    <Button variant="secondary" className="mt-2 rounded-lg bg-primary-light text-primary hover:bg-primary-light/80 font-medium text-[0.9375rem]">
                       View Project Details
                     </Button>
                   </Card>
@@ -189,7 +189,7 @@ const DashboardPage = () => {
                       </div>
                       <Progress value={20} className="h-2.5 bg-muted" />
                     </div>
-                    <Button variant="secondary" className="mt-2 rounded-xl bg-primary-light text-primary hover:bg-primary-light/80 font-medium text-[0.9375rem]">
+                    <Button variant="secondary" className="mt-2 rounded-lg bg-primary-light text-primary hover:bg-primary-light/80 font-medium text-[0.9375rem]">
                       View Project Details
                     </Button>
                   </Card>
@@ -278,7 +278,7 @@ const DashboardPage = () => {
                     </span>
                   </div>
                 </div>
-                <Button className="mt-auto rounded-xl bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
+                <Button className="mt-auto rounded-lg bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
                   Place Bid
                 </Button>
               </Card>
@@ -300,7 +300,7 @@ const DashboardPage = () => {
                     </span>
                   </div>
                 </div>
-                <Button className="mt-auto rounded-xl bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
+                <Button className="mt-auto rounded-lg bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
                   Place Bid
                 </Button>
               </Card>
@@ -327,7 +327,7 @@ const DashboardPage = () => {
                     </span>
                   </div>
                 </div>
-                <Button className="mt-auto rounded-xl bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
+                <Button className="mt-auto rounded-lg bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
                   Place Bid
                 </Button>
               </Card>
