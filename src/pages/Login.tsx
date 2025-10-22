@@ -114,8 +114,8 @@ const Login = () => {
           </Link>
         </div>
 
-        <div className="flex-1 flex items-center justify-center px-6 py-6">
-          <div className="w-full max-w-[400px] space-y-8">
+        <div className="flex-1 flex items-center justify-center px-6 pt-4 pb-6">
+          <div className="w-full max-w-[400px] space-y-6">
             <div className="space-y-3 text-center">
               <h1 className="text-3xl font-bold text-foreground">Welcome back</h1>
               <p className="text-muted-foreground text-base">
@@ -123,7 +123,7 @@ const Login = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <Input
