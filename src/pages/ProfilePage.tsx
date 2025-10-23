@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, CheckCircle2, Clock, XCircle, AlertCircle } from "lucide-react";
+import { CalendarIcon, CheckCircle2, Clock, XCircle, AlertCircle, Upload, Camera } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,8 @@ const ProfilePage = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [verificationLoading, setVerificationLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -31,6 +33,7 @@ const ProfilePage = () => {
     city: "",
     pinCode: "",
     dateOfBirth: undefined as Date | undefined,
+    profilePictureUrl: "",
   });
 
   // Verification state
@@ -73,6 +76,7 @@ const ProfilePage = () => {
           city: data.city || "",
           pinCode: data.pin_code || "",
           dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth) : undefined,
+          profilePictureUrl: data.profile_picture_url || "",
         });
       }
     } catch (error) {
@@ -143,6 +147,84 @@ const ProfilePage = () => {
 
   const validateEmail = (email: string) => {
     return email.endsWith(".edu") || email.endsWith(".ac.in");
+  };
+
+  const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File",
+        description: "Please upload an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      // Delete old profile picture if exists
+      if (profile.profilePictureUrl) {
+        const oldPath = profile.profilePictureUrl.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('profile-pictures')
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new profile picture
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-pictures')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(filePath);
+
+      // Update profile in database
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update({ profile_picture_url: publicUrl })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      setProfile({ ...profile, profilePictureUrl: publicUrl });
+
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload profile picture. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleVerificationSubmit = async () => {
@@ -233,26 +315,104 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="flex items-center justify-between px-8 py-6 border-b border-border/40 bg-card/30 backdrop-blur-sm">
-        <h1 className="text-2xl font-semibold text-foreground">Profile Settings</h1>
-        <Button variant="outline" onClick={() => signOut()}>
-          Logout
-        </Button>
-      </div>
+    <div className="flex min-h-screen w-full bg-background">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 border-r border-border/40 bg-card/30 backdrop-blur-sm">
+        <div className="flex flex-col h-full">
+          {/* Logo Section */}
+          <div className="px-6 py-8 border-b border-border/40">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              THEUNOIA
+            </h2>
+          </div>
 
-      {/* Content */}
-      <div className="container mx-auto p-8 max-w-6xl">
+          {/* Navigation Links */}
+          <nav className="flex-1 px-2 py-5 space-y-2">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+              onClick={() => navigate("/dashboard")}
+            >
+              <div className="w-5 h-5 grid grid-cols-2 gap-0.5">
+                <div className="bg-current rounded-sm"></div>
+                <div className="bg-current rounded-sm"></div>
+                <div className="bg-current rounded-sm"></div>
+                <div className="bg-current rounded-sm"></div>
+              </div>
+              Dashboard
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 bg-muted text-foreground font-medium"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Profile
+            </Button>
+          </nav>
+
+          {/* Logout at Bottom */}
+          <div className="px-2 py-5 border-t border-border/40">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive"
+              onClick={() => signOut()}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Logout
+            </Button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 py-6 border-b border-border/40 bg-card/30 backdrop-blur-sm">
+          <h1 className="text-2xl font-semibold text-foreground">Profile Settings</h1>
+        </div>
+
+        {/* Content */}
+        <div className="container mx-auto p-8 max-w-6xl">
         {/* Profile Header Section */}
         <Card className="rounded-2xl border-border/40 mb-6">
           <CardContent className="p-8">
             <div className="flex items-start gap-8">
               {/* Avatar */}
-              <div className="flex-shrink-0">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl font-bold text-white">
-                  {profile.firstName?.[0]}{profile.lastName?.[0]}
-                </div>
+              <div className="flex-shrink-0 relative group">
+                {profile.profilePictureUrl ? (
+                  <img 
+                    src={profile.profilePictureUrl} 
+                    alt="Profile" 
+                    className="w-32 h-32 rounded-full object-cover border-4 border-border/40"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl font-bold text-white">
+                    {profile.firstName?.[0]}{profile.lastName?.[0]}
+                  </div>
+                )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingImage}
+                  className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {uploadingImage ? (
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Camera className="w-5 h-5" />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureUpload}
+                  className="hidden"
+                />
               </div>
 
               {/* Profile Info */}
@@ -442,6 +602,7 @@ const ProfilePage = () => {
               )}
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </div>

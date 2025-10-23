@@ -101,6 +101,7 @@ export type Database = {
           last_name: string
           pin_code: string | null
           profile_completed: boolean | null
+          profile_picture_url: string | null
           updated_at: string | null
           user_id: string
           user_type: string | null
@@ -116,6 +117,7 @@ export type Database = {
           last_name: string
           pin_code?: string | null
           profile_completed?: boolean | null
+          profile_picture_url?: string | null
           updated_at?: string | null
           user_id: string
           user_type?: string | null
@@ -131,6 +133,7 @@ export type Database = {
           last_name?: string
           pin_code?: string | null
           profile_completed?: boolean | null
+          profile_picture_url?: string | null
           updated_at?: string | null
           user_id?: string
           user_type?: string | null
