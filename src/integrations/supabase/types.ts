@@ -91,6 +91,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          bio: string | null
           city: string | null
           created_at: string | null
           date_of_birth: string | null
@@ -99,14 +100,17 @@ export type Database = {
           gender: string | null
           id: string
           last_name: string
+          phone: string | null
           pin_code: string | null
           profile_completed: boolean | null
           profile_picture_url: string | null
           updated_at: string | null
           user_id: string
           user_type: string | null
+          website: string | null
         }
         Insert: {
+          bio?: string | null
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
@@ -115,14 +119,17 @@ export type Database = {
           gender?: string | null
           id?: string
           last_name: string
+          phone?: string | null
           pin_code?: string | null
           profile_completed?: boolean | null
           profile_picture_url?: string | null
           updated_at?: string | null
           user_id: string
           user_type?: string | null
+          website?: string | null
         }
         Update: {
+          bio?: string | null
           city?: string | null
           created_at?: string | null
           date_of_birth?: string | null
@@ -131,12 +138,74 @@ export type Database = {
           gender?: string | null
           id?: string
           last_name?: string
+          phone?: string | null
           pin_code?: string | null
           profile_completed?: boolean | null
           profile_picture_url?: string | null
           updated_at?: string | null
           user_id?: string
           user_type?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      user_projects: {
+        Row: {
+          client_feedback: string | null
+          completed_at: string | null
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          rating: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_feedback?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          image_url?: string | null
+          rating?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_feedback?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          rating?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_skills: {
+        Row: {
+          created_at: string
+          id: string
+          skill_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          skill_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          skill_name?: string
+          user_id?: string
         }
         Relationships: []
       }

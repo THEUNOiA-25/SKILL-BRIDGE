@@ -1,69 +1,52 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, CheckCircle2, Clock, XCircle, AlertCircle, Camera } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { AppSidebar } from "@/components/AppSidebar";
+import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, Edit } from "lucide-react";
+import { toast } from "sonner";
 
 const ProfilePage = () => {
-  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [verificationLoading, setVerificationLoading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Profile state
+  const { user, signOut } = useAuth();
+  const [uploadingPicture, setUploadingPicture] = useState(false);
   const [profile, setProfile] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    userType: "",
     gender: "",
+    dateOfBirth: null as Date | null,
     city: "",
     pinCode: "",
-    dateOfBirth: undefined as Date | undefined,
     profilePictureUrl: "",
+    bio: "",
+    phone: "",
+    website: "",
   });
-
-  // Verification state
-  const [verification, setVerification] = useState({
-    status: "not_submitted",
-    instituteName: "",
-    instituteEmail: "",
-    enrollmentId: "",
-    verificationMethod: "email",
-    rejectionReason: "",
-  });
+  const [verification, setVerification] = useState<any>(null);
+  const [skills, setSkills] = useState<string[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
+    if (user) {
+      fetchProfile();
+      fetchVerification();
+      fetchSkills();
+      fetchProjects();
     }
-    fetchProfile();
-    fetchVerification();
-  }, [user, navigate]);
+  }, [user]);
 
   const fetchProfile = async () => {
-    if (!user) return;
-    
     try {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", user?.id)
         .single();
 
       if (error) throw error;
@@ -73,242 +56,158 @@ const ProfilePage = () => {
           firstName: data.first_name || "",
           lastName: data.last_name || "",
           email: data.email || "",
+          userType: data.user_type || "",
           gender: data.gender || "",
+          dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth) : null,
           city: data.city || "",
           pinCode: data.pin_code || "",
-          dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth) : undefined,
           profilePictureUrl: data.profile_picture_url || "",
+          bio: data.bio || "",
+          phone: data.phone || "",
+          website: data.website || "",
         });
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
+      toast.error("Failed to load profile data");
     }
   };
 
   const fetchVerification = async () => {
-    if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from("student_verifications")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", user?.id)
         .maybeSingle();
 
-      if (error) throw error;
-
-      if (data) {
-        setVerification({
-          status: data.verification_status || "not_submitted",
-          instituteName: data.institute_name || "",
-          instituteEmail: data.institute_email || "",
-          enrollmentId: data.enrollment_id || "",
-          verificationMethod: data.verification_method || "email",
-          rejectionReason: data.rejection_reason || "",
-        });
+      if (error && error.code !== "PGRST116") {
+        throw error;
       }
+
+      setVerification(data);
     } catch (error) {
       console.error("Error fetching verification:", error);
+      toast.error("Failed to load verification data");
     }
   };
 
-  const handleProfileUpdate = async () => {
-    if (!user) return;
-
-    setLoading(true);
+  const fetchSkills = async () => {
     try {
-      const { error } = await supabase
-        .from("user_profiles")
-        .update({
-          gender: profile.gender,
-          city: profile.city,
-          pin_code: profile.pinCode,
-          date_of_birth: profile.dateOfBirth?.toISOString().split('T')[0],
-          profile_completed: true,
-        })
-        .eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("user_skills")
+        .select("skill_name")
+        .eq("user_id", user?.id);
 
       if (error) throw error;
 
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
-      });
+      setSkills(data?.map((s) => s.skill_name) || []);
     } catch (error) {
-      console.error("Error updating profile:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+      console.error("Error fetching skills:", error);
     }
   };
 
-  const validateEmail = (email: string) => {
-    return email.endsWith(".edu") || email.endsWith(".ac.in");
+  const fetchProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("user_projects")
+        .select("*")
+        .eq("user_id", user?.id)
+        .order("completed_at", { ascending: false });
+
+      if (error) throw error;
+
+      setProjects(data || []);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
   };
 
-  const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfilePictureUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid File",
-        description: "Please upload an image file.",
-        variant: "destructive",
-      });
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
       return;
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Please upload an image smaller than 5MB.",
-        variant: "destructive",
-      });
+      toast.error("Image size must be less than 5MB");
       return;
     }
 
-    setUploadingImage(true);
+    setUploadingPicture(true);
     try {
-      // Delete old profile picture if exists
       if (profile.profilePictureUrl) {
-        const oldPath = profile.profilePictureUrl.split('/').pop();
+        const oldPath = profile.profilePictureUrl.split("/").pop();
         if (oldPath) {
           await supabase.storage
-            .from('profile-pictures')
+            .from("profile-pictures")
             .remove([`${user.id}/${oldPath}`]);
         }
       }
 
-      // Upload new profile picture
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('profile-pictures')
+        .from("profile-pictures")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-pictures')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("profile-pictures").getPublicUrl(filePath);
 
-      // Update profile in database
       const { error: updateError } = await supabase
-        .from('user_profiles')
+        .from("user_profiles")
         .update({ profile_picture_url: publicUrl })
-        .eq('user_id', user.id);
+        .eq("user_id", user.id);
 
       if (updateError) throw updateError;
 
-      setProfile({ ...profile, profilePictureUrl: publicUrl });
-
-      toast({
-        title: "Success",
-        description: "Profile picture updated successfully.",
-      });
-    } catch (error) {
+      toast.success("Profile picture updated successfully!");
+      fetchProfile();
+    } catch (error: any) {
       console.error("Error uploading profile picture:", error);
-      toast({
-        title: "Error",
-        description: "Failed to upload profile picture. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Failed to upload profile picture");
     } finally {
-      setUploadingImage(false);
+      setUploadingPicture(false);
     }
   };
 
-  const handleVerificationSubmit = async () => {
-    if (!user) return;
-
-    if (!verification.instituteName || !verification.instituteEmail) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!validateEmail(verification.instituteEmail)) {
-      toast({
-        title: "Invalid Email",
-        description: "Please use a valid institute email ending with .edu or .ac.in",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setVerificationLoading(true);
-    try {
-      const { error } = await supabase
-        .from("student_verifications")
-        .upsert({
-          user_id: user.id,
-          institute_name: verification.instituteName,
-          institute_email: verification.instituteEmail,
-          enrollment_id: verification.enrollmentId || null,
-          verification_method: "email",
-          verification_status: "pending",
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Verification Submitted",
-        description: "Your verification request has been submitted successfully.",
-      });
-
-      fetchVerification();
-    } catch (error) {
-      console.error("Error submitting verification:", error);
-      toast({
-        title: "Error",
-        description: "Failed to submit verification. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setVerificationLoading(false);
-    }
-  };
-
-  const getStatusBadge = () => {
-    switch (verification.status) {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
       case "approved":
         return (
-          <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-            <CheckCircle2 className="w-4 h-4 mr-1" />
-            Verified Student
+          <Badge variant="default" className="flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3" />
+            Verified
           </Badge>
         );
       case "pending":
         return (
-          <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
-            <Clock className="w-4 h-4 mr-1" />
-            Verification Pending
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            Pending
           </Badge>
         );
       case "rejected":
         return (
-          <Badge className="bg-red-500/10 text-red-600 border-red-500/20">
-            <XCircle className="w-4 h-4 mr-1" />
-            Verification Rejected
+          <Badge variant="destructive" className="flex items-center gap-1">
+            <AlertCircle className="h-3 w-3" />
+            Rejected
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline">
-            <AlertCircle className="w-4 h-4 mr-1" />
+          <Badge variant="outline" className="flex items-center gap-1">
+            <AlertCircle className="h-3 w-3" />
             Not Verified
           </Badge>
         );
@@ -316,264 +215,227 @@ const ProfilePage = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
+    try {
+      await signOut();
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out");
+    }
   };
 
-  const displayName = profile.firstName && profile.lastName 
-    ? `${profile.firstName} ${profile.lastName}` 
-    : 'User';
-  const displayEmail = profile.email || user?.email || 'No email';
-
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-background">
       <AppSidebar
         currentPath="/profile"
-        displayName={displayName}
-        displayEmail={displayEmail}
+        displayName={`${profile.firstName} ${profile.lastName}`}
+        displayEmail={profile.email}
         profilePictureUrl={profile.profilePictureUrl}
         onSignOut={handleSignOut}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-64">
-        {/* Header */}
-        <header className="flex items-center justify-between whitespace-nowrap px-10 py-6 bg-background border-b border-border/60">
-          <h1 className="text-2xl font-semibold text-foreground">Profile Settings</h1>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 p-10 bg-background overflow-y-auto">
-          <div className="container mx-auto max-w-6xl">
-        {/* Profile Header Section */}
-        <Card className="rounded-2xl border-border/40 mb-6">
-          <CardContent className="p-8">
-            <div className="flex items-start gap-8">
-              {/* Avatar */}
-              <div className="flex-shrink-0 relative group">
-                {profile.profilePictureUrl ? (
-                  <img 
-                    src={profile.profilePictureUrl} 
-                    alt="Profile" 
-                    className="w-32 h-32 rounded-full object-cover border-4 border-border/40"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl font-bold text-white">
-                    {profile.firstName?.[0]}{profile.lastName?.[0]}
-                  </div>
-                )}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingImage}
-                  className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-                >
-                  {uploadingImage ? (
-                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Camera className="w-5 h-5" />
-                  )}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleProfilePictureUpload}
-                  className="hidden"
-                />
-              </div>
-
-              {/* Profile Info */}
-              <div className="flex-1">
-                <h2 className="text-3xl font-bold text-foreground mb-2">
-                  {profile.firstName} {profile.lastName}
-                </h2>
-                <div className="mb-4">
-                  {getStatusBadge()}
-                </div>
-                <p className="text-muted-foreground mb-2">{profile.email}</p>
-                {profile.city && (
-                  <p className="text-sm text-muted-foreground">
-                    📍 {profile.city}{profile.pinCode ? `, ${profile.pinCode}` : ''}
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Personal Information */}
+      <main className="flex-1 p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Profile Header Card */}
           <Card className="rounded-2xl border-border/40">
-            <CardHeader>
-              <CardTitle className="text-xl">Personal Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label>First Name</Label>
-                  <Input value={profile.firstName} disabled className="bg-muted/50" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Last Name</Label>
-                  <Input value={profile.lastName} disabled className="bg-muted/50" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input value={profile.email} disabled className="bg-muted/50" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Gender</Label>
-                  <Select value={profile.gender} onValueChange={(value) => setProfile({ ...profile, gender: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                      <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Date of Birth</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !profile.dateOfBirth && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {profile.dateOfBirth ? format(profile.dateOfBirth, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={profile.dateOfBirth}
-                        onSelect={(date) => setProfile({ ...profile, dateOfBirth: date })}
-                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="space-y-2">
-                  <Label>City</Label>
-                  <Input
-                    value={profile.city}
-                    onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-                    placeholder="Enter your city"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Pin Code</Label>
-                  <Input
-                    value={profile.pinCode}
-                    onChange={(e) => setProfile({ ...profile, pinCode: e.target.value.replace(/\D/g, "").slice(0, 6) })}
-                    placeholder="6-digit pin code"
-                    maxLength={6}
-                  />
-                </div>
-              </div>
-
-              <Button onClick={handleProfileUpdate} disabled={loading} className="w-full">
-                {loading ? "Updating..." : "Update Profile"}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Right Column - Student Verification */}
-          <Card className="rounded-2xl border-border/40">
-            <CardHeader>
-              <CardTitle className="text-xl">Student Verification</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {verification.status === "approved" && (
-                <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-4">
-                  <p className="text-green-600 flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5" />
-                    You are verified as a student! You can now apply for projects.
-                  </p>
-                </div>
-              )}
-
-              {verification.status === "pending" && (
-                <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-4">
-                  <p className="text-yellow-600 flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    Your verification request is pending review. We'll notify you once it's processed.
-                  </p>
-                </div>
-              )}
-
-              {verification.status === "rejected" && (
-                <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4 space-y-2">
-                  <p className="text-red-600 flex items-center gap-2">
-                    <XCircle className="w-5 h-5" />
-                    Your verification was rejected.
-                  </p>
-                  {verification.rejectionReason && (
-                    <p className="text-sm text-muted-foreground">Reason: {verification.rejectionReason}</p>
-                  )}
-                  <p className="text-sm text-muted-foreground">You can submit a new verification request below.</p>
-                </div>
-              )}
-
-              {(verification.status === "not_submitted" || verification.status === "rejected") && (
-                <>
-                  <div className="space-y-2">
-                    <Label>Institute Name *</Label>
-                    <Input
-                      value={verification.instituteName}
-                      onChange={(e) => setVerification({ ...verification, instituteName: e.target.value })}
-                      placeholder="Enter your institute name"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Institute Email * (.edu or .ac.in)</Label>
-                    <Input
-                      type="email"
-                      value={verification.instituteEmail}
-                      onChange={(e) => setVerification({ ...verification, instituteEmail: e.target.value })}
-                      placeholder="your.email@university.edu"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Must end with .edu or .ac.in for automatic verification
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Enrollment ID (Optional)</Label>
-                    <Input
-                      value={verification.enrollmentId}
-                      onChange={(e) => setVerification({ ...verification, enrollmentId: e.target.value })}
-                      placeholder="Enter your enrollment ID"
-                    />
-                  </div>
-
-                  <Button
-                    onClick={handleVerificationSubmit}
-                    disabled={verificationLoading}
-                    className="w-full"
+            <CardContent className="p-8">
+              <div className="flex items-start gap-6">
+                {/* Profile Picture */}
+                <div className="relative group">
+                  <Avatar className="h-32 w-32">
+                    <AvatarImage src={profile.profilePictureUrl} />
+                    <AvatarFallback className="text-3xl">
+                      {profile.firstName[0]}
+                      {profile.lastName[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <label
+                    htmlFor="profile-picture"
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   >
-                    {verificationLoading ? "Submitting..." : "Submit Verification Request"}
-                  </Button>
-                </>
-              )}
+                    <Camera className="h-8 w-8 text-white" />
+                    <input
+                      id="profile-picture"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleProfilePictureUpload}
+                      disabled={uploadingPicture}
+                    />
+                  </label>
+                  {uploadingPicture && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                      <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full" />
+                    </div>
+                  )}
+                </div>
+
+                {/* User Info */}
+                <div className="flex-1">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h1 className="text-3xl font-bold">
+                        {profile.firstName} {profile.lastName}
+                      </h1>
+                      <Badge variant="secondary" className="mt-2">
+                        {profile.userType === "student"
+                          ? "Student Freelancer"
+                          : "Freelancer"}
+                      </Badge>
+                      {profile.bio && (
+                        <p className="mt-3 text-muted-foreground max-w-2xl">
+                          {profile.bio}
+                        </p>
+                      )}
+                      {verification?.institute_name && (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          📚 {verification.institute_name}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-4">
+                        {getStatusBadge(verification?.verification_status || "not_verified")}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate("/profile/verify")}
+                        >
+                          Verify
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button onClick={() => navigate("/profile/edit")}>
+                        Edit Profile
+                      </Button>
+                      <Button variant="outline">View Public Profile</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </div>
+
+          {/* Two Column Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Skills Card */}
+              <Card className="rounded-2xl border-border/40">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg">Skills</CardTitle>
+                  <Button variant="ghost" size="icon">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {skills.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {skills.map((skill, index) => (
+                        <Badge key={index} variant="secondary">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No skills added yet
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Contact Information Card */}
+              <Card className="rounded-2xl border-border/40">
+                <CardHeader>
+                  <CardTitle className="text-lg">Contact Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{profile.email}</span>
+                  </div>
+                  {profile.phone && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{profile.phone}</span>
+                    </div>
+                  )}
+                  {profile.website && (
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={profile.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline"
+                      >
+                        {profile.website}
+                      </a>
+                    </div>
+                  )}
+                  {!profile.phone && !profile.website && (
+                    <p className="text-sm text-muted-foreground">
+                      No additional contact info
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column */}
+            <div className="lg:col-span-2">
+              <Card className="rounded-2xl border-border/40">
+                <CardHeader>
+                  <CardTitle>Completed Projects ({projects.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {projects.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {projects.map((project) => (
+                        <Card key={project.id} className="overflow-hidden">
+                          {project.image_url && (
+                            <img
+                              src={project.image_url}
+                              alt={project.title}
+                              className="w-full h-48 object-cover"
+                            />
+                          )}
+                          <CardContent className="p-4">
+                            <h3 className="font-semibold mb-2">{project.title}</h3>
+                            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                              {project.description}
+                            </p>
+                            {project.rating && (
+                              <div className="flex items-center gap-1 text-sm">
+                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                <span className="font-medium">{project.rating}</span>
+                                <span className="text-muted-foreground">from client</span>
+                              </div>
+                            )}
+                            {project.client_feedback && (
+                              <p className="text-xs text-muted-foreground mt-2 italic">
+                                "{project.client_feedback}"
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">
+                        No completed projects yet
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };

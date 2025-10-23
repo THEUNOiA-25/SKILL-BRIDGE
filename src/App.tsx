@@ -12,6 +12,8 @@ import NotFound from "./pages/NotFound";
 
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const EditProfilePage = lazy(() => import("./pages/EditProfilePage"));
+const StudentVerificationPage = lazy(() => import("./pages/StudentVerificationPage"));
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,22 @@ const App = () => (
               element={
                 <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                   <ProfilePage />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/profile/edit" 
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <EditProfilePage />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="/profile/verify" 
+              element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <StudentVerificationPage />
                 </Suspense>
               } 
             />
