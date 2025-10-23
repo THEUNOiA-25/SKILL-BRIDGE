@@ -34,17 +34,21 @@ const EditProfilePage = () => {
   });
 
   useEffect(() => {
-    if (user) {
-      fetchProfile();
+    if (!user) {
+      navigate("/login");
+      return;
     }
-  }, [user]);
+    fetchProfile();
+  }, [user, navigate]);
 
   const fetchProfile = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
@@ -70,6 +74,12 @@ const EditProfilePage = () => {
   };
 
   const handleSave = async () => {
+    if (!user?.id) {
+      toast.error("User not authenticated");
+      navigate("/login");
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase
@@ -83,7 +93,7 @@ const EditProfilePage = () => {
           phone: profile.phone,
           website: profile.website,
         })
-        .eq("user_id", user?.id);
+        .eq("user_id", user.id);
 
       if (error) throw error;
 

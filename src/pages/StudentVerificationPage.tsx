@@ -24,16 +24,20 @@ const StudentVerificationPage = () => {
   });
 
   useEffect(() => {
-    if (user) {
-      fetchData();
+    if (!user) {
+      navigate("/login");
+      return;
     }
-  }, [user]);
+    fetchData();
+  }, [user, navigate]);
 
   const fetchData = async () => {
+    if (!user?.id) return;
+    
     try {
       const [profileRes, verificationRes] = await Promise.all([
-        supabase.from("user_profiles").select("*").eq("user_id", user?.id).single(),
-        supabase.from("student_verifications").select("*").eq("user_id", user?.id).maybeSingle(),
+        supabase.from("user_profiles").select("*").eq("user_id", user.id).single(),
+        supabase.from("student_verifications").select("*").eq("user_id", user.id).maybeSingle(),
       ]);
 
       if (profileRes.data) {
@@ -64,6 +68,12 @@ const StudentVerificationPage = () => {
   };
 
   const handleSubmit = async () => {
+    if (!user?.id) {
+      toast.error("User not authenticated");
+      navigate("/login");
+      return;
+    }
+
     if (!formData.instituteName || !formData.instituteEmail) {
       toast.error("Please fill in all required fields");
       return;
@@ -77,7 +87,7 @@ const StudentVerificationPage = () => {
     setLoading(true);
     try {
       const { error } = await supabase.from("student_verifications").upsert({
-        user_id: user?.id,
+        user_id: user.id,
         institute_name: formData.instituteName,
         institute_email: formData.instituteEmail,
         enrollment_id: formData.enrollmentId,

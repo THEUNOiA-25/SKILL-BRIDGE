@@ -33,20 +33,24 @@ const ProfilePage = () => {
   const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    if (user) {
-      fetchProfile();
-      fetchVerification();
-      fetchSkills();
-      fetchProjects();
+    if (!user) {
+      navigate("/login");
+      return;
     }
-  }, [user]);
+    fetchProfile();
+    fetchVerification();
+    fetchSkills();
+    fetchProjects();
+  }, [user, navigate]);
 
   const fetchProfile = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
@@ -74,11 +78,13 @@ const ProfilePage = () => {
   };
 
   const fetchVerification = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from("student_verifications")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
@@ -93,11 +99,13 @@ const ProfilePage = () => {
   };
 
   const fetchSkills = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from("user_skills")
         .select("skill_name")
-        .eq("user_id", user?.id);
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
@@ -108,11 +116,13 @@ const ProfilePage = () => {
   };
 
   const fetchProjects = async () => {
+    if (!user?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from("user_projects")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .order("completed_at", { ascending: false });
 
       if (error) throw error;
