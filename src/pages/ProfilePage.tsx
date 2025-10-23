@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, CheckCircle2, Clock, XCircle, AlertCircle, Upload, Camera } from "lucide-react";
+import { CalendarIcon, CheckCircle2, Clock, XCircle, AlertCircle, Camera, Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, CircleArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -316,68 +316,93 @@ const ProfilePage = () => {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 border-r border-border/40 bg-card/30 backdrop-blur-sm">
-        <div className="flex flex-col h-full">
-          {/* Logo Section */}
-          <div className="px-6 py-8 border-b border-border/40">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              THEUNOIA
-            </h2>
+      {/* Sidebar */}
+      <aside className="w-64 bg-card border-r border-border/60 p-5 flex flex-col justify-between fixed left-0 top-0 h-screen">
+        <div className="flex flex-col gap-8">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="size-10 bg-primary rounded-2xl flex items-center justify-center shadow-sm">
+              <CircleArrowRight className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <h2 className="text-foreground text-lg font-bold tracking-tight">THEUNOiA</h2>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex-1 px-2 py-5 space-y-2">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-              onClick={() => navigate("/dashboard")}
+          {/* Navigation */}
+          <nav className="flex flex-col">
+            <a
+              href="/dashboard"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
             >
-              <div className="w-5 h-5 grid grid-cols-2 gap-0.5">
-                <div className="bg-current rounded-sm"></div>
-                <div className="bg-current rounded-sm"></div>
-                <div className="bg-current rounded-sm"></div>
-                <div className="bg-current rounded-sm"></div>
-              </div>
-              Dashboard
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 bg-muted text-foreground font-medium"
+              <Grid3X3 className="w-[18px] h-[18px]" />
+              <p className="text-[0.9375rem]">Dashboard</p>
+            </a>
+            <a
+              href="#"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Profile
-            </Button>
+              <Briefcase className="w-[18px] h-[18px]" />
+              <p className="text-[0.9375rem]">Projects</p>
+            </a>
+            <a
+              href="#"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
+            >
+              <Gavel className="w-[18px] h-[18px]" />
+              <p className="text-[0.9375rem]">Bids</p>
+            </a>
+            <a
+              href="#"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
+            >
+              <Mail className="w-[18px] h-[18px]" />
+              <p className="text-[0.9375rem]">Messages</p>
+            </a>
+            <a
+              href="/profile"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-primary-light text-primary font-semibold transition-all"
+            >
+              <User className="w-[18px] h-[18px]" />
+              <p className="text-[0.9375rem]">Profile</p>
+            </a>
           </nav>
+        </div>
 
-          {/* Logout at Bottom */}
-          <div className="px-2 py-5 border-t border-border/40">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive"
+        {/* Bottom Section */}
+        <div className="flex flex-col gap-3">
+          <a
+            href="#"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
+          >
+            <Settings className="w-[18px] h-[18px]" />
+            <p className="text-[0.9375rem]">Settings</p>
+          </a>
+          <div className="border-t border-border/60 my-1"></div>
+          <div className="flex items-center gap-3 px-2">
+            <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 bg-gradient-to-br from-primary to-accent shadow-sm" />
+            <div className="flex flex-col">
+              <h1 className="text-foreground text-sm font-semibold">{profile.firstName} {profile.lastName}</h1>
+              <p className="text-muted-foreground text-xs">{profile.email}</p>
+            </div>
+            <button 
               onClick={() => signOut()}
+              className="ml-auto text-muted-foreground hover:text-foreground transition-colors p-1"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
-            </Button>
+              <LogOut className="w-[18px] h-[18px]" />
+            </button>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
-        <div className="flex items-center justify-between px-8 py-6 border-b border-border/40 bg-card/30 backdrop-blur-sm">
+        <header className="flex items-center justify-between whitespace-nowrap px-10 py-6 bg-background border-b border-border/60">
           <h1 className="text-2xl font-semibold text-foreground">Profile Settings</h1>
-        </div>
+        </header>
 
         {/* Content */}
-        <div className="container mx-auto p-8 max-w-6xl">
+        <main className="flex-1 p-10 bg-background overflow-y-auto">
+          <div className="container mx-auto max-w-6xl">
         {/* Profile Header Section */}
         <Card className="rounded-2xl border-border/40 mb-6">
           <CardContent className="p-8">
@@ -603,7 +628,8 @@ const ProfilePage = () => {
             </CardContent>
           </Card>
         </div>
-        </div>
+          </div>
+        </main>
       </div>
     </div>
   );
