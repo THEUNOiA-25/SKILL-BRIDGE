@@ -104,7 +104,7 @@ const DashboardPage = () => {
               <p className="text-[0.9375rem]">Messages</p>
             </a>
             <a
-              href="#"
+              href="/profile"
               className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium transition-all"
             >
               <User className="w-[18px] h-[18px]" />

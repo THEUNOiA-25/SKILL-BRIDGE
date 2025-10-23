@@ -48,8 +48,10 @@ export type Database = {
           id: string
           institute_email: string | null
           institute_name: string
+          rejection_reason: string | null
           updated_at: string | null
           user_id: string
+          verification_method: string | null
           verification_status:
             | Database["public"]["Enums"]["verification_status"]
             | null
@@ -61,8 +63,10 @@ export type Database = {
           id?: string
           institute_email?: string | null
           institute_name: string
+          rejection_reason?: string | null
           updated_at?: string | null
           user_id: string
+          verification_method?: string | null
           verification_status?:
             | Database["public"]["Enums"]["verification_status"]
             | null
@@ -74,8 +78,10 @@ export type Database = {
           id?: string
           institute_email?: string | null
           institute_name?: string
+          rejection_reason?: string | null
           updated_at?: string | null
           user_id?: string
+          verification_method?: string | null
           verification_status?:
             | Database["public"]["Enums"]["verification_status"]
             | null
@@ -93,6 +99,7 @@ export type Database = {
           gender: string | null
           id: string
           last_name: string
+          pin_code: string | null
           profile_completed: boolean | null
           updated_at: string | null
           user_id: string
@@ -107,6 +114,7 @@ export type Database = {
           gender?: string | null
           id?: string
           last_name: string
+          pin_code?: string | null
           profile_completed?: boolean | null
           updated_at?: string | null
           user_id: string
@@ -121,6 +129,7 @@ export type Database = {
           gender?: string | null
           id?: string
           last_name?: string
+          pin_code?: string | null
           profile_completed?: boolean | null
           updated_at?: string | null
           user_id?: string
