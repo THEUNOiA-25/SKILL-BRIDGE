@@ -57,7 +57,7 @@ export const DashboardLayout = () => {
   const displayEmail = user.email || 'No email';
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="min-h-screen w-full bg-background">
       <AppSidebar
         currentPath={location.pathname}
         displayName={displayName}
@@ -65,7 +65,9 @@ export const DashboardLayout = () => {
         profilePictureUrl={profile?.profile_picture_url}
         onSignOut={handleSignOut}
       />
-      <Outlet />
+      <main className="ml-64">
+        <Outlet />
+      </main>
     </div>
   );
 };
