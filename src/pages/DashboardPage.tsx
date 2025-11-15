@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Search, Bell, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,19 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { AppSidebar } from '@/components/AppSidebar';
 
 const DashboardPage = () => {
-  const { user, loading, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/login');
-    }
-  }, [user, loading, navigate]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -35,8 +25,6 @@ const DashboardPage = () => {
           setProfile(data);
         } catch (error) {
           console.error('Error fetching profile:', error);
-        } finally {
-          setProfileLoading(false);
         }
       }
     };
@@ -44,36 +32,10 @@ const DashboardPage = () => {
     fetchProfile();
   }, [user]);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
-
-  if (loading || profileLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  const displayName = profile ? `${profile.first_name} ${profile.last_name}` : 'User';
-  const displayEmail = user.email || 'No email';
   const firstName = profile?.first_name || 'User';
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      {/* Sidebar */}
-      <AppSidebar
-        currentPath="/dashboard"
-        displayName={displayName}
-        displayEmail={displayEmail}
-        profilePictureUrl={profile?.profile_picture_url}
-        onSignOut={handleSignOut}
-      />
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-64">
+    <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
         <header className="flex items-center justify-between whitespace-nowrap px-10 py-6 bg-background border-b border-border/60">
           <div className="flex-1 max-w-xl">
@@ -325,7 +287,6 @@ const DashboardPage = () => {
           </section>
         </main>
       </div>
-    </div>
   );
 };
 

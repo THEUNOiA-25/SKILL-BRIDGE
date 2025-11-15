@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,12 +23,10 @@ const StudentVerificationPage = () => {
   });
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
+    if (user) {
+      fetchData();
     }
-    fetchData();
-  }, [user, navigate]);
+  }, [user]);
 
   const fetchData = async () => {
     if (!user?.id) return;
@@ -70,7 +67,6 @@ const StudentVerificationPage = () => {
   const handleSubmit = async () => {
     if (!user?.id) {
       toast.error("User not authenticated");
-      navigate("/login");
       return;
     }
 
@@ -139,16 +135,7 @@ const StudentVerificationPage = () => {
   const statusInfo = verification ? getStatusInfo(verification.verification_status) : null;
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AppSidebar
-        currentPath="/profile"
-        displayName={`${profile.firstName} ${profile.lastName}`}
-        displayEmail={profile.email}
-        profilePictureUrl=""
-        onSignOut={() => {}}
-      />
-
-      <main className="flex-1 p-8 ml-64">
+    <main className="flex-1 p-8 ml-64">
         <Button
           variant="ghost"
           onClick={() => navigate("/profile")}
@@ -259,8 +246,7 @@ const StudentVerificationPage = () => {
             )}
           </CardContent>
         </Card>
-      </main>
-    </div>
+    </main>
   );
 };
 

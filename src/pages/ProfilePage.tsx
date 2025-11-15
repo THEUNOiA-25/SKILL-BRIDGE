@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +11,7 @@ import { toast } from "sonner";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [profile, setProfile] = useState({
     firstName: "",
@@ -33,15 +32,13 @@ const ProfilePage = () => {
   const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
+    if (user) {
+      fetchProfile();
+      fetchVerification();
+      fetchSkills();
+      fetchProjects();
     }
-    fetchProfile();
-    fetchVerification();
-    fetchSkills();
-    fetchProjects();
-  }, [user, navigate]);
+  }, [user]);
 
   const fetchProfile = async () => {
     if (!user?.id) return;
@@ -224,27 +221,8 @@ const ProfilePage = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate("/login");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Failed to sign out");
-    }
-  };
-
   return (
-    <div className="flex min-h-screen bg-background">
-      <AppSidebar
-        currentPath="/profile"
-        displayName={`${profile.firstName} ${profile.lastName}`}
-        displayEmail={profile.email}
-        profilePictureUrl={profile.profilePictureUrl}
-        onSignOut={handleSignOut}
-      />
-
-      <main className="flex-1 p-8 ml-64">
+    <main className="flex-1 p-8 ml-64">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Profile Header Card */}
           <Card className="rounded-2xl border-border/40">
@@ -445,8 +423,7 @@ const ProfilePage = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </main>
   );
 };
 

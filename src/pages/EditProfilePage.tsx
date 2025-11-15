@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,12 +33,10 @@ const EditProfilePage = () => {
   });
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
+    if (user) {
+      fetchProfile();
     }
-    fetchProfile();
-  }, [user, navigate]);
+  }, [user]);
 
   const fetchProfile = async () => {
     if (!user?.id) return;
@@ -76,7 +73,6 @@ const EditProfilePage = () => {
   const handleSave = async () => {
     if (!user?.id) {
       toast.error("User not authenticated");
-      navigate("/login");
       return;
     }
 
@@ -108,16 +104,7 @@ const EditProfilePage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AppSidebar
-        currentPath="/profile"
-        displayName={`${profile.firstName} ${profile.lastName}`}
-        displayEmail={profile.email}
-        profilePictureUrl=""
-        onSignOut={() => {}}
-      />
-
-      <main className="flex-1 p-8 ml-64">
+    <main className="flex-1 p-8 ml-64">
         <Button
           variant="ghost"
           onClick={() => navigate("/profile")}
@@ -292,8 +279,7 @@ const EditProfilePage = () => {
             </Button>
           </CardContent>
         </Card>
-      </main>
-    </div>
+    </main>
   );
 };
 
