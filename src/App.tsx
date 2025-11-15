@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
+import { DashboardLayout } from "./components/DashboardLayout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -28,38 +29,43 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                  <DashboardPage />
-                </Suspense>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                  <ProfilePage />
-                </Suspense>
-              } 
-            />
-            <Route 
-              path="/profile/edit" 
-              element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                  <EditProfilePage />
-                </Suspense>
-              } 
-            />
-            <Route 
-              path="/profile/verify" 
-              element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                  <StudentVerificationPage />
-                </Suspense>
-              } 
-            />
+            
+            {/* Dashboard routes with shared layout */}
+            <Route element={<DashboardLayout />}>
+              <Route 
+                path="/dashboard" 
+                element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <DashboardPage />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <ProfilePage />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/profile/edit" 
+                element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <EditProfilePage />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/profile/verify" 
+                element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <StudentVerificationPage />
+                  </Suspense>
+                } 
+              />
+            </Route>
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
