@@ -169,9 +169,9 @@ export default function MessagesPage() {
   const selectedConversation = conversations?.find(c => c.id === selectedConversationId);
 
   return (
-    <main className="flex-1 flex h-screen overflow-hidden">
+    <main className="flex-1 flex overflow-hidden">
       {/* Left Column - Conversations List */}
-      <div className="w-80 border-r border-border flex flex-col bg-background">
+      <div className="w-80 border-r border-border flex flex-col bg-background h-[calc(100vh-0px)]">
         <div className="p-4 border-b border-border">
           <h1 className="text-2xl font-bold text-foreground">Messages</h1>
         </div>
@@ -201,7 +201,7 @@ export default function MessagesPage() {
       </div>
 
       {/* Middle Column - Active Chat */}
-      <div className="flex-1 flex flex-col bg-background">
+      <div className="flex-1 flex flex-col bg-background h-[calc(100vh-0px)]">
         {selectedConversationId && selectedConversation ? (
           <>
             {/* Chat Header */}
@@ -265,7 +265,7 @@ export default function MessagesPage() {
 
       {/* Right Column - Project Details */}
       {selectedConversationId && selectedConversation && (
-        <div className="w-80 border-l border-border p-4 bg-muted/50">
+        <div className="w-80 border-l border-border p-4 bg-muted/50 h-[calc(100vh-0px)] overflow-y-auto">
           <Card className="p-4">
             <h3 className="font-semibold text-foreground mb-2">Project Details</h3>
             <p className="text-sm text-muted-foreground mb-4">{selectedConversation.project_title}</p>
