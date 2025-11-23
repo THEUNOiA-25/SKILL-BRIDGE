@@ -16,6 +16,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const EditProfilePage = lazy(() => import("./pages/EditProfilePage"));
 const StudentVerificationPage = lazy(() => import("./pages/StudentVerificationPage"));
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
+const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
 const BidsPage = lazy(() => import("./pages/BidsPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 
@@ -76,7 +77,15 @@ const App = () => (
                 } 
               />
               <Route 
-                path="/bids" 
+                path="/projects/:id" 
+                element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <ProjectDetailPage />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/bids"
                 element={
                   <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                     <BidsPage />

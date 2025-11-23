@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +59,7 @@ const portfolioProjectSchema = z.object({
 
 const ProjectsPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [myProjects, setMyProjects] = useState<Project[]>([]);
   const [completedProjects, setCompletedProjects] = useState<Project[]>([]);
@@ -406,7 +408,7 @@ const ProjectsPage = () => {
             </Button>
           </div>
         ) : (
-          <Button className="w-full mt-2" size="sm">
+          <Button className="w-full mt-2" size="sm" onClick={() => navigate(`/projects/${project.id}`)}>
             View Details & Bid
           </Button>
         )}

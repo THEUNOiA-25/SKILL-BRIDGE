@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Search, Bell, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const DashboardPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [latestProjects, setLatestProjects] = useState<any[]>([]);
 
@@ -263,8 +265,11 @@ const DashboardPage = () => {
                         </p>
                       )}
                     </div>
-                    <Button className="mt-auto rounded-lg bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]">
-                      Place Bid
+                    <Button 
+                      className="mt-auto rounded-lg bg-foreground text-background hover:bg-foreground/90 shadow-sm font-medium text-[0.9375rem]"
+                      onClick={() => navigate(`/projects/${project.id}`)}
+                    >
+                      View Details
                     </Button>
                   </Card>
                 ))
