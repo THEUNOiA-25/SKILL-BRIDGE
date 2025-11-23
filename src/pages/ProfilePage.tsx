@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, Edit } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, X, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 const ProfilePage = () => {
@@ -30,6 +31,8 @@ const ProfilePage = () => {
   const [verification, setVerification] = useState<any>(null);
   const [skills, setSkills] = useState<string[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
+  const [newSkill, setNewSkill] = useState("");
+  const [addingSkill, setAddingSkill] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -109,6 +112,53 @@ const ProfilePage = () => {
       setSkills(data?.map((s) => s.skill_name) || []);
     } catch (error) {
       console.error("Error fetching skills:", error);
+    }
+  };
+
+  const handleAddSkill = async () => {
+    if (!newSkill.trim() || !user?.id) return;
+
+    if (skills.includes(newSkill.trim())) {
+      toast.error("Skill already exists");
+      return;
+    }
+
+    setAddingSkill(true);
+    try {
+      const { error } = await supabase
+        .from("user_skills")
+        .insert({ user_id: user.id, skill_name: newSkill.trim() });
+
+      if (error) throw error;
+
+      toast.success("Skill added successfully!");
+      setNewSkill("");
+      fetchSkills();
+    } catch (error) {
+      console.error("Error adding skill:", error);
+      toast.error("Failed to add skill");
+    } finally {
+      setAddingSkill(false);
+    }
+  };
+
+  const handleDeleteSkill = async (skillName: string) => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from("user_skills")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("skill_name", skillName);
+
+      if (error) throw error;
+
+      toast.success("Skill removed");
+      fetchSkills();
+    } catch (error) {
+      console.error("Error deleting skill:", error);
+      toast.error("Failed to remove skill");
     }
   };
 
@@ -311,18 +361,48 @@ const ProfilePage = () => {
             <div className="lg:col-span-1 space-y-6">
               {/* Skills Card */}
               <Card className="rounded-2xl border-border/40">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader>
                   <CardTitle className="text-lg">Skills</CardTitle>
-                  <Button variant="ghost" size="icon">
-                    <Edit className="h-4 w-4" />
-                  </Button>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                  {/* Add Skill Input */}
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add a new skill..."
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleAddSkill();
+                        }
+                      }}
+                      disabled={addingSkill}
+                    />
+                    <Button 
+                      onClick={handleAddSkill} 
+                      disabled={addingSkill || !newSkill.trim()}
+                      size="icon"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Skills List */}
                   {skills.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {skills.map((skill, index) => (
-                        <Badge key={index} variant="secondary">
+                        <Badge 
+                          key={index} 
+                          variant="secondary"
+                          className="flex items-center gap-1 pr-1"
+                        >
                           {skill}
+                          <button
+                            onClick={() => handleDeleteSkill(skill)}
+                            className="ml-1 hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
                         </Badge>
                       ))}
                     </div>
