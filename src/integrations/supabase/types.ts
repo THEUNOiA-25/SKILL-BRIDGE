@@ -47,6 +47,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "bids_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "bids_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
