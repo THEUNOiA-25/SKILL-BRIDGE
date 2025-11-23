@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, X, Plus } from "lucide-react";
+import { Camera, Mail, Phone, Globe, Star, AlertCircle, CheckCircle2, Clock, X, Plus, Edit } from "lucide-react";
 import { toast } from "sonner";
 
 const ProfilePage = () => {
@@ -33,6 +33,7 @@ const ProfilePage = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [newSkill, setNewSkill] = useState("");
   const [addingSkill, setAddingSkill] = useState(false);
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -361,31 +362,40 @@ const ProfilePage = () => {
             <div className="lg:col-span-1 space-y-6">
               {/* Skills Card */}
               <Card className="rounded-2xl border-border/40">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-lg">Skills</CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setIsEditingSkills(!isEditingSkills)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Add Skill Input */}
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Add a new skill..."
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleAddSkill();
-                        }
-                      }}
-                      disabled={addingSkill}
-                    />
-                    <Button 
-                      onClick={handleAddSkill} 
-                      disabled={addingSkill || !newSkill.trim()}
-                      size="icon"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {/* Add Skill Input - Only show when editing */}
+                  {isEditingSkills && (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Add a new skill..."
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleAddSkill();
+                          }
+                        }}
+                        disabled={addingSkill}
+                      />
+                      <Button 
+                        onClick={handleAddSkill} 
+                        disabled={addingSkill || !newSkill.trim()}
+                        size="icon"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Skills List */}
                   {skills.length > 0 ? (
@@ -394,15 +404,17 @@ const ProfilePage = () => {
                         <Badge 
                           key={index} 
                           variant="secondary"
-                          className="flex items-center gap-1 pr-1"
+                          className={`flex items-center gap-1 ${isEditingSkills ? 'pr-1' : ''}`}
                         >
                           {skill}
-                          <button
-                            onClick={() => handleDeleteSkill(skill)}
-                            className="ml-1 hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
+                          {isEditingSkills && (
+                            <button
+                              onClick={() => handleDeleteSkill(skill)}
+                              className="ml-1 hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
                         </Badge>
                       ))}
                     </div>
