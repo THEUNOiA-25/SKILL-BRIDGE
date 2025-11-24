@@ -76,7 +76,8 @@ const ProjectsPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("browse");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [workDialogOpen, setWorkDialogOpen] = useState(false);
+  const [portfolioDialogOpen, setPortfolioDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [formType, setFormType] = useState<'work_requirement' | 'portfolio_project'>('work_requirement');
   const [isVerifiedStudent, setIsVerifiedStudent] = useState(false);
@@ -191,30 +192,19 @@ const ProjectsPage = () => {
     }
   };
 
-  const handleOpenDialog = (project?: Project, type: 'work_requirement' | 'portfolio_project' = 'work_requirement') => {
-    setFormType(type);
-    
+  const openWorkRequirementDialog = (project?: Project) => {
+    setFormType('work_requirement');
+
     if (project) {
       setEditingProject(project);
-      if (project.project_type === 'work_requirement') {
-        setWorkFormData({
-          title: project.title,
-          description: project.description,
-          budget: project.budget?.toString() || "",
-          timeline: project.timeline || "",
-          skills_required: project.skills_required?.join(", ") || "",
-        });
-      } else {
-        setPortfolioFormData({
-          title: project.title,
-          description: project.description,
-          rating: project.rating?.toString() || "",
-          client_feedback: project.client_feedback || "",
-          completed_at: project.completed_at || "",
-        });
-      }
-      
-      // Load existing images and files
+      setWorkFormData({
+        title: project.title,
+        description: project.description,
+        budget: project.budget?.toString() || "",
+        timeline: project.timeline || "",
+        skills_required: project.skills_required?.join(", ") || "",
+      });
+
       const images = project.additional_images || [];
       setUploadedImages(images.map(url => ({ name: url.split('/').pop(), url, type: 'image', size: 0 })));
       setCoverImageUrl(project.cover_image_url || images[0] || "");
@@ -228,6 +218,33 @@ const ProjectsPage = () => {
         timeline: "",
         skills_required: "",
       });
+      setUploadedImages([]);
+      setUploadedFiles([]);
+      setCoverImageUrl("");
+    }
+
+    setWorkDialogOpen(true);
+  };
+
+  const openPortfolioDialog = (project?: Project) => {
+    setFormType('portfolio_project');
+
+    if (project) {
+      setEditingProject(project);
+      setPortfolioFormData({
+        title: project.title,
+        description: project.description,
+        rating: project.rating?.toString() || "",
+        client_feedback: project.client_feedback || "",
+        completed_at: project.completed_at || "",
+      });
+
+      const images = project.additional_images || [];
+      setUploadedImages(images.map(url => ({ name: url.split('/').pop(), url, type: 'image', size: 0 })));
+      setCoverImageUrl(project.cover_image_url || images[0] || "");
+      setUploadedFiles(project.attached_files || []);
+    } else {
+      setEditingProject(null);
       setPortfolioFormData({
         title: "",
         description: "",
@@ -239,7 +256,8 @@ const ProjectsPage = () => {
       setUploadedFiles([]);
       setCoverImageUrl("");
     }
-    setDialogOpen(true);
+
+    setPortfolioDialogOpen(true);
   };
 
   const handleSave = async () => {
@@ -323,7 +341,11 @@ const ProjectsPage = () => {
         }
       }
 
-      setDialogOpen(false);
+      if (formType === 'work_requirement') {
+        setWorkDialogOpen(false);
+      } else {
+        setPortfolioDialogOpen(false);
+      }
       fetchAllData();
     } catch (error: any) {
       console.error("Error saving project:", error);
@@ -462,7 +484,7 @@ const ProjectsPage = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleOpenDialog(project, 'work_requirement')}
+              onClick={() => openWorkRequirementDialog(project)}
             >
               <Edit className="w-3 h-3 mr-1" />
               Edit
@@ -535,7 +557,7 @@ const ProjectsPage = () => {
               variant="outline"
               size="sm"
               className="flex-1"
-              onClick={() => handleOpenDialog(project, 'portfolio_project')}
+              onClick={() => openPortfolioDialog(project)}
             >
               <Edit className="w-3 h-3 mr-1" />
               Edit
@@ -564,7 +586,7 @@ const ProjectsPage = () => {
           <Button 
             onClick={() => {
               setActiveTab('my-projects');
-              handleOpenDialog(undefined, 'work_requirement');
+              openWorkRequirementDialog();
             }} 
             className="gap-2"
           >
@@ -617,9 +639,9 @@ const ProjectsPage = () => {
           {/* User's Posted Work Requirements */}
           <TabsContent value="my-projects" className="space-y-6">
             <div className="flex justify-end">
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <Dialog open={workDialogOpen} onOpenChange={setWorkDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={() => handleOpenDialog(undefined, 'work_requirement')} className="gap-2">
+                  <Button onClick={() => openWorkRequirementDialog()} className="gap-2">
                     <Plus className="w-4 h-4" />
                     Post Work Requirement
                   </Button>
@@ -720,7 +742,7 @@ const ProjectsPage = () => {
                       <Button onClick={handleSave} className="flex-1">
                         {editingProject ? "Update" : "Post"} Work Requirement
                       </Button>
-                      <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                      <Button variant="outline" onClick={() => setWorkDialogOpen(false)}>
                         Cancel
                       </Button>
                     </div>
@@ -739,7 +761,7 @@ const ProjectsPage = () => {
                   <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">No Posted Projects</h3>
                   <p className="text-muted-foreground mb-6">Post your first project to find freelancers</p>
-                  <Button onClick={() => handleOpenDialog(undefined, 'work_requirement')} className="gap-2">
+                  <Button onClick={() => openWorkRequirementDialog()} className="gap-2">
                     <Plus className="w-4 h-4" />
                     Post Your First Project
                   </Button>
@@ -770,9 +792,9 @@ const ProjectsPage = () => {
           {isVerifiedStudent && (
             <TabsContent value="completed" className="space-y-6">
               <div className="flex justify-end">
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <Dialog open={portfolioDialogOpen} onOpenChange={setPortfolioDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button onClick={() => handleOpenDialog(undefined, 'portfolio_project')} className="gap-2">
+                    <Button onClick={() => openPortfolioDialog()} className="gap-2">
                       <Plus className="w-4 h-4" />
                       Add Portfolio Project
                     </Button>
@@ -875,14 +897,14 @@ const ProjectsPage = () => {
                         <Button onClick={handleSave} className="flex-1">
                           {editingProject ? "Update" : "Add"} Portfolio Project
                         </Button>
-                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                      </div>
+                      <Button variant="outline" onClick={() => setPortfolioDialogOpen(false)}>
+                        Cancel
+                      </Button>
                     </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
 
               {loading ? (
                 <div className="text-center py-12">
@@ -894,7 +916,7 @@ const ProjectsPage = () => {
                     <Star className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                     <h3 className="text-lg font-semibold text-foreground mb-2">No Portfolio Projects</h3>
                     <p className="text-muted-foreground mb-6">Showcase your completed work</p>
-                    <Button onClick={() => handleOpenDialog(undefined, 'portfolio_project')} className="gap-2">
+                    <Button onClick={() => openPortfolioDialog()} className="gap-2">
                       <Plus className="w-4 h-4" />
                       Add Your First Project
                     </Button>
