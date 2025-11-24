@@ -24,16 +24,27 @@ export const ConversationItem = ({ conversation, isActive, onClick }: Conversati
     .toUpperCase()
     .slice(0, 2);
 
+  // Generate a consistent pastel color based on the user name
+  const colors = [
+    'bg-purple-100 text-purple-700',
+    'bg-pink-100 text-pink-700',
+    'bg-blue-100 text-blue-700',
+    'bg-green-100 text-green-700',
+    'bg-yellow-100 text-yellow-700',
+    'bg-indigo-100 text-indigo-700',
+  ];
+  const colorIndex = conversation.other_user_name.charCodeAt(0) % colors.length;
+
   return (
     <button
       onClick={onClick}
-      className={`w-full p-4 flex items-start gap-3 hover:bg-muted/50 transition-colors border-b border-border text-left ${
-        isActive ? 'bg-muted' : ''
+      className={`w-full p-4 flex items-start gap-3 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all border-b border-border text-left ${
+        isActive ? 'bg-gradient-to-r from-primary/10 to-transparent' : ''
       }`}
     >
-      <Avatar className="h-12 w-12">
+      <Avatar className="h-12 w-12 ring-2 ring-background shadow-md">
         <AvatarImage src={conversation.other_user_avatar} />
-        <AvatarFallback className="bg-primary/10 text-primary">{initials}</AvatarFallback>
+        <AvatarFallback className={`${colors[colorIndex]} font-semibold`}>{initials}</AvatarFallback>
       </Avatar>
       
       <div className="flex-1 min-w-0">
@@ -59,7 +70,7 @@ export const ConversationItem = ({ conversation, isActive, onClick }: Conversati
             </p>
           )}
           {conversation.unread_count && conversation.unread_count > 0 && (
-            <Badge variant="default" className="ml-auto">
+            <Badge variant="default" className="ml-auto bg-gradient-to-r from-pink-500 to-rose-500 border-0 shadow-md">
               {conversation.unread_count}
             </Badge>
           )}
