@@ -560,14 +560,13 @@ const ProjectsPage = () => {
             <h1 className="text-4xl font-bold text-foreground mb-2">Projects</h1>
             <p className="text-muted-foreground">Browse available projects or manage your own</p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" />
-                Create Project
-              </Button>
-            </DialogTrigger>
-          </Dialog>
+          <Button 
+            onClick={() => handleOpenDialog(undefined, 'work_requirement')} 
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Create Project
+          </Button>
         </div>
 
         <Tabs defaultValue="browse" className="w-full">
