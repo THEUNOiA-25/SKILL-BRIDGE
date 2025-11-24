@@ -361,9 +361,21 @@ const ProjectDetailPage = () => {
                 </Dialog>
               )}
               {userAlreadyBid && (
-                <Badge variant="secondary" className="text-sm">
-                  You've already placed a bid
-                </Badge>
+                <>
+                  <Badge variant="secondary" className="text-sm">
+                    You've already placed a bid
+                  </Badge>
+                  {bids.some(bid => bid.freelancer_id === user?.id && bid.status === 'accepted') && (
+                    <Button 
+                      onClick={() => navigate('/messages')} 
+                      className="gap-2 ml-2"
+                      size="sm"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Go to Chat
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </CardHeader>

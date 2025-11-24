@@ -6,10 +6,11 @@ interface AppSidebarProps {
   displayName: string;
   displayEmail: string;
   profilePictureUrl?: string;
+  unreadMessageCount?: number;
   onSignOut: () => void;
 }
 
-export const AppSidebar = ({ currentPath, displayName, displayEmail, profilePictureUrl, onSignOut }: AppSidebarProps) => {
+export const AppSidebar = ({ currentPath, displayName, displayEmail, profilePictureUrl, unreadMessageCount, onSignOut }: AppSidebarProps) => {
   const navigate = useNavigate();
 
   const navItems = [
@@ -45,7 +46,7 @@ export const AppSidebar = ({ currentPath, displayName, displayEmail, profilePict
                   e.preventDefault();
                   navigate(item.path);
                 }}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all relative ${
                   isActive
                     ? 'bg-primary-light text-primary font-semibold'
                     : 'hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium rounded-xl'
@@ -53,6 +54,11 @@ export const AppSidebar = ({ currentPath, displayName, displayEmail, profilePict
               >
                 <Icon className="w-[18px] h-[18px]" />
                 <p className="text-[0.9375rem]">{item.label}</p>
+                {item.path === '/messages' && unreadMessageCount && unreadMessageCount > 0 && (
+                  <span className="ml-auto bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-5 min-w-[20px] flex items-center justify-center px-1.5">
+                    {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
+                  </span>
+                )}
               </a>
             );
           })}
