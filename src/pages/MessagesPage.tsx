@@ -171,8 +171,8 @@ export default function MessagesPage() {
   return (
     <main className="flex-1 flex overflow-hidden ml-64">
       {/* Left Column - Conversations List */}
-      <div className="w-80 border-r border-border flex flex-col bg-gradient-to-b from-background to-muted/20 h-[calc(100vh-0px)]">
-        <div className="p-4 border-b border-border bg-gradient-to-r from-primary/10 to-transparent">
+      <div className="w-80 border-r border-border flex flex-col bg-background h-[calc(100vh-0px)]">
+        <div className="p-4 border-b border-border bg-primary/5">
           <h1 className="text-2xl font-bold text-foreground">Messages</h1>
           <p className="text-xs text-muted-foreground mt-1">Chat with your clients and freelancers</p>
         </div>
@@ -202,17 +202,17 @@ export default function MessagesPage() {
       </div>
 
       {/* Middle Column - Active Chat */}
-      <div className="flex-1 flex flex-col bg-gradient-to-br from-background via-background to-primary/5 h-[calc(100vh-0px)]">
+      <div className="flex-1 flex flex-col bg-background h-[calc(100vh-0px)]">
         {selectedConversationId && selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-border bg-gradient-to-r from-primary/5 to-transparent backdrop-blur-sm">
+            <div className="p-4 border-b border-border bg-muted/30">
               <h2 className="font-semibold text-foreground">{selectedConversation.other_user_name}</h2>
               <p className="text-sm text-muted-foreground">{selectedConversation.project_title}</p>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-transparent to-muted/10">
+            <div className="flex-1 overflow-y-auto p-6 bg-muted/10">
               {messagesLoading ? (
                 <div className="text-center text-muted-foreground">Loading messages...</div>
               ) : messages && messages.length > 0 ? (
@@ -234,19 +234,19 @@ export default function MessagesPage() {
             </div>
 
             {/* Message Input */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-background/80 backdrop-blur-sm">
+            <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-background">
               <div className="flex gap-2">
                 <Input
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1 bg-muted/50 border-muted focus:border-primary/50 rounded-full px-4"
+                  className="flex-1 bg-muted border-border focus:border-primary rounded-full px-4"
                   disabled={sendMessageMutation.isPending}
                 />
                 <Button
                   type="submit"
                   size="icon"
-                  className="rounded-full w-11 h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
+                  className="rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-md"
                   disabled={!messageInput.trim() || sendMessageMutation.isPending}
                 >
                   <Send className="h-4 w-4" />
@@ -255,10 +255,10 @@ export default function MessagesPage() {
             </form>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-muted/20 to-transparent">
+          <div className="flex-1 flex items-center justify-center bg-muted/5">
             <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                <MessageSquare className="w-10 h-10 text-primary/40" />
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <MessageSquare className="w-10 h-10 text-primary/60" />
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">Select a conversation</h3>
               <p className="text-muted-foreground">Choose a conversation from the list to start messaging</p>
@@ -269,8 +269,8 @@ export default function MessagesPage() {
 
       {/* Right Column - Project Details */}
       {selectedConversationId && selectedConversation && (
-        <div className="w-80 border-l border-border p-4 bg-gradient-to-b from-muted/30 to-background h-[calc(100vh-0px)] overflow-y-auto">
-          <Card className="p-4 border-primary/20 bg-gradient-to-br from-background to-primary/5">
+        <div className="w-80 border-l border-border p-4 bg-background h-[calc(100vh-0px)] overflow-y-auto">
+          <Card className="p-4 border-border bg-muted/20">
             <h3 className="font-semibold text-foreground mb-2">Project Details</h3>
             <p className="text-sm text-muted-foreground mb-4">{selectedConversation.project_title}</p>
             

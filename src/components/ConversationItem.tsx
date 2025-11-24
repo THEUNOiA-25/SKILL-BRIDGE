@@ -38,8 +38,8 @@ export const ConversationItem = ({ conversation, isActive, onClick }: Conversati
   return (
     <button
       onClick={onClick}
-      className={`w-full p-4 flex items-start gap-3 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all border-b border-border text-left ${
-        isActive ? 'bg-gradient-to-r from-primary/10 to-transparent' : ''
+      className={`w-full p-4 flex items-start gap-3 hover:bg-primary/5 transition-all border-b border-border text-left relative ${
+        isActive ? 'bg-primary/10 border-l-4 border-l-primary' : ''
       }`}
     >
       <Avatar className="h-12 w-12 ring-2 ring-background shadow-md">
@@ -70,7 +70,7 @@ export const ConversationItem = ({ conversation, isActive, onClick }: Conversati
             </p>
           )}
           {conversation.unread_count && conversation.unread_count > 0 && (
-            <Badge variant="default" className="ml-auto bg-gradient-to-r from-pink-500 to-rose-500 border-0 shadow-md">
+            <Badge variant="default" className="ml-auto bg-primary text-primary-foreground border-0 shadow-md">
               {conversation.unread_count}
             </Badge>
           )}
