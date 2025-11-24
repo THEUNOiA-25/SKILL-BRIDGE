@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,9 +104,15 @@ const ProjectsPage = () => {
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
 
   useEffect(() => {
+    // Always fetch browse projects (public)
+    fetchBrowseProjects();
+    
+    // Fetch user-specific data only if authenticated
     if (user) {
       checkVerification();
-      fetchAllData();
+      fetchUserData();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
@@ -126,11 +133,9 @@ const ProjectsPage = () => {
     }
   };
 
-  const fetchAllData = async () => {
-    if (!user?.id) return;
-    
+  const fetchBrowseProjects = async () => {
     try {
-      // Fetch all open work requirements
+      // Fetch all open work requirements (public, no auth required)
       const { data: allData, error: allError } = await supabase
         .from("user_projects")
         .select("*")
@@ -140,7 +145,16 @@ const ProjectsPage = () => {
 
       if (allError) throw allError;
       setAllProjects((allData as Project[]) || []);
+    } catch (error) {
+      console.error("Error fetching browse projects:", error);
+      toast.error("Failed to load projects");
+    }
+  };
 
+  const fetchUserData = async () => {
+    if (!user?.id) return;
+    
+    try {
       // Fetch user's own work requirements
       const { data: myData, error: myError } = await supabase
         .from("user_projects")
@@ -185,14 +199,20 @@ const ProjectsPage = () => {
         setCompletedProjects((completedData as Project[]) || []);
       }
     } catch (error) {
-      console.error("Error fetching projects:", error);
-      toast.error("Failed to load projects");
+      console.error("Error fetching user data:", error);
+      toast.error("Failed to load your projects");
     } finally {
       setLoading(false);
     }
   };
 
   const openWorkRequirementDialog = (project?: Project) => {
+    if (!user) {
+      toast.error("Please log in to create or edit projects");
+      navigate('/login');
+      return;
+    }
+
     setFormType('work_requirement');
 
     if (project) {
@@ -227,6 +247,12 @@ const ProjectsPage = () => {
   };
 
   const openPortfolioDialog = (project?: Project) => {
+    if (!user) {
+      toast.error("Please log in to create or edit portfolio projects");
+      navigate('/login');
+      return;
+    }
+
     setFormType('portfolio_project');
 
     if (project) {
@@ -346,7 +372,8 @@ const ProjectsPage = () => {
       } else {
         setPortfolioDialogOpen(false);
       }
-      fetchAllData();
+      fetchBrowseProjects();
+      if (user) fetchUserData();
     } catch (error: any) {
       console.error("Error saving project:", error);
       if (error instanceof z.ZodError) {
@@ -368,7 +395,8 @@ const ProjectsPage = () => {
 
       if (error) throw error;
       toast.success("Project deleted successfully!");
-      fetchAllData();
+      fetchBrowseProjects();
+      if (user) fetchUserData();
     } catch (error) {
       console.error("Error deleting project:", error);
       toast.error("Failed to delete project");
@@ -384,7 +412,8 @@ const ProjectsPage = () => {
 
       if (error) throw error;
       toast.success("Project marked as completed!");
-      fetchAllData();
+      fetchBrowseProjects();
+      if (user) fetchUserData();
     } catch (error) {
       console.error("Error marking project as complete:", error);
       toast.error("Failed to mark project as complete");
@@ -583,10 +612,43 @@ const ProjectsPage = () => {
     </Card>
   );
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">Loading projects...</p>
+      </div>
+    );
+  }
+
   return (
-    <main className="flex-1 p-8 ml-64 bg-background">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+    <>
+      {user && (
+        <AppSidebar
+          currentPath="/projects"
+          displayName="User"
+          displayEmail={user.email || ''}
+          profilePictureUrl=""
+          onSignOut={async () => {
+            await supabase.auth.signOut();
+            navigate('/login');
+          }}
+        />
+      )}
+      
+      <main className={`flex-1 p-8 bg-background ${user ? 'ml-64' : ''}`}>
+        <div className="max-w-7xl mx-auto">
+          {!user && (
+            <div className="flex items-center justify-between mb-6 p-4 bg-muted/50 rounded-lg border border-border">
+              <p className="text-sm text-muted-foreground">
+                Sign in to post projects, place bids, and manage your work
+              </p>
+              <Button onClick={() => navigate('/login')} size="sm">
+                Sign In
+              </Button>
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold text-foreground mb-2">Projects</h1>
             <p className="text-muted-foreground">Browse available projects or manage your own</p>
@@ -646,8 +708,21 @@ const ProjectsPage = () => {
 
           {/* User's Posted Work Requirements */}
           <TabsContent value="my-projects" className="space-y-6">
-            <div className="flex justify-end">
-              <Dialog open={workDialogOpen} onOpenChange={setWorkDialogOpen}>
+            {!user ? (
+              <Card className="rounded-2xl border-border/40">
+                <CardContent className="py-12 text-center">
+                  <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Sign In Required</h3>
+                  <p className="text-muted-foreground mb-6">Please sign in to view and manage your projects</p>
+                  <Button onClick={() => navigate('/login')} className="gap-2">
+                    Sign In
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <div className="flex justify-end">
+                  <Dialog open={workDialogOpen} onOpenChange={setWorkDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={() => openWorkRequirementDialog()} className="gap-2">
                     <Plus className="w-4 h-4" />
@@ -940,6 +1015,7 @@ const ProjectsPage = () => {
         </Tabs>
       </div>
     </main>
+    </>
   );
 };
 
