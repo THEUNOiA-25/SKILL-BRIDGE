@@ -171,8 +171,8 @@ export default function MessagesPage() {
   return (
     <main className="flex-1 flex overflow-hidden ml-64">
       {/* Left Column - Conversations List */}
-      <div className="w-80 border-r border-border flex flex-col bg-gradient-to-b from-background to-muted/20 h-[calc(100vh-0px)]">
-        <div className="p-4 border-b border-border bg-gradient-to-r from-primary/10 to-transparent">
+      <div className="w-80 border-r border-border flex flex-col bg-gradient-to-b from-purple-500/5 via-background to-primary/5 h-[calc(100vh-0px)]">
+        <div className="p-4 border-b border-border bg-gradient-to-r from-purple-500/15 via-primary/10 to-transparent">
           <h1 className="text-2xl font-bold text-foreground">Messages</h1>
           <p className="text-xs text-muted-foreground mt-1">Chat with your clients and freelancers</p>
         </div>
@@ -202,11 +202,11 @@ export default function MessagesPage() {
       </div>
 
       {/* Middle Column - Active Chat */}
-      <div className="flex-1 flex flex-col bg-gradient-to-br from-background via-background to-primary/5 h-[calc(100vh-0px)]">
+      <div className="flex-1 flex flex-col bg-gradient-to-br from-purple-500/5 via-background to-primary/5 h-[calc(100vh-0px)]">
         {selectedConversationId && selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-border bg-gradient-to-r from-primary/5 to-transparent backdrop-blur-sm">
+            <div className="p-4 border-b border-border bg-gradient-to-r from-purple-500/10 via-primary/5 to-transparent backdrop-blur-sm">
               <h2 className="font-semibold text-foreground">{selectedConversation.other_user_name}</h2>
               <p className="text-sm text-muted-foreground">{selectedConversation.project_title}</p>
             </div>

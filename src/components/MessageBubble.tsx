@@ -15,10 +15,10 @@ export const MessageBubble = ({ message, isSender }: MessageBubbleProps) => {
   return (
     <div className={`flex ${isSender ? 'justify-end' : 'justify-start'} mb-4`}>
       <div
-        className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
+        className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-md ${
           isSender
-            ? 'bg-gradient-to-br from-yellow-100 to-amber-100 text-gray-800 rounded-br-sm'
-            : 'bg-gradient-to-br from-green-50 to-emerald-50 text-gray-800 rounded-bl-sm border border-green-100'
+            ? 'bg-gradient-to-br from-white to-primary/10 text-foreground rounded-br-sm border border-primary/10'
+            : 'bg-gradient-to-br from-white to-muted/30 text-foreground rounded-bl-sm border border-border/50'
         }`}
       >
         <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
