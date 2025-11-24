@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AppSidebar } from '@/components/AppSidebar';
+import { useQuery } from '@tanstack/react-query';
 
 export const DashboardLayout = () => {
   const { user, loading, signOut } = useAuth();
@@ -16,6 +17,29 @@ export const DashboardLayout = () => {
       navigate('/login');
     }
   }, [user, loading, navigate]);
+
+  // Fetch unread message count
+  const { data: unreadCount } = useQuery({
+    queryKey: ['unreadMessages', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+
+      const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_read', false)
+        .neq('sender_id', user.id);
+
+      if (error) {
+        console.error('Error fetching unread count:', error);
+        return 0;
+      }
+
+      return count || 0;
+    },
+    enabled: !!user,
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -63,6 +87,7 @@ export const DashboardLayout = () => {
         displayName={displayName}
         displayEmail={displayEmail}
         profilePictureUrl={profile?.profile_picture_url}
+        unreadMessageCount={unreadCount}
         onSignOut={handleSignOut}
       />
       <Outlet />
