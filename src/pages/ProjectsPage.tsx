@@ -403,15 +403,19 @@ const ProjectsPage = () => {
     
     return (
     <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-lg transition-shadow">
-      {(project.cover_image_url || project.image_url) && (
-        <div className="aspect-video w-full overflow-hidden bg-muted">
+      <div className="aspect-video w-full overflow-hidden bg-muted">
+        {(project.cover_image_url || project.image_url) ? (
           <img
             src={project.cover_image_url || project.image_url || ''}
             alt={project.title}
             className="w-full h-full object-cover"
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+            <ImageIcon className="w-16 h-16 text-muted-foreground/40" />
+          </div>
+        )}
+      </div>
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1">
@@ -509,15 +513,19 @@ const ProjectsPage = () => {
 
   const renderPortfolioCard = (project: Project, showActions: boolean = false) => (
     <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-lg transition-shadow">
-      {(project.cover_image_url || project.image_url) && (
-        <div className="aspect-video w-full overflow-hidden bg-muted">
+      <div className="aspect-video w-full overflow-hidden bg-muted">
+        {(project.cover_image_url || project.image_url) ? (
           <img
             src={project.cover_image_url || project.image_url || ''}
             alt={project.title}
             className="w-full h-full object-cover"
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+            <ImageIcon className="w-16 h-16 text-muted-foreground/40" />
+          </div>
+        )}
+      </div>
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1">
