@@ -38,8 +38,8 @@ export const ConversationItem = ({ conversation, isActive, onClick }: Conversati
   return (
     <button
       onClick={onClick}
-      className={`w-full p-4 flex items-start gap-3 hover:bg-gradient-to-r hover:from-purple-500/10 hover:via-primary/5 hover:to-transparent transition-all border-b border-border text-left ${
-        isActive ? 'bg-gradient-to-r from-purple-500/15 via-primary/10 to-transparent border-l-4 border-l-purple-500' : ''
+      className={`w-full p-4 flex items-start gap-3 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent transition-all border-b border-border text-left ${
+        isActive ? 'bg-gradient-to-r from-primary/10 to-transparent' : ''
       }`}
     >
       <Avatar className="h-12 w-12 ring-2 ring-background shadow-md">
