@@ -75,6 +75,7 @@ const ProjectsPage = () => {
   const [completedProjects, setCompletedProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("browse");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [formType, setFormType] = useState<'work_requirement' | 'portfolio_project'>('work_requirement');
@@ -561,7 +562,10 @@ const ProjectsPage = () => {
             <p className="text-muted-foreground">Browse available projects or manage your own</p>
           </div>
           <Button 
-            onClick={() => handleOpenDialog(undefined, 'work_requirement')} 
+            onClick={() => {
+              setActiveTab('my-projects');
+              handleOpenDialog(undefined, 'work_requirement');
+            }} 
             className="gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -569,7 +573,7 @@ const ProjectsPage = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="browse" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className={`grid w-full max-w-md mb-8 ${isVerifiedStudent ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="browse">Browse Projects</TabsTrigger>
             <TabsTrigger value="my-projects">My Projects</TabsTrigger>
