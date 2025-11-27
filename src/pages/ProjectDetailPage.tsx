@@ -55,7 +55,7 @@ const bidSchema = z.object({
     const num = parseFloat(val);
     return !isNaN(num) && num > 0;
   }, "Amount must be a positive number"),
-  proposal: z.string().trim().min(20, "Proposal must be at least 20 characters").max(1000, "Proposal must be less than 1000 characters"),
+  proposal: z.string().trim().min(20, "Proposal must be at least 20 characters").max(3000, "Proposal must be less than 3000 characters"),
 });
 
 const ProjectDetailPage = () => {
@@ -345,7 +345,7 @@ const ProjectDetailPage = () => {
                           rows={6}
                         />
                         <p className="text-xs text-muted-foreground">
-                          {bidFormData.proposal.length}/1000 characters
+                          {bidFormData.proposal.length}/3000 characters
                         </p>
                       </div>
                       <div className="flex gap-3 pt-4">
