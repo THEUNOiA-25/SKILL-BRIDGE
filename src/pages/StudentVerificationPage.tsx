@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, AlertCircle, CheckCircle2, Clock, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 const StudentVerificationPage = () => {
   const navigate = useNavigate();
@@ -21,6 +22,9 @@ const StudentVerificationPage = () => {
     instituteEmail: "",
     enrollmentId: "",
   });
+  const [idCardFile, setIdCardFile] = useState<File | null>(null);
+  const [idCardPreview, setIdCardPreview] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -52,6 +56,21 @@ const StudentVerificationPage = () => {
           instituteEmail: verificationRes.data.institute_email || "",
           enrollmentId: verificationRes.data.enrollment_id || "",
         });
+        
+        // Load ID card if exists
+        if (verificationRes.data.id_card_url) {
+          try {
+            const { data: signedUrlData } = await supabase.storage
+              .from('student-id-cards')
+              .createSignedUrl(verificationRes.data.id_card_url, 3600);
+            
+            if (signedUrlData?.signedUrl) {
+              setIdCardPreview(signedUrlData.signedUrl);
+            }
+          } catch (error) {
+            console.error('Error loading ID card:', error);
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -64,31 +83,112 @@ const StudentVerificationPage = () => {
     return eduDomains.some((domain) => email.toLowerCase().includes(domain));
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Please upload a valid image file (JPG, PNG, or WEBP)");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    setIdCardFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setIdCardPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveFile = () => {
+    setIdCardFile(null);
+    setIdCardPreview("");
+  };
+
+  const uploadIdCard = async (): Promise<string | null> => {
+    if (!idCardFile || !user?.id) return null;
+
+    setUploading(true);
+    try {
+      const fileExt = idCardFile.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('student-id-cards')
+        .upload(fileName, idCardFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // For non-public bucket, use the path directly (URL will be handled via RLS)
+      return data.path;
+    } catch (error) {
+      console.error('Error uploading ID card:', error);
+      toast.error('Failed to upload ID card');
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user?.id) {
       toast.error("User not authenticated");
       return;
     }
 
-    if (!formData.instituteName || !formData.instituteEmail) {
-      toast.error("Please fill in all required fields");
+    if (!formData.instituteName) {
+      toast.error("Please enter your institute name");
       return;
     }
 
-    if (!validateEmail(formData.instituteEmail)) {
-      toast.error("Please use your institute email address (.edu or .ac domain)");
+    // Validate that either email OR ID card is provided
+    const hasValidEmail = formData.instituteEmail && validateEmail(formData.instituteEmail);
+    const hasIdCard = idCardFile || idCardPreview;
+
+    if (!hasValidEmail && !hasIdCard) {
+      toast.error("Please provide either a valid institute email (.edu or .ac domain) OR upload your student ID card");
       return;
     }
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("student_verifications").upsert({
+      let idCardUrl = idCardPreview || null;
+      
+      // Upload new ID card if provided
+      if (idCardFile) {
+        const uploadedUrl = await uploadIdCard();
+        if (uploadedUrl) {
+          idCardUrl = uploadedUrl;
+        } else {
+          setLoading(false);
+          return; // Upload failed, don't proceed
+        }
+      }
+
+      const verificationData: any = {
         user_id: user.id,
         institute_name: formData.instituteName,
-        institute_email: formData.instituteEmail,
-        enrollment_id: formData.enrollmentId,
+        institute_email: formData.instituteEmail || null,
+        enrollment_id: formData.enrollmentId || null,
         verification_status: "pending",
-      });
+        id_card_url: idCardUrl,
+        verification_method: hasValidEmail ? 'email' : 'id_card',
+      };
+
+      const { error } = await supabase.from("student_verifications").upsert(verificationData);
 
       if (error) throw error;
 
@@ -205,7 +305,9 @@ const StudentVerificationPage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="instituteEmail">Institute Email *</Label>
+                <Label htmlFor="instituteEmail">
+                  Institute Email {!idCardFile && !idCardPreview && "*"}
+                </Label>
                 <Input
                   id="instituteEmail"
                   type="email"
@@ -217,8 +319,64 @@ const StudentVerificationPage = () => {
                   disabled={!canSubmit}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Must be an educational email (.edu or .ac domain)
+                  Educational email (.edu or .ac domain) OR upload ID card below
                 </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="idCard">
+                  Student ID Card {!formData.instituteEmail && "*"}
+                </Label>
+                <div className="space-y-3">
+                  {idCardPreview ? (
+                    <div className="relative border-2 border-dashed border-border rounded-lg p-4">
+                      <img
+                        src={idCardPreview}
+                        alt="ID Card Preview"
+                        className="max-w-full h-auto max-h-64 mx-auto rounded-lg"
+                      />
+                      {canSubmit && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2"
+                          onClick={handleRemoveFile}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                      <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Upload your student ID card
+                      </p>
+                      <Input
+                        id="idCard"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handleFileSelect}
+                        disabled={!canSubmit}
+                        className="hidden"
+                      />
+                      <Label
+                        htmlFor="idCard"
+                        className={`inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer ${
+                          canSubmit
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                            : "bg-muted text-muted-foreground cursor-not-allowed"
+                        }`}
+                      >
+                        Choose File
+                      </Label>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    If you don't have an educational email, upload a clear photo of your student ID card (JPG, PNG, or WEBP, max 5MB)
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -238,10 +396,14 @@ const StudentVerificationPage = () => {
             {canSubmit && (
               <Button
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loading || uploading}
                 className="w-full"
               >
-                {loading ? "Submitting..." : "Submit Verification Request"}
+                {uploading
+                  ? "Uploading..."
+                  : loading
+                  ? "Submitting..."
+                  : "Submit Verification Request"}
               </Button>
             )}
           </CardContent>

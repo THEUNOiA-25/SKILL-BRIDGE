@@ -167,6 +167,7 @@ export type Database = {
           created_at: string | null
           enrollment_id: string | null
           id: string
+          id_card_url: string | null
           institute_email: string | null
           institute_name: string
           rejection_reason: string | null
@@ -182,6 +183,7 @@ export type Database = {
           created_at?: string | null
           enrollment_id?: string | null
           id?: string
+          id_card_url?: string | null
           institute_email?: string | null
           institute_name: string
           rejection_reason?: string | null
@@ -197,6 +199,7 @@ export type Database = {
           created_at?: string | null
           enrollment_id?: string | null
           id?: string
+          id_card_url?: string | null
           institute_email?: string | null
           institute_name?: string
           rejection_reason?: string | null
