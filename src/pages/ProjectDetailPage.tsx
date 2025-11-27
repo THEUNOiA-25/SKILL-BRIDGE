@@ -33,6 +33,7 @@ interface Project {
   skills_required: string[] | null;
   status: string | null;
   created_at: string;
+  bidding_deadline: string | null;
 }
 
 interface Bid {
@@ -277,7 +278,8 @@ const ProjectDetailPage = () => {
   }
 
   const isProjectOwner = user?.id === project.user_id;
-  const canPlaceBid = isVerifiedStudent && !isProjectOwner && project.status === 'open';
+  const biddingClosed = project.bidding_deadline ? new Date(project.bidding_deadline) < new Date() : false;
+  const canPlaceBid = isVerifiedStudent && !isProjectOwner && project.status === 'open' && !biddingClosed;
   const userAlreadyBid = bids.some(bid => bid.freelancer_id === user?.id);
 
   return (
@@ -314,51 +316,14 @@ const ProjectDetailPage = () => {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Place Your Bid</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="amount">Your Bid Amount ($) *</Label>
-                        <Input
-                          id="amount"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={bidFormData.amount}
-                          onChange={(e) => setBidFormData({ ...bidFormData, amount: e.target.value })}
-                          placeholder="500"
-                        />
-                        {project.budget && (
-                          <p className="text-xs text-muted-foreground">
-                            Client's budget: ${project.budget}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="proposal">Your Proposal *</Label>
-                        <Textarea
-                          id="proposal"
-                          value={bidFormData.proposal}
-                          onChange={(e) => setBidFormData({ ...bidFormData, proposal: e.target.value })}
-                          placeholder="Explain why you're the best fit for this project..."
-                          rows={6}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          {bidFormData.proposal.length}/3000 characters
-                        </p>
-                      </div>
-                      <div className="flex gap-3 pt-4">
-                        <Button onClick={handlePlaceBid} className="flex-1">
-                          Submit Bid
-                        </Button>
-                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
+...
                   </DialogContent>
                 </Dialog>
+              )}
+              {biddingClosed && !isProjectOwner && project.status === 'open' && (
+                <Badge variant="destructive" className="text-sm">
+                  Bidding Closed
+                </Badge>
               )}
               {userAlreadyBid && (
                 <>
@@ -421,7 +386,7 @@ const ProjectDetailPage = () => {
 
             <Separator />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {project.budget && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -438,6 +403,24 @@ const ProjectDetailPage = () => {
                     <h3 className="text-sm font-semibold text-foreground">Timeline</h3>
                   </div>
                   <p className="text-lg text-foreground">{project.timeline}</p>
+                </div>
+              )}
+              {project.bidding_deadline && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">Bidding Deadline</h3>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-lg text-foreground">{format(new Date(project.bidding_deadline), "PPP")}</p>
+                    {biddingClosed ? (
+                      <Badge variant="destructive" className="text-xs">Closed</Badge>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        {Math.ceil((new Date(project.bidding_deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days left
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
               <div>
