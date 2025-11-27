@@ -17,8 +17,8 @@ export const MessageBubble = ({ message, isSender }: MessageBubbleProps) => {
       <div
         className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
           isSender
-            ? 'bg-secondary/30 text-secondary-foreground rounded-br-sm'
-            : 'bg-accent/30 text-accent-foreground rounded-bl-sm border border-accent/40'
+            ? 'bg-secondary text-secondary-foreground rounded-br-sm'
+            : 'bg-accent text-accent-foreground rounded-bl-sm border border-accent'
         }`}
       >
         <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
