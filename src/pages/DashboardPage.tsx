@@ -7,12 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { PROJECT_CATEGORIES, getCategoryList } from '@/data/categories';
+import { cn } from '@/lib/utils';
 
 const DashboardPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [latestProjects, setLatestProjects] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -34,11 +37,17 @@ const DashboardPage = () => {
 
     const fetchLatestProjects = async () => {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('user_projects')
           .select('*')
           .eq('project_type', 'work_requirement')
-          .eq('status', 'open')
+          .eq('status', 'open');
+        
+        if (selectedCategory) {
+          query = query.eq('category', selectedCategory);
+        }
+        
+        const { data, error } = await query
           .order('created_at', { ascending: false })
           .limit(3);
 
@@ -51,7 +60,7 @@ const DashboardPage = () => {
 
     fetchProfile();
     fetchLatestProjects();
-  }, [user]);
+  }, [user, selectedCategory]);
 
   const firstName = profile?.first_name || 'User';
 
@@ -206,24 +215,35 @@ const DashboardPage = () => {
             <div className="px-2 pb-5">
               <h2 className="text-foreground text-xl font-semibold pb-5">Recommended For You</h2>
               <div className="flex flex-wrap gap-2.5">
-                <Button size="sm" className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 text-[0.875rem] font-medium shadow-sm">
-                  Writing & Content
+                <Button 
+                  size="sm" 
+                  variant={selectedCategory === "" ? "default" : "ghost"}
+                  className={cn(
+                    "rounded-xl h-9 px-4 text-[0.875rem] font-medium shadow-sm",
+                    selectedCategory === "" 
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                      : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+                  )}
+                  onClick={() => setSelectedCategory("")}
+                >
+                  All Categories
                 </Button>
-                <Button size="sm" variant="ghost" className="rounded-xl text-muted-foreground hover:bg-muted/30 hover:text-foreground h-9 px-4 text-[0.875rem] font-medium">
-                  Design & Creative
-                </Button>
-                <Button size="sm" variant="ghost" className="rounded-xl text-muted-foreground hover:bg-muted/30 hover:text-foreground h-9 px-4 text-[0.875rem] font-medium">
-                  Tech & Development
-                </Button>
-                <Button size="sm" variant="ghost" className="rounded-xl text-muted-foreground hover:bg-muted/30 hover:text-foreground h-9 px-4 text-[0.875rem] font-medium">
-                  Social Media & Marketing
-                </Button>
-                <Button size="sm" variant="ghost" className="rounded-xl text-muted-foreground hover:bg-muted/30 hover:text-foreground h-9 px-4 text-[0.875rem] font-medium">
-                  Video & Multimedia
-                </Button>
-                <Button size="sm" variant="ghost" className="rounded-xl text-muted-foreground hover:bg-muted/30 hover:text-foreground h-9 px-4 text-[0.875rem] font-medium">
-                  Virtual Assistance
-                </Button>
+                {getCategoryList().map((category) => (
+                  <Button 
+                    key={category}
+                    size="sm" 
+                    variant={selectedCategory === category ? "default" : "ghost"}
+                    className={cn(
+                      "rounded-xl h-9 px-4 text-[0.875rem] font-medium",
+                      selectedCategory === category 
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm" 
+                        : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+                    )}
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    {category}
+                  </Button>
+                ))}
               </div>
             </div>
 
@@ -251,6 +271,20 @@ const DashboardPage = () => {
                       <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
                         {project.title}
                       </p>
+                      {(project.category || project.subcategory) && (
+                        <div className="flex gap-2 flex-wrap">
+                          {project.category && (
+                            <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary">
+                              {project.category}
+                            </span>
+                          )}
+                          {project.subcategory && (
+                            <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-secondary/60 text-secondary-foreground">
+                              {project.subcategory}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <p className="text-muted-foreground text-[0.875rem] font-normal line-clamp-2">
                         {project.description}
                       </p>

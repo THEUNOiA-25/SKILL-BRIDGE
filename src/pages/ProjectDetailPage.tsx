@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, DollarSign, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare, Images } from "lucide-react";
+import { ArrowLeft, DollarSign, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare, Images, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -34,6 +34,8 @@ interface Project {
   status: string | null;
   created_at: string;
   bidding_deadline: string | null;
+  category: string | null;
+  subcategory: string | null;
 }
 
 interface Bid {
@@ -387,6 +389,26 @@ const ProjectDetailPage = () => {
             <Separator />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {(project.category || project.subcategory) && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Tag className="w-4 h-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">Category</h3>
+                  </div>
+                  <div className="space-y-1">
+                    {project.category && (
+                      <Badge variant="outline" className="text-sm">
+                        {project.category}
+                      </Badge>
+                    )}
+                    {project.subcategory && (
+                      <Badge variant="secondary" className="text-sm block w-fit mt-1">
+                        {project.subcategory}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
               {project.budget && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">

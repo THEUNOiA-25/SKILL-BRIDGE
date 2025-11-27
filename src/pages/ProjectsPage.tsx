@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import { FileUploader } from "@/components/FileUploader";
 import { ImageGallery } from "@/components/ImageGallery";
 import { FileList } from "@/components/FileList";
+import { PROJECT_CATEGORIES, getCategoryList, getSubcategoriesForCategory } from "@/data/categories";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Project {
   id: string;
@@ -41,6 +43,8 @@ interface Project {
   skills_required: string[] | null;
   status: string | null;
   bidding_deadline: string | null;
+  category: string | null;
+  subcategory: string | null;
 }
 
 interface BidProject extends Project {
@@ -93,9 +97,13 @@ const ProjectsPage = () => {
     budget: "",
     timeline: "",
     skills_required: "",
+    category: "",
+    subcategory: "",
   });
 
   const [biddingDeadline, setBiddingDeadline] = useState<Date | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
 
   const [portfolioFormData, setPortfolioFormData] = useState({
     title: "",
@@ -229,6 +237,8 @@ const ProjectsPage = () => {
         budget: project.budget?.toString() || "",
         timeline: project.timeline || "",
         skills_required: project.skills_required?.join(", ") || "",
+        category: project.category || "",
+        subcategory: project.subcategory || "",
       });
 
       setBiddingDeadline(project.bidding_deadline ? new Date(project.bidding_deadline) : undefined);
@@ -245,6 +255,8 @@ const ProjectsPage = () => {
         budget: "",
         timeline: "",
         skills_required: "",
+        category: "",
+        subcategory: "",
       });
       setBiddingDeadline(undefined);
       setUploadedImages([]);
@@ -321,6 +333,8 @@ const ProjectsPage = () => {
           project_type: 'work_requirement',
           status: 'open',
           bidding_deadline: biddingDeadline ? biddingDeadline.toISOString() : null,
+          category: workFormData.category || null,
+          subcategory: workFormData.subcategory || null,
         };
 
         if (editingProject) {
@@ -430,11 +444,18 @@ const ProjectsPage = () => {
     }
   };
 
-  const filteredProjects = allProjects.filter((project) =>
-    project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.skills_required?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredProjects = allProjects.filter((project) => {
+    const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.skills_required?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      project.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.subcategory?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = !selectedCategory || project.category === selectedCategory;
+    const matchesSubcategory = !selectedSubcategory || project.subcategory === selectedSubcategory;
+    
+    return matchesSearch && matchesCategory && matchesSubcategory;
+  });
 
   const renderWorkRequirementCard = (project: Project | BidProject, showActions: boolean = false) => {
     const bidProject = project as BidProject;
@@ -472,6 +493,20 @@ const ProjectsPage = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {(project.category || project.subcategory) && (
+          <div className="flex gap-2 flex-wrap">
+            {project.category && (
+              <Badge variant="outline" className="text-xs">
+                {project.category}
+              </Badge>
+            )}
+            {project.subcategory && (
+              <Badge variant="secondary" className="text-xs">
+                {project.subcategory}
+              </Badge>
+            )}
+          </div>
+        )}
         <p className="text-sm text-muted-foreground line-clamp-3">
           {project.description}
         </p>
@@ -718,7 +753,7 @@ const ProjectsPage = () => {
 
           {/* Browse All Available Work Requirements */}
           <TabsContent value="browse" className="space-y-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               <div className="relative flex-1 max-w-xl">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -729,6 +764,37 @@ const ProjectsPage = () => {
                   className="pl-12 h-12 rounded-2xl border-border/60"
                 />
               </div>
+              <Select value={selectedCategory} onValueChange={(value) => {
+                setSelectedCategory(value);
+                setSelectedSubcategory("");
+              }}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Categories</SelectItem>
+                  {getCategoryList().map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedCategory && (
+                <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+                  <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="All Subcategories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Subcategories</SelectItem>
+                    {getSubcategoriesForCategory(selectedCategory).map((subcat) => (
+                      <SelectItem key={subcat} value={subcat}>
+                        {subcat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             {loading ? (
@@ -798,6 +864,50 @@ const ProjectsPage = () => {
                         placeholder="Describe your project requirements..."
                         rows={4}
                       />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="category">Category *</Label>
+                        <Select
+                          value={workFormData.category}
+                          onValueChange={(value) => {
+                            setWorkFormData({ ...workFormData, category: value, subcategory: "" });
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getCategoryList().map((cat) => (
+                              <SelectItem key={cat} value={cat}>
+                                {cat}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="subcategory">Subcategory *</Label>
+                        <Select
+                          value={workFormData.subcategory}
+                          onValueChange={(value) => {
+                            setWorkFormData({ ...workFormData, subcategory: value });
+                          }}
+                          disabled={!workFormData.category}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select subcategory" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {workFormData.category &&
+                              getSubcategoriesForCategory(workFormData.category).map((subcat) => (
+                                <SelectItem key={subcat} value={subcat}>
+                                  {subcat}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">

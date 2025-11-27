@@ -276,6 +276,7 @@ export type Database = {
           attached_files: Json | null
           bidding_deadline: string | null
           budget: number | null
+          category: string | null
           client_feedback: string | null
           completed_at: string | null
           cover_image_url: string | null
@@ -287,6 +288,7 @@ export type Database = {
           rating: number | null
           skills_required: string[] | null
           status: string | null
+          subcategory: string | null
           timeline: string | null
           title: string
           updated_at: string
@@ -297,6 +299,7 @@ export type Database = {
           attached_files?: Json | null
           bidding_deadline?: string | null
           budget?: number | null
+          category?: string | null
           client_feedback?: string | null
           completed_at?: string | null
           cover_image_url?: string | null
@@ -308,6 +311,7 @@ export type Database = {
           rating?: number | null
           skills_required?: string[] | null
           status?: string | null
+          subcategory?: string | null
           timeline?: string | null
           title: string
           updated_at?: string
@@ -318,6 +322,7 @@ export type Database = {
           attached_files?: Json | null
           bidding_deadline?: string | null
           budget?: number | null
+          category?: string | null
           client_feedback?: string | null
           completed_at?: string | null
           cover_image_url?: string | null
@@ -329,6 +334,7 @@ export type Database = {
           rating?: number | null
           skills_required?: string[] | null
           status?: string | null
+          subcategory?: string | null
           timeline?: string | null
           title?: string
           updated_at?: string
