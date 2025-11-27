@@ -102,8 +102,8 @@ const ProjectsPage = () => {
   });
 
   const [biddingDeadline, setBiddingDeadline] = useState<Date | undefined>();
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("all");
 
   const [portfolioFormData, setPortfolioFormData] = useState({
     title: "",
@@ -451,8 +451,8 @@ const ProjectsPage = () => {
       project.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.subcategory?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = !selectedCategory || project.category === selectedCategory;
-    const matchesSubcategory = !selectedSubcategory || project.subcategory === selectedSubcategory;
+    const matchesCategory = selectedCategory === "all" || project.category === selectedCategory;
+    const matchesSubcategory = selectedSubcategory === "all" || project.subcategory === selectedSubcategory;
     
     return matchesSearch && matchesCategory && matchesSubcategory;
   });
@@ -766,13 +766,13 @@ const ProjectsPage = () => {
               </div>
               <Select value={selectedCategory} onValueChange={(value) => {
                 setSelectedCategory(value);
-                setSelectedSubcategory("");
+                setSelectedSubcategory("all");
               }}>
                 <SelectTrigger className="w-[220px]">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {getCategoryList().map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat}
@@ -780,13 +780,13 @@ const ProjectsPage = () => {
                   ))}
                 </SelectContent>
               </Select>
-              {selectedCategory && (
+              {selectedCategory && selectedCategory !== "all" && (
                 <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
                   <SelectTrigger className="w-[220px]">
                     <SelectValue placeholder="All Subcategories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Subcategories</SelectItem>
+                    <SelectItem value="all">All Subcategories</SelectItem>
                     {getSubcategoriesForCategory(selectedCategory).map((subcat) => (
                       <SelectItem key={subcat} value={subcat}>
                         {subcat}

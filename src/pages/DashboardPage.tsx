@@ -15,7 +15,7 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [latestProjects, setLatestProjects] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [activeProjects, setActiveProjects] = useState<any[]>([]);
   const [myBids, setMyBids] = useState<any[]>([]);
 
@@ -87,7 +87,7 @@ const DashboardPage = () => {
           .eq('project_type', 'work_requirement')
           .eq('status', 'open');
         
-        if (selectedCategory) {
+        if (selectedCategory && selectedCategory !== "all") {
           query = query.eq('category', selectedCategory);
         }
         
@@ -282,14 +282,14 @@ const DashboardPage = () => {
               <div className="flex flex-wrap gap-2.5">
                 <Button 
                   size="sm" 
-                  variant={selectedCategory === "" ? "default" : "ghost"}
+                  variant={selectedCategory === "all" ? "default" : "ghost"}
                   className={cn(
                     "rounded-xl h-9 px-4 text-[0.875rem] font-medium shadow-sm",
-                    selectedCategory === "" 
+                    selectedCategory === "all" 
                       ? "bg-primary text-primary-foreground hover:bg-primary/90" 
                       : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
                   )}
-                  onClick={() => setSelectedCategory("")}
+                  onClick={() => setSelectedCategory("all")}
                 >
                   All Categories
                 </Button>
