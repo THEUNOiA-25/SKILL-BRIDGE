@@ -11,10 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, DollarSign, Clock, CheckCircle2, Paperclip } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, DollarSign, Clock, CheckCircle2, Paperclip, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 import { FileUploader } from "@/components/FileUploader";
 import { ImageGallery } from "@/components/ImageGallery";
 import { FileList } from "@/components/FileList";
@@ -37,6 +40,7 @@ interface Project {
   timeline: string | null;
   skills_required: string[] | null;
   status: string | null;
+  bidding_deadline: string | null;
 }
 
 interface BidProject extends Project {
@@ -90,6 +94,8 @@ const ProjectsPage = () => {
     timeline: "",
     skills_required: "",
   });
+
+  const [biddingDeadline, setBiddingDeadline] = useState<Date | undefined>();
 
   const [portfolioFormData, setPortfolioFormData] = useState({
     title: "",
@@ -225,6 +231,8 @@ const ProjectsPage = () => {
         skills_required: project.skills_required?.join(", ") || "",
       });
 
+      setBiddingDeadline(project.bidding_deadline ? new Date(project.bidding_deadline) : undefined);
+
       const images = project.additional_images || [];
       setUploadedImages(images.map(url => ({ name: url.split('/').pop(), url, type: 'image', size: 0 })));
       setCoverImageUrl(project.cover_image_url || images[0] || "");
@@ -238,6 +246,7 @@ const ProjectsPage = () => {
         timeline: "",
         skills_required: "",
       });
+      setBiddingDeadline(undefined);
       setUploadedImages([]);
       setUploadedFiles([]);
       setCoverImageUrl("");
@@ -311,6 +320,7 @@ const ProjectsPage = () => {
           attached_files: uploadedFiles,
           project_type: 'work_requirement',
           status: 'open',
+          bidding_deadline: biddingDeadline ? biddingDeadline.toISOString() : null,
         };
 
         if (editingProject) {
@@ -429,6 +439,9 @@ const ProjectsPage = () => {
   const renderWorkRequirementCard = (project: Project | BidProject, showActions: boolean = false) => {
     const bidProject = project as BidProject;
     const hasBidInfo = 'bidStatus' in project;
+    const biddingClosed = project.bidding_deadline ? new Date(project.bidding_deadline) < new Date() : false;
+    const isClosingSoon = project.bidding_deadline ? 
+      new Date(project.bidding_deadline).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000 && !biddingClosed : false;
     
     return (
     <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-lg transition-shadow">
@@ -462,7 +475,7 @@ const ProjectsPage = () => {
         <p className="text-sm text-muted-foreground line-clamp-3">
           {project.description}
         </p>
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-4 text-sm flex-wrap">
           {project.budget && (
             <div className="flex items-center gap-1">
               <DollarSign className="w-4 h-4 text-muted-foreground" />
@@ -475,7 +488,29 @@ const ProjectsPage = () => {
               <span className="text-muted-foreground">{project.timeline}</span>
             </div>
           )}
+          {project.bidding_deadline && (
+            <div className="flex items-center gap-1">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <span className={cn(
+                "text-muted-foreground text-xs",
+                biddingClosed && "text-destructive",
+                isClosingSoon && "text-orange-600 font-semibold"
+              )}>
+                {biddingClosed ? "Bidding Closed" : `Bids until ${format(new Date(project.bidding_deadline), "MMM d")}`}
+              </span>
+            </div>
+          )}
         </div>
+        {biddingClosed && project.status === 'open' && (
+          <Badge variant="destructive" className="text-xs w-fit">
+            Bidding Closed
+          </Badge>
+        )}
+        {isClosingSoon && !biddingClosed && (
+          <Badge variant="outline" className="text-xs w-fit border-orange-600 text-orange-600">
+            Closing Soon
+          </Badge>
+        )}
         {project.skills_required && project.skills_required.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {project.skills_required.map((skill, index) => (
@@ -795,6 +830,36 @@ const ProjectsPage = () => {
                         onChange={(e) => setWorkFormData({ ...workFormData, skills_required: e.target.value })}
                         placeholder="React, Node.js, MongoDB"
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Bidding Deadline (Optional)</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !biddingDeadline && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {biddingDeadline ? format(biddingDeadline, "PPP") : "Pick a deadline"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={biddingDeadline}
+                            onSelect={setBiddingDeadline}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <p className="text-xs text-muted-foreground">
+                        After this date, freelancers won't be able to place bids
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label>Project Images</Label>

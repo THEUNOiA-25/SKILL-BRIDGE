@@ -274,6 +274,7 @@ export type Database = {
         Row: {
           additional_images: string[] | null
           attached_files: Json | null
+          bidding_deadline: string | null
           budget: number | null
           client_feedback: string | null
           completed_at: string | null
@@ -294,6 +295,7 @@ export type Database = {
         Insert: {
           additional_images?: string[] | null
           attached_files?: Json | null
+          bidding_deadline?: string | null
           budget?: number | null
           client_feedback?: string | null
           completed_at?: string | null
@@ -314,6 +316,7 @@ export type Database = {
         Update: {
           additional_images?: string[] | null
           attached_files?: Json | null
+          bidding_deadline?: string | null
           budget?: number | null
           client_feedback?: string | null
           completed_at?: string | null
