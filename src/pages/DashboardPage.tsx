@@ -16,6 +16,8 @@ const DashboardPage = () => {
   const [profile, setProfile] = useState<any>(null);
   const [latestProjects, setLatestProjects] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [activeProjects, setActiveProjects] = useState<any[]>([]);
+  const [myBids, setMyBids] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -32,6 +34,48 @@ const DashboardPage = () => {
         } catch (error) {
           console.error('Error fetching profile:', error);
         }
+      }
+    };
+
+    const fetchActiveProjects = async () => {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from('user_projects')
+          .select(`
+            *,
+            bids(count)
+          `)
+          .eq('user_id', user.id)
+          .eq('project_type', 'work_requirement')
+          .in('status', ['open', 'in_progress'])
+          .order('created_at', { ascending: false })
+          .limit(4);
+
+        if (error) throw error;
+        setActiveProjects(data || []);
+      } catch (error) {
+        console.error('Error fetching active projects:', error);
+      }
+    };
+
+    const fetchMyBids = async () => {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from('bids')
+          .select(`
+            *,
+            user_projects(title)
+          `)
+          .eq('freelancer_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (error) throw error;
+        setMyBids(data || []);
+      } catch (error) {
+        console.error('Error fetching my bids:', error);
       }
     };
 
@@ -59,6 +103,8 @@ const DashboardPage = () => {
     };
 
     fetchProfile();
+    fetchActiveProjects();
+    fetchMyBids();
     fetchLatestProjects();
   }, [user, selectedCategory]);
 
@@ -113,69 +159,65 @@ const DashboardPage = () => {
             <div className="lg:col-span-2">
               <section>
                 <h2 className="text-foreground text-xl font-semibold pb-5">Active Projects</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Project Card 1 */}
-                  <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
-                    <div className="flex justify-between items-start">
-                      <div className="flex flex-col gap-1.5">
-                        <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
-                          E-commerce Website Redesign
-                        </p>
-                        <p className="text-muted-foreground text-[0.8125rem] font-normal">Posted 2 days ago</p>
-                      </div>
-                      <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-secondary/60 text-secondary-foreground">
-                        New Bids
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 -space-x-2">
-                      <div className="w-9 h-9 rounded-full border-2 border-background bg-gradient-to-br from-primary to-accent shadow-sm" />
-                      <div className="w-9 h-9 rounded-full border-2 border-background bg-gradient-to-br from-accent-blue to-primary shadow-sm" />
-                      <div className="w-9 h-9 rounded-full border-2 border-background bg-gradient-to-br from-accent-purple to-accent shadow-sm" />
-                      <div className="w-9 h-9 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shadow-sm">
-                        +5
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-[0.8125rem] text-muted-foreground mb-2">
-                        <span>Progress</span>
-                        <span className="font-semibold text-foreground">65%</span>
-                      </div>
-                      <Progress value={65} className="h-2.5 bg-muted" />
-                    </div>
-                    <Button variant="secondary" className="mt-2 rounded-lg bg-primary-light text-primary hover:bg-primary-light/80 font-medium text-[0.9375rem]">
-                      View Project Details
+                {activeProjects.length === 0 ? (
+                  <Card className="flex flex-col gap-4 p-8 rounded-2xl shadow-sm border-border/40 text-center">
+                    <p className="text-muted-foreground">No active projects yet</p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/projects')}
+                      className="mx-auto"
+                    >
+                      Post Your First Project
                     </Button>
                   </Card>
-
-                  {/* Project Card 2 */}
-                  <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
-                    <div className="flex justify-between items-start">
-                      <div className="flex flex-col gap-1.5">
-                        <p className="text-foreground text-[1.0625rem] font-semibold leading-tight">
-                          Full-Stack Web App
-                        </p>
-                        <p className="text-muted-foreground text-[0.8125rem] font-normal">Posted 1 week ago</p>
-                      </div>
-                      <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-muted/60 text-muted-foreground">
-                        Reviewing
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 -space-x-2">
-                      <div className="w-9 h-9 rounded-full border-2 border-background bg-gradient-to-br from-accent to-accent-blue shadow-sm" />
-                      <div className="w-9 h-9 rounded-full border-2 border-background bg-gradient-to-br from-accent-purple to-primary shadow-sm" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-[0.8125rem] text-muted-foreground mb-2">
-                        <span>Progress</span>
-                        <span className="font-semibold text-foreground">20%</span>
-                      </div>
-                      <Progress value={20} className="h-2.5 bg-muted" />
-                    </div>
-                    <Button variant="secondary" className="mt-2 rounded-lg bg-primary-light text-primary hover:bg-primary-light/80 font-medium text-[0.9375rem]">
-                      View Project Details
-                    </Button>
-                  </Card>
-                </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {activeProjects.map((project) => {
+                      const bidCount = project.bids?.[0]?.count || 0;
+                      const statusBadge = project.status === 'open' ? 'New Bids' : 'In Progress';
+                      const statusColor = project.status === 'open' ? 'bg-secondary/60 text-secondary-foreground' : 'bg-green/60 text-green-foreground';
+                      
+                      return (
+                        <Card key={project.id} className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
+                          <div className="flex justify-between items-start">
+                            <div className="flex flex-col gap-1.5 flex-1 pr-2">
+                              <p className="text-foreground text-[1.0625rem] font-semibold leading-tight line-clamp-1">
+                                {project.title}
+                              </p>
+                              <p className="text-muted-foreground text-[0.8125rem] font-normal">
+                                Posted {new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
+                            </div>
+                            <span className={cn("px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap", statusColor)}>
+                              {statusBadge}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">
+                              {bidCount} {bidCount === 1 ? 'bid' : 'bids'} received
+                            </span>
+                          </div>
+                          
+                          {project.budget && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">Budget:</span>
+                              <span className="text-lg font-semibold text-foreground">${project.budget}</span>
+                            </div>
+                          )}
+                          
+                          <Button 
+                            variant="secondary" 
+                            className="mt-2 rounded-lg bg-primary-light text-primary hover:bg-primary-light/80 font-medium text-[0.9375rem]"
+                            onClick={() => navigate(`/projects/${project.id}`)}
+                          >
+                            View Project Details
+                          </Button>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
             </div>
 
@@ -183,29 +225,52 @@ const DashboardPage = () => {
             <aside className="lg:col-span-1">
               <h2 className="text-foreground text-xl font-semibold pb-5">My Bids</h2>
               <Card className="flex flex-col gap-4 p-6 rounded-2xl shadow-sm border-border/40">
-                <div className="flex flex-col gap-4">
-                  <div className="flex justify-between items-center">
-                    <p className="text-foreground font-semibold text-[0.9375rem]">Logo Design</p>
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-green/60 text-green-foreground">
-                      Accepted
-                    </span>
+                {myBids.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground text-sm mb-3">No bids placed yet</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate('/projects')}
+                      className="text-xs"
+                    >
+                      Browse Projects
+                    </Button>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-foreground font-semibold text-[0.9375rem]">Social Media Mngmt.</p>
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-secondary/70 text-secondary-foreground">
-                      Pending
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-foreground font-semibold text-[0.9375rem]">React Native App</p>
-                    <span className="px-3 py-1.5 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                      Rejected
-                    </span>
-                  </div>
-                </div>
-                <Button variant="outline" className="mt-2 rounded-xl border-border/60 hover:bg-muted/30 font-medium text-[0.9375rem]">
-                  View All Bids
-                </Button>
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-4">
+                      {myBids.slice(0, 5).map((bid) => {
+                        const statusColors: Record<string, string> = {
+                          accepted: 'bg-green/60 text-green-foreground',
+                          pending: 'bg-secondary/70 text-secondary-foreground',
+                          rejected: 'bg-red-100 text-red-800'
+                        };
+                        
+                        return (
+                          <div key={bid.id} className="flex justify-between items-center gap-2">
+                            <p className="text-foreground font-semibold text-[0.9375rem] line-clamp-1 flex-1">
+                              {bid.user_projects?.title || 'Project'}
+                            </p>
+                            <span className={cn(
+                              "px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap",
+                              statusColors[bid.status] || 'bg-muted/60 text-muted-foreground'
+                            )}>
+                              {bid.status.charAt(0).toUpperCase() + bid.status.slice(1)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="mt-2 rounded-xl border-border/60 hover:bg-muted/30 font-medium text-[0.9375rem]"
+                      onClick={() => navigate('/projects?tab=my-projects')}
+                    >
+                      View All Bids
+                    </Button>
+                  </>
+                )}
               </Card>
             </aside>
           </div>
