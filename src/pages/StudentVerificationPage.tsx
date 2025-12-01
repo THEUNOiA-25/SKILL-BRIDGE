@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, AlertCircle, CheckCircle2, Clock, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -17,8 +18,9 @@ const StudentVerificationPage = () => {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({ firstName: "", lastName: "", email: "" });
   const [verification, setVerification] = useState<any>(null);
+  const [colleges, setColleges] = useState<any[]>([]);
+  const [selectedCollege, setSelectedCollege] = useState<string>("");
   const [formData, setFormData] = useState({
-    instituteName: "",
     instituteEmail: "",
     enrollmentId: "",
   });
@@ -36,9 +38,10 @@ const StudentVerificationPage = () => {
     if (!user?.id) return;
     
     try {
-      const [profileRes, verificationRes] = await Promise.all([
+      const [profileRes, verificationRes, collegesRes] = await Promise.all([
         supabase.from("user_profiles").select("*").eq("user_id", user.id).single(),
-        supabase.from("student_verifications").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("student_verifications").select("*, colleges(*)").eq("user_id", user.id).maybeSingle(),
+        supabase.from("colleges").select("*").order("name"),
       ]);
 
       if (profileRes.data) {
@@ -49,10 +52,14 @@ const StudentVerificationPage = () => {
         });
       }
 
+      if (collegesRes.data) {
+        setColleges(collegesRes.data);
+      }
+
       if (verificationRes.data) {
         setVerification(verificationRes.data);
+        setSelectedCollege(verificationRes.data.college_id || "");
         setFormData({
-          instituteName: verificationRes.data.institute_name || "",
           instituteEmail: verificationRes.data.institute_email || "",
           enrollmentId: verificationRes.data.enrollment_id || "",
         });
@@ -149,8 +156,8 @@ const StudentVerificationPage = () => {
       return;
     }
 
-    if (!formData.instituteName) {
-      toast.error("Please enter your institute name");
+    if (!selectedCollege) {
+      toast.error("Please select your college");
       return;
     }
 
@@ -180,7 +187,7 @@ const StudentVerificationPage = () => {
 
       const verificationData: any = {
         user_id: user.id,
-        institute_name: formData.instituteName,
+        college_id: selectedCollege,
         institute_email: formData.instituteEmail || null,
         enrollment_id: formData.enrollmentId || null,
         verification_status: "pending",
@@ -292,16 +299,26 @@ const StudentVerificationPage = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="instituteName">Institute Name *</Label>
-                <Input
-                  id="instituteName"
-                  value={formData.instituteName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, instituteName: e.target.value })
-                  }
-                  placeholder="University of Example"
+                <Label htmlFor="college">College/University *</Label>
+                <Select 
+                  value={selectedCollege} 
+                  onValueChange={setSelectedCollege}
                   disabled={!canSubmit}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your college" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {colleges.map((college) => (
+                      <SelectItem key={college.id} value={college.id}>
+                        {college.name} - {college.city}, {college.state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Can't find your college? Contact support to add it.
+                </p>
               </div>
 
               <div className="space-y-2">

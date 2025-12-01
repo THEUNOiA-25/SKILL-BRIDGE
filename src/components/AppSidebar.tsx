@@ -1,4 +1,4 @@
-import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, CircleArrowRight } from 'lucide-react';
+import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, CircleArrowRight, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AppSidebarProps {
@@ -7,18 +7,20 @@ interface AppSidebarProps {
   displayEmail: string;
   profilePictureUrl?: string;
   unreadMessageCount?: number;
+  isVerifiedStudent?: boolean;
   onSignOut: () => void;
 }
 
-export const AppSidebar = ({ currentPath, displayName, displayEmail, profilePictureUrl, unreadMessageCount, onSignOut }: AppSidebarProps) => {
+export const AppSidebar = ({ currentPath, displayName, displayEmail, profilePictureUrl, unreadMessageCount, isVerifiedStudent, onSignOut }: AppSidebarProps) => {
   const navigate = useNavigate();
 
   const navItems = [
-    { path: '/dashboard', icon: Grid3X3, label: 'Dashboard' },
-    { path: '/projects', icon: Briefcase, label: 'Projects' },
-    { path: '/bids', icon: Gavel, label: 'Bids' },
-    { path: '/messages', icon: Mail, label: 'Messages' },
-    { path: '/profile', icon: User, label: 'Profile' },
+    { path: '/dashboard', icon: Grid3X3, label: 'Dashboard', showForAll: true },
+    { path: '/projects', icon: Briefcase, label: 'Projects', showForAll: true },
+    { path: '/bids', icon: Gavel, label: 'Bids', showForAll: true },
+    { path: '/messages', icon: Mail, label: 'Messages', showForAll: true },
+    { path: '/community', icon: Users, label: 'Community', showForAll: false },
+    { path: '/profile', icon: User, label: 'Profile', showForAll: true },
   ];
 
   return (
@@ -35,6 +37,11 @@ export const AppSidebar = ({ currentPath, displayName, displayEmail, profilePict
         {/* Navigation */}
         <nav className="flex flex-col">
           {navItems.map((item) => {
+            // Hide community item if user is not a verified student
+            if (!item.showForAll && !isVerifiedStudent) {
+              return null;
+            }
+
             const Icon = item.icon;
             const isActive = currentPath === item.path;
             

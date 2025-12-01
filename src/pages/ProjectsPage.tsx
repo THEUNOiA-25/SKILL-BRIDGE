@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, DollarSign, Clock, CheckCircle2, Paperclip, CalendarIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, DollarSign, Clock, CheckCircle2, Paperclip, CalendarIcon, Users as UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -104,6 +104,8 @@ const ProjectsPage = () => {
   const [biddingDeadline, setBiddingDeadline] = useState<Date | undefined>();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState("all");
+  const [isCommunityTask, setIsCommunityTask] = useState(false);
+  const [userCollegeId, setUserCollegeId] = useState<string | null>(null);
 
   const [portfolioFormData, setPortfolioFormData] = useState({
     title: "",
@@ -134,14 +136,24 @@ const ProjectsPage = () => {
     if (!user?.id) return;
     
     try {
-      const { data, error } = await supabase
+      const { data: accessData, error: accessError } = await supabase
         .from('freelancer_access')
         .select('has_access')
         .eq('user_id', user.id)
         .single();
       
-      if (error && error.code !== 'PGRST116') throw error;
-      setIsVerifiedStudent(data?.has_access || false);
+      if (accessError && accessError.code !== 'PGRST116') throw accessError;
+      setIsVerifiedStudent(accessData?.has_access || false);
+
+      // Get user's college ID for community tasks
+      const { data: verificationData } = await supabase
+        .from('student_verifications')
+        .select('college_id')
+        .eq('user_id', user.id)
+        .eq('verification_status', 'approved')
+        .maybeSingle();
+
+      setUserCollegeId(verificationData?.college_id || null);
     } catch (error) {
       console.error('Error checking verification:', error);
     }
@@ -149,12 +161,13 @@ const ProjectsPage = () => {
 
   const fetchBrowseProjects = async () => {
     try {
-      // Fetch all open work requirements (public, no auth required)
+      // Fetch all open work requirements (public, no auth required), excluding community tasks
       const { data: allData, error: allError } = await supabase
         .from("user_projects")
         .select("*")
         .eq("project_type", "work_requirement")
         .eq("status", "open")
+        .eq("is_community_task", false)
         .order("created_at", { ascending: false });
 
       if (allError) throw allError;
@@ -335,6 +348,8 @@ const ProjectsPage = () => {
           bidding_deadline: biddingDeadline ? biddingDeadline.toISOString() : null,
           category: workFormData.category || null,
           subcategory: workFormData.subcategory || null,
+          is_community_task: isCommunityTask && isVerifiedStudent,
+          community_college_id: (isCommunityTask && isVerifiedStudent && userCollegeId) ? userCollegeId : null,
         };
 
         if (editingProject) {
@@ -971,6 +986,28 @@ const ProjectsPage = () => {
                         After this date, freelancers won't be able to place bids
                       </p>
                     </div>
+                    {isVerifiedStudent && userCollegeId && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label htmlFor="communityTask">Community Task</Label>
+                            <p className="text-xs text-muted-foreground">
+                              Only visible to students from your college
+                            </p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              id="communityTask"
+                              checked={isCommunityTask}
+                              onChange={(e) => setIsCommunityTask(e.target.checked)}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                          </label>
+                        </div>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <Label>Project Images</Label>
                       <FileUploader

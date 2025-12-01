@@ -11,6 +11,7 @@ export const DashboardLayout = () => {
   const location = useLocation();
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [isVerifiedStudent, setIsVerifiedStudent] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -53,6 +54,15 @@ export const DashboardLayout = () => {
 
           if (error) throw error;
           setProfile(data);
+
+          // Check verification status
+          const { data: verification } = await supabase
+            .from('student_verifications')
+            .select('verification_status')
+            .eq('user_id', user.id)
+            .single();
+
+          setIsVerifiedStudent(verification?.verification_status === 'approved');
         } catch (error) {
           console.error('Error fetching profile:', error);
         } finally {
@@ -88,6 +98,7 @@ export const DashboardLayout = () => {
         displayEmail={displayEmail}
         profilePictureUrl={profile?.profile_picture_url}
         unreadMessageCount={unreadCount}
+        isVerifiedStudent={isVerifiedStudent}
         onSignOut={handleSignOut}
       />
       <Outlet />

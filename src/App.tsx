@@ -19,6 +19,7 @@ const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
 const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
 const BidsPage = lazy(() => import("./pages/BidsPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
+const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,14 @@ const App = () => (
                 element={
                   <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                     <MessagesPage />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/community" 
+                element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <CommunityPage />
                   </Suspense>
                 } 
               />

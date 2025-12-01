@@ -85,7 +85,8 @@ const DashboardPage = () => {
           .from('user_projects')
           .select('*')
           .eq('project_type', 'work_requirement')
-          .eq('status', 'open');
+          .eq('status', 'open')
+          .eq('is_community_task', false);
         
         if (selectedCategory && selectedCategory !== "all") {
           query = query.eq('category', selectedCategory);
