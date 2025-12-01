@@ -62,6 +62,42 @@ export type Database = {
           },
         ]
       }
+      colleges: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          short_name: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          city: string
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          short_name?: string | null
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          short_name?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           client_id: string
@@ -164,12 +200,13 @@ export type Database = {
       }
       student_verifications: {
         Row: {
+          college_id: string | null
           created_at: string | null
           enrollment_id: string | null
           id: string
           id_card_url: string | null
           institute_email: string | null
-          institute_name: string
+          institute_name: string | null
           rejection_reason: string | null
           updated_at: string | null
           user_id: string
@@ -180,12 +217,13 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
+          college_id?: string | null
           created_at?: string | null
           enrollment_id?: string | null
           id?: string
           id_card_url?: string | null
           institute_email?: string | null
-          institute_name: string
+          institute_name?: string | null
           rejection_reason?: string | null
           updated_at?: string | null
           user_id: string
@@ -196,12 +234,13 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
+          college_id?: string | null
           created_at?: string | null
           enrollment_id?: string | null
           id?: string
           id_card_url?: string | null
           institute_email?: string | null
-          institute_name?: string
+          institute_name?: string | null
           rejection_reason?: string | null
           updated_at?: string | null
           user_id?: string
@@ -211,7 +250,15 @@ export type Database = {
             | null
           verified_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "student_verifications_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "colleges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_profiles: {
         Row: {
@@ -281,12 +328,14 @@ export type Database = {
           budget: number | null
           category: string | null
           client_feedback: string | null
+          community_college_id: string | null
           completed_at: string | null
           cover_image_url: string | null
           created_at: string
           description: string
           id: string
           image_url: string | null
+          is_community_task: boolean
           project_type: string
           rating: number | null
           skills_required: string[] | null
@@ -304,12 +353,14 @@ export type Database = {
           budget?: number | null
           category?: string | null
           client_feedback?: string | null
+          community_college_id?: string | null
           completed_at?: string | null
           cover_image_url?: string | null
           created_at?: string
           description: string
           id?: string
           image_url?: string | null
+          is_community_task?: boolean
           project_type?: string
           rating?: number | null
           skills_required?: string[] | null
@@ -327,12 +378,14 @@ export type Database = {
           budget?: number | null
           category?: string | null
           client_feedback?: string | null
+          community_college_id?: string | null
           completed_at?: string | null
           cover_image_url?: string | null
           created_at?: string
           description?: string
           id?: string
           image_url?: string | null
+          is_community_task?: boolean
           project_type?: string
           rating?: number | null
           skills_required?: string[] | null
@@ -343,7 +396,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_projects_community_college_id_fkey"
+            columns: ["community_college_id"]
+            isOneToOne: false
+            referencedRelation: "colleges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_skills: {
         Row: {
