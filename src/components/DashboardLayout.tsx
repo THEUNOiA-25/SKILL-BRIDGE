@@ -13,11 +13,16 @@ export const DashboardLayout = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [isVerifiedStudent, setIsVerifiedStudent] = useState(false);
 
+  // Public routes that don't require authentication
+  const publicRoutes = ['/projects'];
+  const isPublicRoute = publicRoutes.includes(location.pathname);
+
   useEffect(() => {
-    if (!loading && !user) {
+    // Only redirect to login if not on a public route and user is not authenticated
+    if (!loading && !user && !isPublicRoute) {
       navigate('/login');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, isPublicRoute]);
 
   // Fetch unread message count
   const { data: unreadCount } = useQuery({
@@ -79,10 +84,21 @@ export const DashboardLayout = () => {
     navigate('/login');
   };
 
-  if (loading || profileLoading) {
+  // Show loading only if not on public route or if checking auth
+  if (loading || (user && profileLoading)) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
+  // For public routes without auth, render without sidebar
+  if (!user && isPublicRoute) {
+    return (
+      <div className="min-h-screen w-full bg-background">
+        <Outlet />
+      </div>
+    );
+  }
+
+  // For authenticated users or protected routes, show with sidebar
   if (!user) {
     return null;
   }

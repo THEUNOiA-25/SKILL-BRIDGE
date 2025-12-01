@@ -35,15 +35,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             
-            {/* Public routes */}
-            <Route 
-              path="/projects" 
-              element={
-                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                  <ProjectsPage />
-                </Suspense>
-              } 
-            />
+            {/* Public project detail route (no sidebar) */}
             <Route 
               path="/projects/:id" 
               element={
@@ -55,6 +47,14 @@ const App = () => (
             
             {/* Dashboard routes with shared layout */}
             <Route element={<DashboardLayout />}>
+              <Route 
+                path="/projects" 
+                element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <ProjectsPage />
+                  </Suspense>
+                } 
+              />
               <Route 
                 path="/dashboard" 
                 element={

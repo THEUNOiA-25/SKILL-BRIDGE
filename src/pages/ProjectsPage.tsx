@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -715,21 +714,7 @@ const ProjectsPage = () => {
   }
 
   return (
-    <>
-      {user && (
-        <AppSidebar
-          currentPath="/projects"
-          displayName="User"
-          displayEmail={user.email || ''}
-          profilePictureUrl=""
-          onSignOut={async () => {
-            await supabase.auth.signOut();
-            navigate('/login');
-          }}
-        />
-      )}
-      
-      <main className={`flex-1 p-8 bg-background ${user ? 'ml-64' : ''}`}>
+    <main className={`flex-1 p-8 bg-background ${user ? 'ml-64' : ''}`}>
         <div className="max-w-7xl mx-auto">
           {!user && (
             <div className="flex items-center justify-between mb-6 p-4 bg-muted/50 rounded-lg border border-border">
@@ -1236,9 +1221,8 @@ const ProjectsPage = () => {
             </TabsContent>
           )}
         </Tabs>
-      </div>
-    </main>
-    </>
+        </div>
+      </main>
   );
 };
 
