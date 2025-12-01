@@ -60,11 +60,18 @@ export default function CommunityPage() {
         .from('student_verifications')
         .select('verification_status, college_id, colleges(id, name, short_name, city, state)')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
-      if (verError || !verification || verification.verification_status !== 'approved') {
-        toast.error("You need to be a verified student to access the community.");
-        navigate('/profile/verify');
+      if (verError) {
+        console.error('Error fetching verification:', verError);
+        toast.error("Failed to load verification data");
+        setLoading(false);
+        return;
+      }
+
+      if (!verification || verification.verification_status !== 'approved') {
+        setIsVerified(false);
+        setLoading(false);
         return;
       }
 
@@ -118,7 +125,21 @@ export default function CommunityPage() {
   }
 
   if (!isVerified || !userCollege) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background p-6 ml-64">
+        <Card className="max-w-2xl mx-auto mt-12 p-8 text-center">
+          <GraduationCap className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-3">Verification Required</h2>
+          <p className="text-muted-foreground mb-6">
+            You need to be a verified student to access the college community features.
+            Verify your student status to connect with fellow students from your college.
+          </p>
+          <Button onClick={() => navigate('/profile/verify')}>
+            Verify Student Status
+          </Button>
+        </Card>
+      </div>
+    );
   }
 
   return (
