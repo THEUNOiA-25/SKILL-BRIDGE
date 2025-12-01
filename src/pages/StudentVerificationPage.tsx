@@ -314,22 +314,30 @@ const StudentVerificationPage = () => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="college">College/University *</Label>
-                <Select 
-                  value={selectedCollege} 
-                  onValueChange={setSelectedCollege}
-                  disabled={!canSubmit}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your college" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {colleges.map((college) => (
-                      <SelectItem key={college.id} value={college.id}>
-                        {college.name} - {college.city}, {college.state}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {verification?.verification_status === "approved" && verification.college_id && verification.colleges ? (
+                  <div className="p-3 border border-border rounded-md bg-muted/50">
+                    <p className="text-sm font-medium">
+                      {verification.colleges.name} - {verification.colleges.city}, {verification.colleges.state}
+                    </p>
+                  </div>
+                ) : (
+                  <Select 
+                    value={selectedCollege} 
+                    onValueChange={setSelectedCollege}
+                    disabled={!canSubmit}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your college" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {colleges.map((college) => (
+                        <SelectItem key={college.id} value={college.id}>
+                          {college.name} - {college.city}, {college.state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <p className="text-xs text-muted-foreground">
                   Can't find your college? Contact support to add it.
                 </p>
