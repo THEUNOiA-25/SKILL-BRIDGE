@@ -250,7 +250,7 @@ const ProjectDetailPage = () => {
 
   if (loading) {
     return (
-      <main className="flex-1 p-8 ml-64 bg-background">
+      <main className="flex-1 p-8 bg-background">
         <div className="max-w-5xl mx-auto">
           <div className="text-center py-12">
             <p className="text-muted-foreground">Loading project details...</p>
@@ -262,7 +262,7 @@ const ProjectDetailPage = () => {
 
   if (!project) {
     return (
-      <main className="flex-1 p-8 ml-64 bg-background">
+      <main className="flex-1 p-8 bg-background">
         <div className="max-w-5xl mx-auto">
           <Card className="rounded-2xl border-border/40">
             <CardContent className="py-12 text-center">
@@ -285,7 +285,7 @@ const ProjectDetailPage = () => {
   const userAlreadyBid = bids.some(bid => bid.freelancer_id === user?.id);
 
   return (
-    <main className="flex-1 p-8 ml-64 bg-background">
+    <main className="flex-1 p-8 bg-background">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Back Button */}
         <Button variant="ghost" onClick={() => navigate('/projects')} className="gap-2">

@@ -183,7 +183,7 @@ export default function MessagesPage() {
   const selectedConversation = conversations?.find(c => c.id === selectedConversationId);
 
   return (
-    <main className="flex-1 flex overflow-hidden ml-64">
+    <main className="flex-1 flex overflow-hidden">
       {/* Left Column - Conversations List */}
       <div className="w-80 border-r border-border flex flex-col bg-background h-[calc(100vh-0px)]">
         <div className="p-4 border-b border-border bg-primary/5">
