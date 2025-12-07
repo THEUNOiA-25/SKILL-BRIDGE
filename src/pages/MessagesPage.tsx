@@ -183,9 +183,9 @@ export default function MessagesPage() {
   const selectedConversation = conversations?.find(c => c.id === selectedConversationId);
 
   return (
-    <main className="flex-1 flex overflow-hidden">
+    <main className="flex h-screen overflow-hidden">
       {/* Left Column - Conversations List */}
-      <div className="w-80 border-r border-border flex flex-col bg-background h-[calc(100vh-0px)]">
+      <div className="w-80 border-r border-border flex flex-col bg-background h-full">
         <div className="p-4 border-b border-border bg-primary/5">
           <h1 className="text-2xl font-bold text-foreground">Messages</h1>
           <p className="text-xs text-muted-foreground mt-1">Chat with your clients and freelancers</p>
@@ -216,7 +216,7 @@ export default function MessagesPage() {
       </div>
 
       {/* Middle Column - Active Chat */}
-      <div className="flex-1 flex flex-col bg-background h-[calc(100vh-0px)]">
+      <div className="flex-1 flex flex-col bg-background h-full">
         {selectedConversationId && selectedConversation ? (
           <>
             {/* Chat Header */}
@@ -289,7 +289,7 @@ export default function MessagesPage() {
 
       {/* Right Column - Project Details */}
       {selectedConversationId && selectedConversation && (
-        <div className="w-80 border-l border-border p-4 bg-background h-[calc(100vh-0px)] overflow-y-auto">
+        <div className="w-80 border-l border-border p-4 bg-background h-full overflow-y-auto">
           <Card className="p-4 border-border bg-muted/20">
             <h3 className="font-semibold text-foreground mb-2">Project Details</h3>
             <p className="text-sm text-muted-foreground mb-4">{selectedConversation.project_title}</p>

@@ -117,7 +117,7 @@ export const DashboardLayout = () => {
         isVerifiedStudent={isVerifiedStudent}
         onSignOut={handleSignOut}
       />
-      <main className="ml-64 p-6">
+      <main className={`ml-64 ${location.pathname === '/messages' ? '' : 'p-6'}`}>
         <Outlet />
       </main>
     </div>
