@@ -1,4 +1,4 @@
-import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, CircleArrowRight, Users } from 'lucide-react';
+import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, CircleArrowRight, Users, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AppSidebarProps {
@@ -18,6 +18,7 @@ export const AppSidebar = ({ currentPath, displayName, displayEmail, profilePict
     { path: '/dashboard', icon: Grid3X3, label: 'Dashboard', showForAll: true },
     { path: '/projects', icon: Briefcase, label: 'Projects', showForAll: true },
     { path: '/bids', icon: Gavel, label: 'Bids', showForAll: true },
+    { path: '/calendar', icon: CalendarDays, label: 'Calendar', showForAll: true },
     { path: '/messages', icon: Mail, label: 'Messages', showForAll: true },
     { path: '/community', icon: Users, label: 'Community', showForAll: false },
     { path: '/profile', icon: User, label: 'Profile', showForAll: true },
