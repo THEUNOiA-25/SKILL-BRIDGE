@@ -117,7 +117,9 @@ export const DashboardLayout = () => {
         isVerifiedStudent={isVerifiedStudent}
         onSignOut={handleSignOut}
       />
-      <Outlet />
+      <main className="ml-64 p-6">
+        <Outlet />
+      </main>
     </div>
   );
 };
