@@ -1,4 +1,5 @@
 import { formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface MessageBubbleProps {
   message: {
@@ -9,11 +10,25 @@ interface MessageBubbleProps {
     is_read: boolean;
   };
   isSender: boolean;
+  senderAvatar?: string | null;
+  senderName?: string;
 }
 
-export const MessageBubble = ({ message, isSender }: MessageBubbleProps) => {
+export const MessageBubble = ({ message, isSender, senderAvatar, senderName }: MessageBubbleProps) => {
+  const initials = senderName
+    ? senderName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
+
   return (
-    <div className={`flex ${isSender ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div className={`flex items-end gap-2 ${isSender ? 'justify-end' : 'justify-start'} mb-4`}>
+      {/* Avatar on left for received messages */}
+      {!isSender && (
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          <AvatarImage src={senderAvatar || undefined} alt={senderName} />
+          <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+        </Avatar>
+      )}
+
       <div
         className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
           isSender
@@ -23,11 +38,19 @@ export const MessageBubble = ({ message, isSender }: MessageBubbleProps) => {
       >
         <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
         <div className="flex items-center justify-end gap-2 mt-1.5">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
           </span>
         </div>
       </div>
+
+      {/* Avatar on right for sent messages */}
+      {isSender && (
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          <AvatarImage src={senderAvatar || undefined} alt={senderName} />
+          <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">{initials}</AvatarFallback>
+        </Avatar>
+      )}
     </div>
   );
 };

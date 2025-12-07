@@ -21,6 +21,20 @@ export default function MessagesPage() {
   // Subscribe to real-time updates for the selected conversation
   const { isSubscribed } = useRealtimeMessages(selectedConversationId);
 
+  // Fetch current user's profile for avatar
+  const { data: currentUserProfile } = useQuery({
+    queryKey: ['currentUserProfile', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name, profile_picture_url')
+        .eq('user_id', user?.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   // Fetch conversations
   const { data: conversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ['conversations'],
@@ -222,6 +236,12 @@ export default function MessagesPage() {
                       key={message.id}
                       message={message}
                       isSender={message.sender_id === user?.id}
+                      senderAvatar={message.sender_id === user?.id 
+                        ? currentUserProfile?.profile_picture_url 
+                        : selectedConversation.other_user_avatar}
+                      senderName={message.sender_id === user?.id 
+                        ? `${currentUserProfile?.first_name || ''} ${currentUserProfile?.last_name || ''}`.trim() 
+                        : selectedConversation.other_user_name}
                     />
                   ))}
                   <div ref={messagesEndRef} />
