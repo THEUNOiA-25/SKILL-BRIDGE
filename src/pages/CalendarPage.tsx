@@ -236,11 +236,14 @@ const CalendarPage = () => {
               const isCurrentMonth = isSameMonth(day, currentMonth);
               const isCurrentDay = isToday(day);
 
+              const uniqueEventTypes = Array.from(new Set(dayEvents.map(e => e.type)));
+              const eventCount = dayEvents.length;
+
               return (
                 <button
                   key={day.toISOString()}
                   onClick={() => setSelectedDate(day)}
-                  className={`aspect-square p-1 rounded-xl transition-all flex flex-col items-center justify-start gap-1 ${
+                  className={`min-h-[80px] p-1.5 rounded-xl transition-all flex flex-col items-center justify-start gap-1 ${
                     isSelected
                       ? 'bg-primary text-primary-foreground'
                       : isCurrentDay
@@ -252,16 +255,30 @@ const CalendarPage = () => {
                 >
                   <span className="text-sm font-medium">{format(day, 'd')}</span>
                   {dayEvents.length > 0 && (
-                    <div className="flex gap-0.5 flex-wrap justify-center">
-                      {/* Show unique event types */}
-                      {Array.from(new Set(dayEvents.map(e => e.type))).slice(0, 3).map((type) => (
-                        <div
-                          key={type}
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            isSelected ? 'bg-primary-foreground' : eventTypeConfig[type].bgColor
-                          }`}
-                        />
-                      ))}
+                    <div className="flex flex-col gap-0.5 w-full px-0.5">
+                      {/* Show event type badges */}
+                      {uniqueEventTypes.slice(0, 2).map((type) => {
+                        const typeCount = dayEvents.filter(e => e.type === type).length;
+                        const shortLabel = type === 'bid_made' ? 'Bid' : type === 'project_created' ? 'Project' : 'Deadline';
+                        
+                        return (
+                          <div
+                            key={type}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-semibold truncate text-center ${
+                              isSelected 
+                                ? 'bg-primary-foreground/20 text-primary-foreground' 
+                                : `${eventTypeConfig[type].bgColor} text-white`
+                            }`}
+                          >
+                            {typeCount > 1 ? `${typeCount} ${shortLabel}s` : shortLabel}
+                          </div>
+                        );
+                      })}
+                      {uniqueEventTypes.length > 2 && (
+                        <div className={`text-[9px] font-medium ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                          +{uniqueEventTypes.length - 2} more
+                        </div>
+                      )}
                     </div>
                   )}
                 </button>
