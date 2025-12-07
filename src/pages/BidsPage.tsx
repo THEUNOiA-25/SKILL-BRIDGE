@@ -145,7 +145,7 @@ export default function BidsPage() {
 
   if (loading) {
     return (
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 p-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <p className="text-muted-foreground">Loading bids...</p>
         </div>
@@ -154,7 +154,7 @@ export default function BidsPage() {
   }
 
   return (
-    <main className="flex-1 ml-64 p-8">
+    <main className="flex-1 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Bids</h1>

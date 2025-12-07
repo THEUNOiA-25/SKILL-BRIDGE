@@ -112,7 +112,7 @@ const DashboardPage = () => {
   const firstName = profile?.first_name || 'User';
 
   return (
-    <div className="flex-1 flex flex-col ml-64">
+    <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="flex items-center justify-between whitespace-nowrap px-10 py-6 bg-background border-b border-border/60">
           <div className="flex-1 max-w-xl">

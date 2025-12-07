@@ -714,7 +714,7 @@ const ProjectsPage = () => {
   }
 
   return (
-    <main className={`flex-1 p-8 bg-background ${user ? 'ml-64' : ''}`}>
+    <main className="flex-1 p-8 bg-background">
         <div className="max-w-7xl mx-auto">
           {!user && (
             <div className="flex items-center justify-between mb-6 p-4 bg-muted/50 rounded-lg border border-border">

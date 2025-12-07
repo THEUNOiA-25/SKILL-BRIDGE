@@ -273,7 +273,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <main className="flex-1 p-8 ml-64">
+    <main className="flex-1 p-8">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Profile Header Card */}
           <Card className="rounded-2xl border-border/40">

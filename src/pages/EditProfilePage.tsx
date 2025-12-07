@@ -104,7 +104,7 @@ const EditProfilePage = () => {
   };
 
   return (
-    <main className="flex-1 p-8 ml-64">
+    <main className="flex-1 p-8">
         <Button
           variant="ghost"
           onClick={() => navigate("/profile")}

@@ -126,7 +126,7 @@ export default function CommunityPage() {
 
   if (!isVerified || !userCollege) {
     return (
-      <div className="min-h-screen bg-background p-6 ml-64">
+      <div className="min-h-screen bg-background p-6">
         <Card className="max-w-2xl mx-auto mt-12 p-8 text-center">
           <GraduationCap className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-foreground mb-3">Verification Required</h2>
@@ -143,7 +143,7 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 ml-64">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
