@@ -65,7 +65,7 @@ export const DashboardLayout = () => {
             .from('student_verifications')
             .select('verification_status')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
           setIsVerifiedStudent(verification?.verification_status === 'approved');
         } catch (error) {

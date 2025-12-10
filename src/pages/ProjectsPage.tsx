@@ -139,9 +139,9 @@ const ProjectsPage = () => {
         .from('freelancer_access')
         .select('has_access')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      if (accessError && accessError.code !== 'PGRST116') throw accessError;
+      if (accessError) throw accessError;
       setIsVerifiedStudent(accessData?.has_access || false);
 
       // Get user's college ID for community tasks
