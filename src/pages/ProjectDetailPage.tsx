@@ -323,7 +323,7 @@ const ProjectDetailPage = () => {
                     </DialogHeader>
                     <div className="space-y-4 mt-4">
                       <div>
-                        <Label htmlFor="bid-amount">Bid Amount ($)</Label>
+                        <Label htmlFor="bid-amount">Bid Amount (₹)</Label>
                         <Input
                           id="bid-amount"
                           type="number"
@@ -452,7 +452,7 @@ const ProjectDetailPage = () => {
                     <DollarSign className="w-4 h-4 text-muted-foreground" />
                     <h3 className="text-sm font-semibold text-foreground">Budget</h3>
                   </div>
-                  <p className="text-2xl font-bold text-foreground">${project.budget}</p>
+                  <p className="text-2xl font-bold text-foreground">₹{project.budget}</p>
                 </div>
               )}
               {project.timeline && (
