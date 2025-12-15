@@ -180,7 +180,7 @@ export default function BidsPage() {
               </Card>
             ) : (
               <div className="grid gap-4">
-                {myBids.map((bid) => (
+                {myBids.filter((bid) => bid.user_projects !== null).map((bid) => (
                   <Card key={bid.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
@@ -230,7 +230,7 @@ export default function BidsPage() {
               </Card>
             ) : (
               <div className="grid gap-4">
-                {receivedBids.map((bid) => (
+                {receivedBids.filter((bid) => bid.user_projects !== null).map((bid) => (
                   <Card key={bid.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
