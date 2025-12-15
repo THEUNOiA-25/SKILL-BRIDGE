@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, Bell, Plus } from 'lucide-react';
+import { Search, Bell, Plus, MessageSquare, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 import { PROJECT_CATEGORIES, getCategoryList } from '@/data/categories';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,9 @@ const DashboardPage = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [newBidsOnProjects, setNewBidsOnProjects] = useState<any[]>([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -147,6 +151,48 @@ const DashboardPage = () => {
     return () => clearTimeout(debounce);
   }, [searchQuery]);
 
+  // Fetch notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchNotifications = async () => {
+      try {
+        // Get unread messages count
+        const { count: msgCount } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_read', false)
+          .neq('sender_id', user.id);
+        
+        setUnreadMessages(msgCount || 0);
+
+        // Get recent bids on user's projects (last 7 days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const { data: recentBids } = await supabase
+          .from('bids')
+          .select(`
+            id,
+            amount,
+            created_at,
+            user_projects!inner(id, title, user_id)
+          `)
+          .eq('user_projects.user_id', user.id)
+          .gte('created_at', sevenDaysAgo.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        setNewBidsOnProjects(recentBids || []);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchNotifications();
+  }, [user]);
+
+  const totalNotifications = unreadMessages + newBidsOnProjects.length;
   const firstName = profile?.first_name || 'User';
 
   return (
@@ -199,13 +245,72 @@ const DashboardPage = () => {
             </div>
           </div>
           <div className="flex items-center justify-end gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-11 w-11 rounded-full border-border/60 hover:bg-muted/30 shadow-sm"
-            >
-              <Bell className="w-5 h-5" />
-            </Button>
+            <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-11 w-11 rounded-full border-border/60 hover:bg-muted/30 shadow-sm relative"
+                >
+                  <Bell className="w-5 h-5" />
+                  {totalNotifications > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                      {totalNotifications > 9 ? '9+' : totalNotifications}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="p-4 border-b border-border">
+                  <h3 className="font-semibold text-foreground">Notifications</h3>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {totalNotifications === 0 ? (
+                    <div className="p-4 text-center text-muted-foreground text-sm">
+                      No new notifications
+                    </div>
+                  ) : (
+                    <div className="py-2">
+                      {unreadMessages > 0 && (
+                        <button
+                          className="w-full px-4 py-3 text-left hover:bg-muted/50 flex items-center gap-3 border-b border-border/40"
+                          onClick={() => {
+                            navigate('/messages');
+                            setNotificationsOpen(false);
+                          }}
+                        >
+                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                            <MessageSquare className="w-4 h-4 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-foreground">Unread Messages</p>
+                            <p className="text-xs text-muted-foreground">{unreadMessages} new message{unreadMessages > 1 ? 's' : ''}</p>
+                          </div>
+                        </button>
+                      )}
+                      {newBidsOnProjects.map((bid) => (
+                        <button
+                          key={bid.id}
+                          className="w-full px-4 py-3 text-left hover:bg-muted/50 flex items-center gap-3 border-b border-border/40 last:border-b-0"
+                          onClick={() => {
+                            navigate(`/projects/${bid.user_projects.id}`);
+                            setNotificationsOpen(false);
+                          }}
+                        >
+                          <div className="h-9 w-9 rounded-full bg-green-500/10 flex items-center justify-center">
+                            <FileText className="w-4 h-4 text-green-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">New bid: ₹{bid.amount}</p>
+                            <p className="text-xs text-muted-foreground truncate">{bid.user_projects.title}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button className="h-11 px-6 rounded-2xl bg-foreground text-background hover:bg-foreground/90 shadow-sm gap-2 font-medium">
               <Plus className="w-4 h-4" />
               <span className="text-[0.9375rem]">New Project</span>
