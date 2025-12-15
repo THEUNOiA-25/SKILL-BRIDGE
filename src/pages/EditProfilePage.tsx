@@ -8,11 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, ArrowLeft } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 const EditProfilePage = () => {
@@ -172,38 +168,80 @@ const EditProfilePage = () => {
 
             <div className="space-y-2">
               <Label>Date of Birth</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !profile.dateOfBirth && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {profile.dateOfBirth ? (
-                      format(profile.dateOfBirth, "PPP")
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={profile.dateOfBirth || undefined}
-                    onSelect={(date) =>
-                      setProfile({ ...profile, dateOfBirth: date || null })
-                    }
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="grid grid-cols-3 gap-3">
+                <Select
+                  value={profile.dateOfBirth ? profile.dateOfBirth.getFullYear().toString() : ""}
+                  onValueChange={(year) => {
+                    const currentDate = profile.dateOfBirth || new Date();
+                    const newDate = new Date(
+                      parseInt(year),
+                      currentDate.getMonth(),
+                      Math.min(currentDate.getDate(), new Date(parseInt(year), currentDate.getMonth() + 1, 0).getDate())
+                    );
+                    setProfile({ ...profile, dateOfBirth: newDate });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={profile.dateOfBirth ? profile.dateOfBirth.getMonth().toString() : ""}
+                  onValueChange={(month) => {
+                    const currentDate = profile.dateOfBirth || new Date();
+                    const year = currentDate.getFullYear();
+                    const newDate = new Date(
+                      year,
+                      parseInt(month),
+                      Math.min(currentDate.getDate(), new Date(year, parseInt(month) + 1, 0).getDate())
+                    );
+                    setProfile({ ...profile, dateOfBirth: newDate });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((month, i) => (
+                      <SelectItem key={i} value={i.toString()}>
+                        {month}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={profile.dateOfBirth ? profile.dateOfBirth.getDate().toString() : ""}
+                  onValueChange={(day) => {
+                    const currentDate = profile.dateOfBirth || new Date();
+                    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), parseInt(day));
+                    setProfile({ ...profile, dateOfBirth: newDate });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Day" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {Array.from(
+                      { length: profile.dateOfBirth 
+                        ? new Date(profile.dateOfBirth.getFullYear(), profile.dateOfBirth.getMonth() + 1, 0).getDate() 
+                        : 31 
+                      },
+                      (_, i) => i + 1
+                    ).map((day) => (
+                      <SelectItem key={day} value={day.toString()}>
+                        {day}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
