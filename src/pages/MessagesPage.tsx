@@ -5,18 +5,24 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { ConversationItem } from '@/components/ConversationItem';
 import { MessageBubble } from '@/components/MessageBubble';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
-import { Send, MessageSquare } from 'lucide-react';
+import { Send, MessageSquare, Paperclip, Image as ImageIcon, X, IndianRupee, Clock, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export default function MessagesPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Subscribe to real-time updates for the selected conversation
   const { isSubscribed } = useRealtimeMessages(selectedConversationId);
@@ -35,7 +41,7 @@ export default function MessagesPage() {
     enabled: !!user?.id,
   });
 
-  // Fetch conversations
+  // Fetch conversations with full project details
   const { data: conversations, isLoading: conversationsLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: async () => {
@@ -48,7 +54,16 @@ export default function MessagesPage() {
           freelancer_id,
           last_message_at,
           user_projects (
-            title
+            id,
+            title,
+            description,
+            budget,
+            timeline,
+            status,
+            skills_required,
+            category,
+            subcategory,
+            cover_image_url
           )
         `)
         .order('last_message_at', { ascending: false, nullsFirst: false });
@@ -86,12 +101,16 @@ export default function MessagesPage() {
 
           return {
             id: convo.id,
+            project_id: convo.project_id,
+            project: convo.user_projects,
             project_title: convo.user_projects?.title || 'Unknown Project',
+            other_user_id: otherUserId,
             other_user_name: profile ? `${profile.first_name} ${profile.last_name}` : 'Unknown User',
             other_user_avatar: profile?.profile_picture_url,
             last_message: lastMessage?.content,
             last_message_at: convo.last_message_at,
             unread_count: unreadCount || 0,
+            is_client: convo.client_id === user?.id,
           };
         })
       );
@@ -143,15 +162,44 @@ export default function MessagesPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Send message mutation
+  // Upload files and send message mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async ({ content, files }: { content: string; files: File[] }) => {
       if (!selectedConversationId || !user) throw new Error('No conversation selected');
+
+      let attachments: { name: string; url: string; type: string; size: number }[] = [];
+
+      // Upload files if any
+      if (files.length > 0) {
+        setIsUploading(true);
+        for (const file of files) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('message-attachments')
+            .upload(fileName, file);
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('message-attachments')
+            .getPublicUrl(fileName);
+
+          attachments.push({
+            name: file.name,
+            url: publicUrl,
+            type: file.type,
+            size: file.size,
+          });
+        }
+      }
 
       const { error } = await supabase.from('messages').insert({
         conversation_id: selectedConversationId,
         sender_id: user.id,
         content: content.trim(),
+        attachments: attachments.length > 0 ? attachments : null,
       });
 
       if (error) throw error;
@@ -164,20 +212,39 @@ export default function MessagesPage() {
     },
     onSuccess: () => {
       setMessageInput('');
+      setSelectedFiles([]);
+      setIsUploading(false);
       queryClient.invalidateQueries({ queryKey: ['messages', selectedConversationId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
     onError: (error) => {
       console.error('Error sending message:', error);
+      setIsUploading(false);
       toast.error('Failed to send message');
     },
   });
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (messageInput.trim() && !sendMessageMutation.isPending) {
-      sendMessageMutation.mutate(messageInput);
+    if ((messageInput.trim() || selectedFiles.length > 0) && !sendMessageMutation.isPending && !isUploading) {
+      sendMessageMutation.mutate({ content: messageInput, files: selectedFiles });
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => file.size <= 10 * 1024 * 1024); // 10MB limit
+    
+    if (validFiles.length !== files.length) {
+      toast.error('Some files exceed the 10MB limit');
+    }
+    
+    setSelectedFiles(prev => [...prev, ...validFiles].slice(0, 5)); // Max 5 files
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const selectedConversation = conversations?.find(c => c.id === selectedConversationId);
@@ -254,25 +321,69 @@ export default function MessagesPage() {
             </div>
 
             {/* Message Input */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-background">
-              <div className="flex gap-2">
+            <div className="p-4 border-t border-border bg-background">
+              {/* Selected Files Preview */}
+              {selectedFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-lg text-sm">
+                      {file.type.startsWith('image/') ? (
+                        <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <Paperclip className="w-4 h-4 text-muted-foreground" />
+                      )}
+                      <span className="truncate max-w-32">{file.name}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => removeFile(index)}
+                        className="hover:text-destructive"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx,.txt,.zip"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="flex-shrink-0"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sendMessageMutation.isPending || isUploading}
+                >
+                  <Paperclip className="h-5 w-5 text-muted-foreground" />
+                </Button>
                 <Input
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
                   placeholder="Type a message..."
                   className="flex-1 bg-muted border-border focus:border-primary rounded-full px-4"
-                  disabled={sendMessageMutation.isPending}
+                  disabled={sendMessageMutation.isPending || isUploading}
                 />
                 <Button
                   type="submit"
                   size="icon"
-                  className="rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-md"
-                  disabled={!messageInput.trim() || sendMessageMutation.isPending}
+                  className="rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-md flex-shrink-0"
+                  disabled={(!messageInput.trim() && selectedFiles.length === 0) || sendMessageMutation.isPending || isUploading}
                 >
                   <Send className="h-4 w-4" />
                 </Button>
-              </div>
-            </form>
+              </form>
+              {isUploading && (
+                <p className="text-xs text-muted-foreground mt-2">Uploading files...</p>
+              )}
+            </div>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-muted/5">
@@ -290,16 +401,115 @@ export default function MessagesPage() {
       {/* Right Column - Project Details */}
       {selectedConversationId && selectedConversation && (
         <div className="w-80 border-l border-border p-4 bg-background h-full overflow-y-auto">
-          <Card className="p-4 border-border bg-muted/20">
-            <h3 className="font-semibold text-foreground mb-2">Project Details</h3>
-            <p className="text-sm text-muted-foreground mb-4">{selectedConversation.project_title}</p>
-            
-            <div className="space-y-2">
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Participant</p>
-                <p className="text-sm font-medium text-foreground">{selectedConversation.other_user_name}</p>
-              </div>
+          <Card className="p-4 border-border bg-muted/20 space-y-4">
+            <div>
+              <h3 className="font-semibold text-foreground mb-1">Project Details</h3>
+              <p className="text-xs text-muted-foreground">
+                {selectedConversation.is_client ? 'You are the client' : 'You are the freelancer'}
+              </p>
             </div>
+
+            {/* Project Cover Image */}
+            {selectedConversation.project?.cover_image_url && (
+              <div className="rounded-lg overflow-hidden">
+                <img 
+                  src={selectedConversation.project.cover_image_url} 
+                  alt={selectedConversation.project_title}
+                  className="w-full h-32 object-cover"
+                />
+              </div>
+            )}
+            
+            {/* Project Title & Category */}
+            <div>
+              <h4 className="font-medium text-foreground line-clamp-2">{selectedConversation.project_title}</h4>
+              {selectedConversation.project?.category && (
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="secondary" className="text-xs">
+                    {selectedConversation.project.category}
+                  </Badge>
+                  {selectedConversation.project?.subcategory && (
+                    <Badge variant="outline" className="text-xs">
+                      {selectedConversation.project.subcategory}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Budget & Timeline */}
+            <div className="grid grid-cols-2 gap-3">
+              {selectedConversation.project?.budget && (
+                <div className="bg-background rounded-lg p-2.5">
+                  <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
+                    <IndianRupee className="w-3 h-3" />
+                    <span className="text-xs">Budget</span>
+                  </div>
+                  <p className="font-semibold text-foreground text-sm">₹{selectedConversation.project.budget}</p>
+                </div>
+              )}
+              {selectedConversation.project?.timeline && (
+                <div className="bg-background rounded-lg p-2.5">
+                  <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
+                    <Clock className="w-3 h-3" />
+                    <span className="text-xs">Timeline</span>
+                  </div>
+                  <p className="font-semibold text-foreground text-sm">{selectedConversation.project.timeline}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Status */}
+            {selectedConversation.project?.status && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Status</p>
+                <Badge variant={selectedConversation.project.status === 'open' ? 'secondary' : selectedConversation.project.status === 'in_progress' ? 'default' : 'outline'}>
+                  {selectedConversation.project.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </Badge>
+              </div>
+            )}
+
+            {/* Description */}
+            {selectedConversation.project?.description && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Description</p>
+                <p className="text-sm text-foreground line-clamp-4">{selectedConversation.project.description}</p>
+              </div>
+            )}
+
+            {/* Skills Required */}
+            {selectedConversation.project?.skills_required && selectedConversation.project.skills_required.length > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1.5">Skills Required</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedConversation.project.skills_required.map((skill: string, index: number) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Participant */}
+            <div className="pt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-1">
+                {selectedConversation.is_client ? 'Freelancer' : 'Client'}
+              </p>
+              <p className="text-sm font-medium text-foreground">{selectedConversation.other_user_name}</p>
+            </div>
+
+            {/* View Project Button */}
+            {selectedConversation.project_id && (
+              <Button 
+                variant="outline" 
+                className="w-full gap-2"
+                onClick={() => navigate(`/projects/${selectedConversation.project_id}`)}
+              >
+                <ExternalLink className="w-4 h-4" />
+                View Full Project
+              </Button>
+            )}
           </Card>
         </div>
       )}
