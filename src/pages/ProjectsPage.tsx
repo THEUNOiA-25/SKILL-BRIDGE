@@ -22,6 +22,7 @@ import { ImageGallery } from "@/components/ImageGallery";
 import { FileList } from "@/components/FileList";
 import { PROJECT_CATEGORIES, getCategoryList, getSubcategoriesForCategory } from "@/data/categories";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RatingDialog } from "@/components/RatingDialog";
 
 interface Project {
   id: string;
@@ -117,6 +118,12 @@ const ProjectsPage = () => {
   const [uploadedImages, setUploadedImages] = useState<any[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
+
+  // Rating dialog state
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [projectToRate, setProjectToRate] = useState<Project | null>(null);
+  const [acceptedFreelancerId, setAcceptedFreelancerId] = useState<string | null>(null);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
   useEffect(() => {
     // Always fetch browse projects (public)
@@ -442,19 +449,72 @@ const ProjectsPage = () => {
   };
 
   const handleMarkComplete = async (projectId: string) => {
+    // Find the project
+    const project = myProjects.find(p => p.id === projectId);
+    if (!project) return;
+
+    // Find the accepted bid to get freelancer_id
     try {
-      const { error } = await supabase
-        .from("user_projects")
-        .update({ status: 'completed', completed_at: new Date().toISOString() })
-        .eq("id", projectId);
+      const { data: acceptedBid, error } = await supabase
+        .from("bids")
+        .select("freelancer_id")
+        .eq("project_id", projectId)
+        .eq("status", "accepted")
+        .maybeSingle();
 
       if (error) throw error;
-      toast.success("Project marked as completed!");
+
+      if (!acceptedBid) {
+        toast.error("No accepted bid found for this project");
+        return;
+      }
+
+      setProjectToRate(project);
+      setAcceptedFreelancerId(acceptedBid.freelancer_id);
+      setRatingDialogOpen(true);
+    } catch (error) {
+      console.error("Error fetching accepted bid:", error);
+      toast.error("Failed to load project details");
+    }
+  };
+
+  const handleSubmitRating = async (rating: number, feedback: string) => {
+    if (!user?.id || !projectToRate || !acceptedFreelancerId) return;
+
+    setIsSubmittingRating(true);
+    try {
+      // Insert rating
+      const { error: ratingError } = await supabase
+        .from("freelancer_ratings")
+        .insert({
+          project_id: projectToRate.id,
+          freelancer_id: acceptedFreelancerId,
+          client_id: user.id,
+          rating,
+          feedback: feedback || null,
+        });
+
+      if (ratingError) throw ratingError;
+
+      // Update project status
+      const { error: projectError } = await supabase
+        .from("user_projects")
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq("id", projectToRate.id);
+
+      if (projectError) throw projectError;
+
+      toast.success("Project completed and rating submitted!");
+      setRatingDialogOpen(false);
+      setProjectToRate(null);
+      setAcceptedFreelancerId(null);
       fetchBrowseProjects();
       if (user) fetchUserData();
     } catch (error) {
-      console.error("Error marking project as complete:", error);
-      toast.error("Failed to mark project as complete");
+      console.error("Error submitting rating:", error);
+      toast.error("Failed to submit rating");
+    } finally {
+      setIsSubmittingRating(false);
     }
   };
 
@@ -1222,6 +1282,15 @@ const ProjectsPage = () => {
           )}
         </Tabs>
         </div>
+
+        {/* Rating Dialog */}
+        <RatingDialog
+          open={ratingDialogOpen}
+          onOpenChange={setRatingDialogOpen}
+          onSubmit={handleSubmitRating}
+          projectTitle={projectToRate?.title || ""}
+          isSubmitting={isSubmittingRating}
+        />
       </main>
   );
 };

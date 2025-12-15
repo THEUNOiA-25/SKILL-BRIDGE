@@ -163,6 +163,44 @@ export type Database = {
         }
         Relationships: []
       }
+      freelancer_ratings: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          feedback: string | null
+          freelancer_id: string
+          id: string
+          project_id: string
+          rating: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          feedback?: string | null
+          freelancer_id: string
+          id?: string
+          project_id: string
+          rating: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          feedback?: string | null
+          freelancer_id?: string
+          id?: string
+          project_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "freelancer_ratings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "user_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string

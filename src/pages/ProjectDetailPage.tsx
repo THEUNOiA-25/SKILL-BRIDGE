@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { z } from "zod";
 import { ImageGallery } from "@/components/ImageGallery";
 import { FileList } from "@/components/FileList";
+import { RatingDialog } from "@/components/RatingDialog";
 
 interface Project {
   id: string;
@@ -74,6 +75,11 @@ const ProjectDetailPage = () => {
     amount: "",
     proposal: "",
   });
+
+  // Rating dialog state
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [acceptedFreelancerId, setAcceptedFreelancerId] = useState<string | null>(null);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
   useEffect(() => {
     if (user && id) {
@@ -248,6 +254,59 @@ const ProjectDetailPage = () => {
     }
   };
 
+  const handleMarkComplete = async () => {
+    if (!project) return;
+
+    // Find the accepted bid to get freelancer_id
+    const acceptedBid = bids.find(bid => bid.status === 'accepted');
+    if (!acceptedBid) {
+      toast.error("No accepted bid found for this project");
+      return;
+    }
+
+    setAcceptedFreelancerId(acceptedBid.freelancer_id);
+    setRatingDialogOpen(true);
+  };
+
+  const handleSubmitRating = async (rating: number, feedback: string) => {
+    if (!user?.id || !project || !acceptedFreelancerId) return;
+
+    setIsSubmittingRating(true);
+    try {
+      // Insert rating
+      const { error: ratingError } = await supabase
+        .from("freelancer_ratings")
+        .insert({
+          project_id: project.id,
+          freelancer_id: acceptedFreelancerId,
+          client_id: user.id,
+          rating,
+          feedback: feedback || null,
+        });
+
+      if (ratingError) throw ratingError;
+
+      // Update project status
+      const { error: projectError } = await supabase
+        .from("user_projects")
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq("id", project.id);
+
+      if (projectError) throw projectError;
+
+      toast.success("Project completed and rating submitted!");
+      setRatingDialogOpen(false);
+      setAcceptedFreelancerId(null);
+      fetchProjectDetails();
+      fetchBids();
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      toast.error("Failed to submit rating");
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
+
   if (loading) {
     return (
       <main className="flex-1 p-8 bg-background">
@@ -380,6 +439,15 @@ const ProjectDetailPage = () => {
                     </Button>
                   )}
                 </>
+              )}
+              {isProjectOwner && project.status === 'in_progress' && (
+                <Button
+                  onClick={handleMarkComplete}
+                  className="gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Mark Complete
+                </Button>
               )}
             </div>
           </CardHeader>
@@ -620,6 +688,15 @@ const ProjectDetailPage = () => {
           </Card>
         )}
       </div>
+
+      {/* Rating Dialog */}
+      <RatingDialog
+        open={ratingDialogOpen}
+        onOpenChange={setRatingDialogOpen}
+        onSubmit={handleSubmitRating}
+        projectTitle={project?.title || ""}
+        isSubmitting={isSubmittingRating}
+      />
     </main>
   );
 };
