@@ -34,6 +34,7 @@ const ProfilePage = () => {
   const [newSkill, setNewSkill] = useState("");
   const [addingSkill, setAddingSkill] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [rating, setRating] = useState<{ average: number; count: number } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -41,6 +42,7 @@ const ProfilePage = () => {
       fetchVerification();
       fetchSkills();
       fetchProjects();
+      fetchRatings();
     }
   }, [user]);
 
@@ -178,6 +180,29 @@ const ProfilePage = () => {
       setProjects(data || []);
     } catch (error) {
       console.error("Error fetching projects:", error);
+    }
+  };
+
+  const fetchRatings = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("freelancer_ratings")
+        .select("rating")
+        .eq("freelancer_id", user.id);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const total = data.reduce((sum, r) => sum + r.rating, 0);
+        setRating({
+          average: total / data.length,
+          count: data.length,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching ratings:", error);
     }
   };
 
@@ -321,6 +346,17 @@ const ProfilePage = () => {
                           ? "Student Freelancer"
                           : "Freelancer"}
                       </Badge>
+                      {rating && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-1 bg-yellow-500/10 px-3 py-1 rounded-full">
+                            <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                            <span className="font-semibold text-foreground">{rating.average.toFixed(1)}</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            ({rating.count} review{rating.count !== 1 ? 's' : ''})
+                          </span>
+                        </div>
+                      )}
                       {profile.bio && (
                         <p className="mt-3 text-muted-foreground max-w-2xl">
                           {profile.bio}
