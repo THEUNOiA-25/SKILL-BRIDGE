@@ -311,7 +311,10 @@ const DashboardPage = () => {
                 </div>
               </PopoverContent>
             </Popover>
-            <Button className="h-11 px-6 rounded-2xl bg-foreground text-background hover:bg-foreground/90 shadow-sm gap-2 font-medium">
+            <Button 
+              onClick={() => navigate('/projects?create=true')}
+              className="h-11 px-6 rounded-2xl bg-foreground text-background hover:bg-foreground/90 shadow-sm gap-2 font-medium"
+            >
               <Plus className="w-4 h-4" />
               <span className="text-[0.9375rem]">New Project</span>
             </Button>

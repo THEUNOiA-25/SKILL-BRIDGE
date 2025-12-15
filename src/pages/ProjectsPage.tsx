@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,6 +78,7 @@ const portfolioProjectSchema = z.object({
 const ProjectsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [myProjects, setMyProjects] = useState<Project[]>([]);
   const [bidProjects, setBidProjects] = useState<BidProject[]>([]);
@@ -137,6 +138,16 @@ const ProjectsPage = () => {
       setLoading(false);
     }
   }, [user]);
+
+  // Handle create query param from dashboard
+  useEffect(() => {
+    if (searchParams.get('create') === 'true' && user) {
+      setActiveTab('my-projects');
+      openWorkRequirementDialog();
+      // Clear the query param
+      setSearchParams({});
+    }
+  }, [searchParams, user]);
 
   const checkVerification = async () => {
     if (!user?.id) return;
