@@ -575,7 +575,7 @@ const ProjectsPage = () => {
               variant={bidProject.bidStatus === 'accepted' ? 'default' : bidProject.bidStatus === 'rejected' ? 'destructive' : 'secondary'}
               className="text-xs"
             >
-              Your Bid: ${bidProject.bidAmount} - {bidProject.bidStatus === 'accepted' && project.status === 'in_progress' ? 'Working' : bidProject.bidStatus === 'accepted' && project.status === 'completed' ? 'Completed' : bidProject.bidStatus}
+              Your Bid: ₹{bidProject.bidAmount} - {bidProject.bidStatus === 'accepted' && project.status === 'in_progress' ? 'Working' : bidProject.bidStatus === 'accepted' && project.status === 'completed' ? 'Completed' : bidProject.bidStatus}
             </Badge>
           </div>
         )}
@@ -911,7 +911,7 @@ const ProjectsPage = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="budget">Budget ($) *</Label>
+                        <Label htmlFor="budget">Budget (₹) *</Label>
                         <Input
                           id="budget"
                           type="number"
