@@ -223,11 +223,13 @@ const ProjectsPage = () => {
 
       if (bidError) throw bidError;
       
-      const bidProjectsData = (bidData || []).map((bid: any) => ({
-        ...bid.user_projects,
-        bidStatus: bid.status,
-        bidAmount: bid.amount,
-      })) as BidProject[];
+      const bidProjectsData = (bidData || [])
+        .filter((bid: any) => bid.user_projects !== null)
+        .map((bid: any) => ({
+          ...bid.user_projects,
+          bidStatus: bid.status,
+          bidAmount: bid.amount,
+        })) as BidProject[];
       setBidProjects(bidProjectsData);
 
       // Fetch user's portfolio projects (only if verified student)
