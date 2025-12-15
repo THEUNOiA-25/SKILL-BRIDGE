@@ -18,11 +18,35 @@ serve(async (req) => {
 
     console.log('Starting college import...');
 
-    // Step 1: Clear existing colleges
+    // Step 1: Clear student_verifications college references first
+    const { error: clearRefsError } = await supabase
+      .from('student_verifications')
+      .update({ college_id: null })
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    if (clearRefsError) {
+      console.error('Error clearing college references:', clearRefsError);
+      throw clearRefsError;
+    }
+    console.log('Cleared college references from student_verifications');
+
+    // Step 2: Clear community task references
+    const { error: clearProjectsError } = await supabase
+      .from('user_projects')
+      .update({ community_college_id: null })
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    if (clearProjectsError) {
+      console.error('Error clearing project college references:', clearProjectsError);
+      throw clearProjectsError;
+    }
+    console.log('Cleared college references from user_projects');
+
+    // Step 3: Clear existing colleges
     const { error: deleteError } = await supabase
       .from('colleges')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      .neq('id', '00000000-0000-0000-0000-000000000000');
 
     if (deleteError) {
       console.error('Error deleting existing colleges:', deleteError);
