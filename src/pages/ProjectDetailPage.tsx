@@ -148,13 +148,21 @@ const ProjectDetailPage = () => {
   };
 
   const handlePlaceBid = async () => {
-    if (!user?.id || !id) {
+    if (!user?.id || !id || !project) {
       toast.error("User not authenticated");
       return;
     }
 
     try {
       bidSchema.parse(bidFormData);
+
+      // Check minimum bid (80% of project budget)
+      const bidAmount = parseFloat(bidFormData.amount);
+      const minBid = project.budget ? project.budget * 0.8 : 0;
+      if (project.budget && bidAmount < minBid) {
+        toast.error(`Minimum bid is ₹${minBid.toFixed(0)} (80% of project budget)`);
+        return;
+      }
 
       // Check if user already placed a bid
       const { data: existingBid } = await supabase
@@ -390,7 +398,13 @@ const ProjectDetailPage = () => {
                           value={bidFormData.amount}
                           onChange={(e) => setBidFormData({ ...bidFormData, amount: e.target.value })}
                           className="mt-1"
+                          min={project?.budget ? Math.ceil(project.budget * 0.8) : 0}
                         />
+                        {project?.budget && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Minimum bid: ₹{Math.ceil(project.budget * 0.8)} (80% of ₹{project.budget} budget)
+                          </p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="bid-proposal">Proposal</Label>
