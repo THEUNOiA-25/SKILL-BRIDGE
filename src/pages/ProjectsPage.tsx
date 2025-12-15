@@ -839,13 +839,13 @@ const ProjectsPage = () => {
                     Post Work Requirement
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-3xl max-h-[90vh]">
                   <DialogHeader>
                     <DialogTitle>
                       {editingProject ? "Edit Work Requirement" : "Post Work Requirement"}
                     </DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                  <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
                     <div className="space-y-2">
                       <Label htmlFor="title">Title *</Label>
                       <Input
