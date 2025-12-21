@@ -1,17 +1,17 @@
 import React from 'react';
+import theunoiaLogo from '@/assets/theunoia-logo.png';
 
 const Header = () => {
   return (
     <header className="bg-white self-stretch w-full text-[15px] whitespace-nowrap max-md:max-w-full">
       <div className="bg-white flex w-full items-stretch gap-5 flex-wrap justify-between px-20 py-6 max-md:max-w-full max-md:px-5">
         <nav className="flex items-stretch gap-12 text-foreground font-medium flex-wrap my-auto max-md:max-w-full">
-          <div className="flex items-stretch gap-1 text-lg font-bold">
+          <div className="flex items-center gap-2">
             <img
-              src="https://api.builder.io/api/v1/image/assets/TEMP/92d972effd43063f68165dc5639029d3b68f7576?placeholderIfAbsent=true"
+              src={theunoiaLogo}
               alt="THEUNOiA Logo"
-              className="aspect-[1.25] object-contain w-[30px] shrink-0"
+              className="h-10 object-contain"
             />
-            <div className="my-auto">THEUNOiA</div>
           </div>
           <div className="my-auto">Work</div>
           <div className="flex items-stretch gap-8 my-auto">

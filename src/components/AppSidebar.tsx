@@ -1,38 +1,48 @@
-import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, CircleArrowRight, Users, CalendarDays } from 'lucide-react';
+import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, Users, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import theunoiaLogo from '@/assets/theunoia-logo.png';
 
 interface AppSidebarProps {
+  onSignOut: () => void;
   currentPath: string;
   displayName: string;
   displayEmail: string;
-  profilePictureUrl?: string;
-  unreadMessageCount?: number;
+  profilePictureUrl?: string | null;
   isVerifiedStudent?: boolean;
-  onSignOut: () => void;
+  unreadMessageCount?: number;
 }
 
-export const AppSidebar = ({ currentPath, displayName, displayEmail, profilePictureUrl, unreadMessageCount, isVerifiedStudent, onSignOut }: AppSidebarProps) => {
-  const navigate = useNavigate();
+const navItems = [
+  { path: '/dashboard', label: 'Dashboard', icon: Grid3X3, showForAll: true },
+  { path: '/projects', label: 'Projects', icon: Briefcase, showForAll: true },
+  { path: '/bids', label: 'My Bids', icon: Gavel, showForAll: true },
+  { path: '/messages', label: 'Messages', icon: Mail, showForAll: true },
+  { path: '/calendar', label: 'Calendar', icon: CalendarDays, showForAll: true },
+  { path: '/community', label: 'Community', icon: Users, showForAll: false },
+  { path: '/profile', label: 'Profile', icon: User, showForAll: true },
+];
 
-  const navItems = [
-    { path: '/dashboard', icon: Grid3X3, label: 'Dashboard', showForAll: true },
-    { path: '/projects', icon: Briefcase, label: 'Projects', showForAll: true },
-    { path: '/bids', icon: Gavel, label: 'Bids', showForAll: true },
-    { path: '/calendar', icon: CalendarDays, label: 'Calendar', showForAll: true },
-    { path: '/messages', icon: Mail, label: 'Messages', showForAll: true },
-    { path: '/community', icon: Users, label: 'Community', showForAll: false },
-    { path: '/profile', icon: User, label: 'Profile', showForAll: true },
-  ];
+export const AppSidebar = ({ 
+  onSignOut, 
+  currentPath, 
+  displayName, 
+  displayEmail, 
+  profilePictureUrl,
+  isVerifiedStudent = false,
+  unreadMessageCount
+}: AppSidebarProps) => {
+  const navigate = useNavigate();
 
   return (
     <aside className="w-64 bg-card border-r border-border/60 p-5 flex flex-col justify-between fixed left-0 top-0 h-screen">
       <div className="flex flex-col gap-8">
         {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="size-10 bg-primary rounded-2xl flex items-center justify-center shadow-sm">
-            <CircleArrowRight className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <h2 className="text-foreground text-lg font-bold tracking-tight">THEUNOiA</h2>
+        <div className="flex items-center">
+          <img
+            src={theunoiaLogo}
+            alt="THEUNOiA Logo"
+            className="h-10 object-contain"
+          />
         </div>
 
         {/* Navigation */}

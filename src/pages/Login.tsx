@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import slide1 from '@/assets/auth-slide-1.png';
 import slide2 from '@/assets/auth-slide-2.png';
 import slide3 from '@/assets/auth-slide-3.png';
+import theunoiaLogo from '@/assets/theunoia-logo.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -75,13 +76,12 @@ const Login = () => {
     <div className="flex lg:min-h-screen">
       {/* Left Side - Branding & Images */}
       <div className="hidden lg:flex lg:w-1/2 bg-muted flex-col justify-between lg:p-8 xl:p-12">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center">
           <img
-            src="https://api.builder.io/api/v1/image/assets/TEMP/92d972effd43063f68165dc5639029d3b68f7576?placeholderIfAbsent=true"
+            src={theunoiaLogo}
             alt="THEUNOiA Logo"
-            className="w-[30px] h-[24px]"
+            className="h-10 object-contain"
           />
-          <span className="text-xl font-bold text-foreground">THEUNOiA</span>
         </div>
 
         <div className="space-y-6">
