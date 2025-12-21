@@ -10,7 +10,7 @@ const Header = () => {
             <img
               src={theunoiaLogo}
               alt="THEUNOiA Logo"
-              className="h-10 object-contain"
+              className="h-14 object-contain object-left"
             />
           </div>
           <div className="my-auto">Work</div>
