@@ -7,6 +7,7 @@ import { lazy, Suspense } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { GlobalNotificationProvider } from "./components/GlobalNotificationProvider";
 import { DashboardLayout } from "./components/DashboardLayout";
+import { AdminLayout } from "./components/admin/AdminLayout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -22,6 +23,12 @@ const BidsPage = lazy(() => import("./pages/BidsPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
+
+// Admin pages
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
+const AdminVerificationsPage = lazy(() => import("./pages/admin/AdminVerificationsPage"));
+const AdminProjectsPage = lazy(() => import("./pages/admin/AdminProjectsPage"));
 
 const queryClient = new QueryClient();
 
@@ -122,6 +129,30 @@ const App = () => (
                     </Suspense>
                   } 
                 />
+              </Route>
+
+              {/* Admin routes */}
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <AdminDashboard />
+                  </Suspense>
+                } />
+                <Route path="/admin/users" element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <AdminUsersPage />
+                  </Suspense>
+                } />
+                <Route path="/admin/verifications" element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <AdminVerificationsPage />
+                  </Suspense>
+                } />
+                <Route path="/admin/projects" element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <AdminProjectsPage />
+                  </Suspense>
+                } />
               </Route>
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
