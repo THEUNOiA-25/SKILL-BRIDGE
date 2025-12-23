@@ -17,43 +17,65 @@ interface College {
 const AdminCollegesPage = () => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [stats, setStats] = useState<{ total: number; inserted: number; errors: number } | null>(null);
+  const [stats, setStats] = useState<{
+    totalRows: number;
+    uniqueRows: number;
+    inserted: number;
+    skippedDuplicates: number;
+    invalidRows: number;
+    failed: number;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const parseCSV = (text: string): College[] => {
-    const lines = text.split('\n');
+  const parseCSV = (text: string): { colleges: College[]; totalRows: number; invalidRows: number } => {
+    const lines = text.split(/\r?\n/);
     const colleges: College[] = [];
-    
-    // Skip header rows (first two lines based on the CSV structure)
-    for (let i = 2; i < lines.length; i++) {
-      const line = lines[i].trim();
+    let totalRows = 0;
+    let invalidRows = 0;
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
       if (!line) continue;
-      
+
+      totalRows += 1;
+
       // Handle CSV with quoted fields
       const matches = line.match(/("([^"]*)"|[^,]+)/g);
-      if (!matches || matches.length < 5) continue;
-      
+      if (!matches || matches.length < 5) {
+        invalidRows += 1;
+        continue;
+      }
+
       const cleanField = (field: string) => field.replace(/^"|"$/g, '').trim();
-      
+
       const name = cleanField(matches[0]);
+      // Skip header rows
+      if (!name || name.toLowerCase() === 'name') continue;
+
       const state = cleanField(matches[1]);
       const city = cleanField(matches[2]);
       const country = cleanField(matches[3]) || 'India';
       const isActiveStr = cleanField(matches[4]);
-      
-      if (name && name !== 'Name') {
-        colleges.push({
-          name,
-          state,
-          city,
-          country,
-          is_active: isActiveStr.toUpperCase() === 'TRUE'
-        });
+
+      // DB columns are NOT NULL for these
+      if (!state || !city) {
+        invalidRows += 1;
+        continue;
       }
+
+      colleges.push({
+        name,
+        state,
+        city,
+        country,
+        is_active: isActiveStr ? isActiveStr.toUpperCase() === 'TRUE' : true,
+      });
     }
-    
-    return colleges;
+
+    return { colleges, totalRows, invalidRows };
   };
+
+  const normalizeCollegeKey = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -65,32 +87,69 @@ const AdminCollegesPage = () => {
 
     try {
       const text = await file.text();
-      const colleges = parseCSV(text);
-      
+      const { colleges, totalRows, invalidRows } = parseCSV(text);
+
       if (colleges.length === 0) {
         toast.error('No valid colleges found in CSV');
         setUploading(false);
         return;
       }
 
-      toast.info(`Found ${colleges.length} colleges. Starting import...`);
+      // De-dupe by name (there is a unique constraint on colleges.name)
+      const seen = new Set<string>();
+      const uniqueColleges: College[] = [];
+      let skippedDuplicates = 0;
 
-      const batchSize = 500;
+      for (const c of colleges) {
+        const key = normalizeCollegeKey(c.name);
+        if (seen.has(key)) {
+          skippedDuplicates += 1;
+          continue;
+        }
+        seen.add(key);
+        uniqueColleges.push({
+          ...c,
+          name: c.name.trim(),
+          state: c.state.trim(),
+          city: c.city.trim(),
+          country: (c.country || 'India').trim(),
+        });
+      }
+
+      toast.info(
+        `Parsed ${totalRows.toLocaleString()} rows (${uniqueColleges.length.toLocaleString()} unique). Importing...`
+      );
+
+      const batchSize = 1000;
       let insertedCount = 0;
-      let errorCount = 0;
-      const totalBatches = Math.ceil(colleges.length / batchSize);
+      let failedCount = 0;
+      const totalBatches = Math.ceil(uniqueColleges.length / batchSize);
 
-      for (let i = 0; i < colleges.length; i += batchSize) {
-        const batch = colleges.slice(i, i + batchSize);
+      for (let i = 0; i < uniqueColleges.length; i += batchSize) {
+        const batch = uniqueColleges.slice(i, i + batchSize);
         const currentBatch = Math.floor(i / batchSize) + 1;
-        
+
+        // Use upsert + ignoreDuplicates so duplicates never fail the whole batch
         const { error } = await supabase
           .from('colleges')
-          .insert(batch);
+          .upsert(batch, { onConflict: 'name', ignoreDuplicates: true });
 
         if (error) {
           console.error(`Batch ${currentBatch} error:`, error);
-          errorCount += batch.length;
+
+          // Fallback to row-by-row so one bad row can't drop an entire batch
+          for (const row of batch) {
+            const { error: rowError } = await supabase
+              .from('colleges')
+              .upsert([row], { onConflict: 'name', ignoreDuplicates: true });
+
+            if (rowError) {
+              failedCount += 1;
+              console.error('Row insert error:', rowError, row);
+            } else {
+              insertedCount += 1;
+            }
+          }
         } else {
           insertedCount += batch.length;
         }
@@ -99,12 +158,21 @@ const AdminCollegesPage = () => {
         setProgress(progressPercent);
       }
 
-      setStats({ total: colleges.length, inserted: insertedCount, errors: errorCount });
-      
-      if (errorCount === 0) {
-        toast.success(`Successfully imported ${insertedCount} colleges!`);
+      setStats({
+        totalRows,
+        uniqueRows: uniqueColleges.length,
+        inserted: insertedCount,
+        skippedDuplicates,
+        invalidRows,
+        failed: failedCount,
+      });
+
+      if (failedCount === 0) {
+        toast.success(`Imported ${insertedCount.toLocaleString()} colleges successfully.`);
       } else {
-        toast.warning(`Imported ${insertedCount} colleges with ${errorCount} errors`);
+        toast.warning(
+          `Imported ${insertedCount.toLocaleString()} colleges, but ${failedCount.toLocaleString()} rows failed.`
+        );
       }
     } catch (error) {
       console.error('Import error:', error);
@@ -174,25 +242,38 @@ const AdminCollegesPage = () => {
           {stats && (
             <div className="rounded-lg border p-4 space-y-2">
               <div className="flex items-center gap-2">
-                {stats.errors === 0 ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+                {stats.failed === 0 ? (
+                  <CheckCircle className="h-5 w-5 text-primary" />
                 ) : (
-                  <AlertCircle className="h-5 w-5 text-yellow-500" />
+                  <AlertCircle className="h-5 w-5 text-destructive" />
                 )}
                 <span className="font-medium">Import Complete</span>
               </div>
-              <div className="grid grid-cols-3 gap-4 text-sm">
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Total:</span>{' '}
-                  <span className="font-medium">{stats.total.toLocaleString()}</span>
+                  <span className="text-muted-foreground">Rows parsed:</span>{' '}
+                  <span className="font-medium">{stats.totalRows.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Unique:</span>{' '}
+                  <span className="font-medium">{stats.uniqueRows.toLocaleString()}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Inserted:</span>{' '}
-                  <span className="font-medium text-green-600">{stats.inserted.toLocaleString()}</span>
+                  <span className="font-medium text-primary">{stats.inserted.toLocaleString()}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Errors:</span>{' '}
-                  <span className="font-medium text-red-600">{stats.errors.toLocaleString()}</span>
+                  <span className="text-muted-foreground">Skipped duplicates:</span>{' '}
+                  <span className="font-medium">{stats.skippedDuplicates.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Invalid rows:</span>{' '}
+                  <span className="font-medium">{stats.invalidRows.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Failed rows:</span>{' '}
+                  <span className="font-medium text-destructive">{stats.failed.toLocaleString()}</span>
                 </div>
               </div>
             </div>
