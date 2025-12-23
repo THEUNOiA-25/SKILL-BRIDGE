@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { ArrowLeft, AlertCircle, CheckCircle2, Clock, Upload, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -362,22 +365,49 @@ const StudentVerificationPage = () => {
                     </p>
                   </div>
                 ) : (
-                  <Select 
-                    value={selectedCollege} 
-                    onValueChange={setSelectedCollege}
-                    disabled={!canSubmit}
-                  >
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Select your college" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px] bg-background z-50">
-                      {colleges.map((college) => (
-                        <SelectItem key={college.id} value={college.id}>
-                          {college.name} - {college.city}, {college.state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        disabled={!canSubmit}
+                        className="w-full justify-between bg-background font-normal"
+                      >
+                        {selectedCollege
+                          ? (() => {
+                              const college = colleges.find((c) => c.id === selectedCollege);
+                              return college ? `${college.name} - ${college.city}, ${college.state}` : "Select your college";
+                            })()
+                          : "Select your college"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search colleges..." />
+                        <CommandList className="max-h-[300px]">
+                          <CommandEmpty>No college found.</CommandEmpty>
+                          <CommandGroup>
+                            {colleges.map((college) => (
+                              <CommandItem
+                                key={college.id}
+                                value={`${college.name} ${college.city} ${college.state}`}
+                                onSelect={() => setSelectedCollege(college.id)}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedCollege === college.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {college.name} - {college.city}, {college.state}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 )}
                 <p className="text-xs text-muted-foreground">
                   Can't find your college? Contact support to add it.
