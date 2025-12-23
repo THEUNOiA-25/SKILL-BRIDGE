@@ -4,7 +4,8 @@ import {
   Users, 
   ShieldCheck, 
   ArrowLeft,
-  FolderKanban
+  FolderKanban,
+  GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import theunoiaLogo from '@/assets/theunoia-logo.png';
@@ -14,6 +15,7 @@ const navItems = [
   { path: '/admin/users', label: 'Users', icon: Users },
   { path: '/admin/verifications', label: 'Verifications', icon: ShieldCheck },
   { path: '/admin/projects', label: 'Projects', icon: FolderKanban },
+  { path: '/admin/colleges', label: 'Colleges', icon: GraduationCap },
 ];
 
 export const AdminSidebar = () => {

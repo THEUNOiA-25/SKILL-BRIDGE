@@ -29,6 +29,7 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminVerificationsPage = lazy(() => import("./pages/admin/AdminVerificationsPage"));
 const AdminProjectsPage = lazy(() => import("./pages/admin/AdminProjectsPage"));
+const AdminCollegesPage = lazy(() => import("./pages/admin/AdminCollegesPage"));
 
 const queryClient = new QueryClient();
 
@@ -151,6 +152,11 @@ const App = () => (
                 <Route path="/admin/projects" element={
                   <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                     <AdminProjectsPage />
+                  </Suspense>
+                } />
+                <Route path="/admin/colleges" element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <AdminCollegesPage />
                   </Suspense>
                 } />
               </Route>
