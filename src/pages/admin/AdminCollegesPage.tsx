@@ -14,7 +14,7 @@ interface College {
   is_active: boolean;
 }
 
-export default function AdminCollegesPage() {
+const AdminCollegesPage = () => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stats, setStats] = useState<{ total: number; inserted: number; errors: number } | null>(null);
@@ -201,4 +201,6 @@ export default function AdminCollegesPage() {
       </Card>
     </div>
   );
-}
+};
+
+export default AdminCollegesPage;
