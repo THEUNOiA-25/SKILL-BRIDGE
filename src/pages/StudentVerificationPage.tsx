@@ -28,7 +28,6 @@ const StudentVerificationPage = () => {
   // College search state
   const [colleges, setColleges] = useState<any[]>([]);
   const [collegesLoading, setCollegesLoading] = useState(false);
-  const [collegeSearchQuery, setCollegeSearchQuery] = useState("");
   const [selectedCollege, setSelectedCollege] = useState<string>("");
   const [selectedCollegeData, setSelectedCollegeData] = useState<any>(null);
   const [collegeOpen, setCollegeOpen] = useState(false);
@@ -41,9 +40,6 @@ const StudentVerificationPage = () => {
   const [idCardPreview, setIdCardPreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [isEditingCollege, setIsEditingCollege] = useState(false);
-
-  // Debounce timer ref
-  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -121,8 +117,8 @@ const StudentVerificationPage = () => {
     }
   };
 
-  // Server-side college search with debouncing
-  const searchColleges = useCallback(async (query: string, state: string) => {
+  // Fetch ALL colleges for a state using pagination
+  const fetchAllCollegesForState = useCallback(async (state: string) => {
     if (!state) {
       setColleges([]);
       return;
@@ -130,67 +126,52 @@ const StudentVerificationPage = () => {
 
     setCollegesLoading(true);
     try {
-      let queryBuilder = supabase
-        .from("colleges")
-        .select("id, name, city, state")
-        .eq("state", state)
-        .eq("is_active", true)
-        .order("name")
-        .limit(50);
+      let allColleges: any[] = [];
+      let offset = 0;
+      const pageSize = 1000;
+      let hasMore = true;
 
-      // If there's a search query, filter by name
-      if (query.trim().length >= 2) {
-        queryBuilder = queryBuilder.ilike("name", `%${query.trim()}%`);
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from("colleges")
+          .select("id, name, city, state")
+          .eq("state", state)
+          .eq("is_active", true)
+          .order("name")
+          .range(offset, offset + pageSize - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allColleges = [...allColleges, ...data];
+          offset += pageSize;
+          hasMore = data.length === pageSize;
+        } else {
+          hasMore = false;
+        }
       }
 
-      const { data, error } = await queryBuilder;
-      
-      if (error) throw error;
-      setColleges(data || []);
+      setColleges(allColleges);
     } catch (error) {
-      console.error("Error searching colleges:", error);
+      console.error("Error fetching colleges:", error);
+      toast.error("Failed to load colleges");
     } finally {
       setCollegesLoading(false);
     }
   }, []);
 
-  // Handle college search with debounce
-  const handleCollegeSearch = (value: string) => {
-    setCollegeSearchQuery(value);
-    
-    if (searchDebounceTimer) {
-      clearTimeout(searchDebounceTimer);
-    }
-
-    const timer = setTimeout(() => {
-      searchColleges(value, selectedState);
-    }, 300);
-    
-    setSearchDebounceTimer(timer);
-  };
-
-  // Fetch initial colleges when state changes or popover opens
+  // Fetch colleges when state changes
   useEffect(() => {
-    if (selectedState && collegeOpen) {
-      searchColleges(collegeSearchQuery, selectedState);
+    if (selectedState) {
+      fetchAllCollegesForState(selectedState);
     }
-  }, [selectedState, collegeOpen]);
-
-  // Cleanup debounce timer
-  useEffect(() => {
-    return () => {
-      if (searchDebounceTimer) {
-        clearTimeout(searchDebounceTimer);
-      }
-    };
-  }, [searchDebounceTimer]);
+  }, [selectedState, fetchAllCollegesForState]);
 
   const handleStateChange = (state: string) => {
     setSelectedState(state);
     setSelectedCollege("");
     setSelectedCollegeData(null);
     setColleges([]);
-    setCollegeSearchQuery("");
     setStateOpen(false);
   };
 
@@ -198,7 +179,6 @@ const StudentVerificationPage = () => {
     setSelectedCollege(college.id);
     setSelectedCollegeData(college);
     setCollegeOpen(false);
-    setCollegeSearchQuery("");
   };
 
   const validateEmail = (email: string) => {
@@ -558,26 +538,20 @@ const StudentVerificationPage = () => {
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                          <Command shouldFilter={false}>
+                          <Command shouldFilter={true}>
                             <CommandInput 
-                              placeholder="Type at least 2 characters to search..." 
-                              value={collegeSearchQuery}
-                              onValueChange={handleCollegeSearch}
+                              placeholder="Search your college..." 
                             />
                             <CommandList className="max-h-[300px]">
                               {collegesLoading ? (
                                 <div className="flex items-center justify-center py-6">
                                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                                  <span className="ml-2 text-sm text-muted-foreground">Searching...</span>
+                                  <span className="ml-2 text-sm text-muted-foreground">Loading colleges...</span>
                                 </div>
                               ) : colleges.length === 0 ? (
-                                <CommandEmpty>
-                                  {collegeSearchQuery.length < 2 
-                                    ? "Type at least 2 characters to search" 
-                                    : "No college found. Try a different search term."}
-                                </CommandEmpty>
+                                <CommandEmpty>No colleges found for this state.</CommandEmpty>
                               ) : (
-                                <CommandGroup heading={`Showing ${colleges.length} results`}>
+                                <CommandGroup heading={`${colleges.length} colleges found`}>
                                   {colleges.map((college) => (
                                     <CommandItem
                                       key={college.id}
