@@ -21,8 +21,12 @@ const StudentVerificationPage = () => {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({ firstName: "", lastName: "", email: "" });
   const [verification, setVerification] = useState<any>(null);
+  const [states, setStates] = useState<string[]>([]);
+  const [selectedState, setSelectedState] = useState<string>("");
   const [colleges, setColleges] = useState<any[]>([]);
+  const [collegesLoading, setCollegesLoading] = useState(false);
   const [selectedCollege, setSelectedCollege] = useState<string>("");
+  const [collegeOpen, setCollegeOpen] = useState(false);
   const [formData, setFormData] = useState({
     instituteEmail: "",
     enrollmentId: "",
@@ -42,10 +46,10 @@ const StudentVerificationPage = () => {
     if (!user?.id) return;
     
     try {
-      const [profileRes, verificationRes, collegesRes] = await Promise.all([
+      const [profileRes, verificationRes, statesRes] = await Promise.all([
         supabase.from("user_profiles").select("*").eq("user_id", user.id).single(),
         supabase.from("student_verifications").select("*, colleges(*)").eq("user_id", user.id).maybeSingle(),
-        supabase.from("colleges").select("*").order("name"),
+        supabase.from("colleges").select("state").order("state"),
       ]);
 
       if (profileRes.data) {
@@ -56,8 +60,10 @@ const StudentVerificationPage = () => {
         });
       }
 
-      if (collegesRes.data) {
-        setColleges(collegesRes.data);
+      // Extract unique states
+      if (statesRes.data) {
+        const uniqueStates = [...new Set(statesRes.data.map((c: any) => c.state))].filter(Boolean) as string[];
+        setStates(uniqueStates);
       }
 
       if (verificationRes.data) {
@@ -67,6 +73,20 @@ const StudentVerificationPage = () => {
           instituteEmail: verificationRes.data.institute_email || "",
           enrollmentId: verificationRes.data.enrollment_id || "",
         });
+        
+        // If existing verification has a college, set the state from it
+        if (verificationRes.data.colleges?.state) {
+          setSelectedState(verificationRes.data.colleges.state);
+          // Fetch colleges for that state
+          const { data: collegesData } = await supabase
+            .from("colleges")
+            .select("*")
+            .eq("state", verificationRes.data.colleges.state)
+            .order("name");
+          if (collegesData) {
+            setColleges(collegesData);
+          }
+        }
         
         // Load ID card if exists
         if (verificationRes.data.id_card_url) {
@@ -87,6 +107,37 @@ const StudentVerificationPage = () => {
       console.error("Error fetching data:", error);
       toast.error("Failed to load verification data");
     }
+  };
+
+  // Fetch colleges when state changes
+  const fetchCollegesForState = async (state: string) => {
+    if (!state) {
+      setColleges([]);
+      return;
+    }
+    
+    setCollegesLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("colleges")
+        .select("*")
+        .eq("state", state)
+        .order("name");
+      
+      if (error) throw error;
+      setColleges(data || []);
+    } catch (error) {
+      console.error("Error fetching colleges:", error);
+      toast.error("Failed to load colleges");
+    } finally {
+      setCollegesLoading(false);
+    }
+  };
+
+  const handleStateChange = (state: string) => {
+    setSelectedState(state);
+    setSelectedCollege(""); // Clear college when state changes
+    fetchCollegesForState(state);
   };
 
   const validateEmail = (email: string) => {
@@ -365,49 +416,107 @@ const StudentVerificationPage = () => {
                     </p>
                   </div>
                 ) : (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        disabled={!canSubmit}
-                        className="w-full justify-between bg-background font-normal"
-                      >
-                        {selectedCollege
-                          ? (() => {
-                              const college = colleges.find((c) => c.id === selectedCollege);
-                              return college ? `${college.name} - ${college.city}, ${college.state}` : "Select your college";
-                            })()
-                          : "Select your college"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Search colleges..." />
-                        <CommandList className="max-h-[300px]">
-                          <CommandEmpty>No college found.</CommandEmpty>
-                          <CommandGroup>
-                            {colleges.map((college) => (
-                              <CommandItem
-                                key={college.id}
-                                value={`${college.name} ${college.city} ${college.state}`}
-                                onSelect={() => setSelectedCollege(college.id)}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedCollege === college.id ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {college.name} - {college.city}, {college.state}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <div className="space-y-3">
+                    {/* State Selection */}
+                    <div className="space-y-2">
+                      <Label htmlFor="state" className="text-sm text-muted-foreground">Step 1: Select State</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            disabled={!canSubmit}
+                            className="w-full justify-between bg-background font-normal"
+                          >
+                            {selectedState || "Select state first..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search states..." />
+                            <CommandList className="max-h-[300px]">
+                              <CommandEmpty>No state found.</CommandEmpty>
+                              <CommandGroup>
+                                {states.map((state) => (
+                                  <CommandItem
+                                    key={state}
+                                    value={state}
+                                    onSelect={() => handleStateChange(state)}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        selectedState === state ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {state}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* College Selection */}
+                    <div className="space-y-2">
+                      <Label htmlFor="college" className="text-sm text-muted-foreground">Step 2: Select College</Label>
+                      <Popover open={collegeOpen} onOpenChange={setCollegeOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            disabled={!canSubmit || !selectedState || collegesLoading}
+                            className="w-full justify-between bg-background font-normal"
+                          >
+                            {collegesLoading ? (
+                              "Loading colleges..."
+                            ) : selectedCollege ? (
+                              (() => {
+                                const college = colleges.find((c) => c.id === selectedCollege);
+                                return college ? `${college.name} - ${college.city}` : "Select your college";
+                              })()
+                            ) : selectedState ? (
+                              "Search and select your college..."
+                            ) : (
+                              "Select state first..."
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search colleges..." />
+                            <CommandList className="max-h-[300px]">
+                              <CommandEmpty>No college found.</CommandEmpty>
+                              <CommandGroup>
+                                {colleges.map((college) => (
+                                  <CommandItem
+                                    key={college.id}
+                                    value={`${college.name} ${college.city}`}
+                                    onSelect={() => {
+                                      setSelectedCollege(college.id);
+                                      setCollegeOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        selectedCollege === college.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {college.name} - {college.city}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
                 )}
                 <p className="text-xs text-muted-foreground">
                   Can't find your college? Contact support to add it.
