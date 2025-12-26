@@ -115,7 +115,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
-      from: "TheUnoia <onboarding@resend.dev>",
+      from: "TheUnoia <noreply@theunoia.com>",
       to: [emailLower],
       subject: "Your Student Verification Code - TheUnoia",
       html: `
