@@ -689,7 +689,7 @@ const StudentVerificationPage = () => {
                                   {colleges.map((college) => (
                                     <CommandItem
                                       key={college.id}
-                                      value={college.id}
+                                      value={`${college.name} ${college.city}`}
                                       onSelect={() => handleCollegeSelect(college)}
                                     >
                                       <Check
