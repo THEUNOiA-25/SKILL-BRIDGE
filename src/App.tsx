@@ -34,6 +34,11 @@ const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminVerificationsPage = lazy(() => import("./pages/admin/AdminVerificationsPage"));
 const AdminProjectsPage = lazy(() => import("./pages/admin/AdminProjectsPage"));
 const AdminCollegesPage = lazy(() => import("./pages/admin/AdminCollegesPage"));
+const AdminBlogsPage = lazy(() => import("./pages/admin/AdminBlogsPage"));
+
+// Blog pages
+const BlogPage = lazy(() => import("./pages/BlogPage"));
+const BlogDetailPage = lazy(() => import("./pages/BlogDetailPage"));
 
 const queryClient = new QueryClient();
 
@@ -51,6 +56,16 @@ const App = () => (
               <Route path="/how-it-works" element={<HowItWorksPage />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/blog" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <BlogPage />
+                </Suspense>
+              } />
+              <Route path="/blog/:slug" element={
+                <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <BlogDetailPage />
+                </Suspense>
+              } />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               
@@ -165,6 +180,11 @@ const App = () => (
                 <Route path="/admin/colleges" element={
                   <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                     <AdminCollegesPage />
+                  </Suspense>
+                } />
+                <Route path="/admin/blogs" element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <AdminBlogsPage />
                   </Suspense>
                 } />
               </Route>
