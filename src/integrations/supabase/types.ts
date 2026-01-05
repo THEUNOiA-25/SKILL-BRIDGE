@@ -178,6 +178,42 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          reference_id: string | null
+          transaction_type: Database["public"]["Enums"]["credit_transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          reference_id?: string | null
+          transaction_type: Database["public"]["Enums"]["credit_transaction_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          reference_id?: string | null
+          transaction_type?: Database["public"]["Enums"]["credit_transaction_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_verification_codes: {
         Row: {
           code: string
@@ -231,6 +267,30 @@ export type Database = {
           has_access?: boolean | null
           id?: string
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      freelancer_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -572,17 +632,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_modify_credits: {
+        Args: { _amount: number; _notes?: string; _target_user_id: string }
+        Returns: number
+      }
       get_college_states: {
         Args: never
         Returns: {
           state: string
         }[]
       }
+      get_freelancer_credit_balance: {
+        Args: { _user_id: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      has_sufficient_credits: {
+        Args: { _required_credits?: number; _user_id: string }
         Returns: boolean
       }
       user_has_bid_on_project: {
@@ -593,6 +665,12 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       bid_status: "pending" | "accepted" | "rejected"
+      credit_transaction_type:
+        | "bid_placed"
+        | "admin_grant"
+        | "admin_deduct"
+        | "signup_bonus"
+        | "refund"
       verification_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -723,6 +801,13 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       bid_status: ["pending", "accepted", "rejected"],
+      credit_transaction_type: [
+        "bid_placed",
+        "admin_grant",
+        "admin_deduct",
+        "signup_bonus",
+        "refund",
+      ],
       verification_status: ["pending", "approved", "rejected"],
     },
   },

@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, IndianRupee, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare, Images, Tag } from "lucide-react";
+import { ArrowLeft, IndianRupee, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare, Images, Tag, Coins, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -75,6 +75,8 @@ const ProjectDetailPage = () => {
     amount: "",
     proposal: "",
   });
+  const [creditBalance, setCreditBalance] = useState<number>(0);
+  const [loadingCredits, setLoadingCredits] = useState(true);
 
   // Rating dialog state
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
@@ -86,8 +88,26 @@ const ProjectDetailPage = () => {
       checkVerification();
       fetchProjectDetails();
       fetchBids();
+      fetchCreditBalance();
     }
   }, [user, id]);
+
+  const fetchCreditBalance = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase.rpc('get_freelancer_credit_balance', {
+        _user_id: user.id
+      });
+      
+      if (error) throw error;
+      setCreditBalance(data || 0);
+    } catch (error) {
+      console.error('Error fetching credit balance:', error);
+    } finally {
+      setLoadingCredits(false);
+    }
+  };
 
   const checkVerification = async () => {
     if (!user?.id) return;
@@ -153,6 +173,12 @@ const ProjectDetailPage = () => {
       return;
     }
 
+    // Check credit balance first
+    if (creditBalance < 10) {
+      toast.error("Insufficient credits. You need 10 credits to place a bid.");
+      return;
+    }
+
     try {
       bidSchema.parse(bidFormData);
 
@@ -188,14 +214,18 @@ const ProjectDetailPage = () => {
         });
 
       if (error) throw error;
-      toast.success("Bid placed successfully!");
+      toast.success("Bid placed successfully! 10 credits deducted.");
       setDialogOpen(false);
       setBidFormData({ amount: "", proposal: "" });
       fetchBids();
+      fetchCreditBalance(); // Refresh credit balance
     } catch (error: any) {
       console.error("Error placing bid:", error);
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
+      } else if (error.message?.includes('Insufficient credits')) {
+        toast.error(error.message);
+        fetchCreditBalance();
       } else {
         toast.error("Failed to place bid");
       }
@@ -376,12 +406,16 @@ const ProjectDetailPage = () => {
                   </Badge>
                 </div>
               </div>
-              {canPlaceBid && !userAlreadyBid && (
+              {canPlaceBid && !userAlreadyBid && creditBalance >= 10 && (
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="gap-2">
                       <IndianRupee className="w-4 h-4" />
                       Place Bid
+                      <Badge variant="secondary" className="ml-1 text-xs">
+                        <Coins className="w-3 h-3 mr-1" />
+                        10 credits
+                      </Badge>
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl bg-background">
@@ -389,6 +423,18 @@ const ProjectDetailPage = () => {
                       <DialogTitle>Place Your Bid</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 mt-4">
+                      {/* Credit Balance Info */}
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-2">
+                          <Coins className="w-4 h-4 text-primary" />
+                          <span className="text-sm">Your Credit Balance</span>
+                        </div>
+                        <Badge variant="default">{creditBalance} credits</Badge>
+                      </div>
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 text-amber-700">
+                        <AlertTriangle className="w-4 h-4" />
+                        <span className="text-sm">Placing this bid will cost 10 credits</span>
+                      </div>
                       <div>
                         <Label htmlFor="bid-amount">Bid Amount (₹)</Label>
                         <Input
@@ -425,12 +471,20 @@ const ProjectDetailPage = () => {
                           Cancel
                         </Button>
                         <Button onClick={handlePlaceBid}>
-                          Submit Bid
+                          Submit Bid (10 credits)
                         </Button>
                       </div>
                     </div>
                   </DialogContent>
                 </Dialog>
+              )}
+              {canPlaceBid && !userAlreadyBid && creditBalance < 10 && !loadingCredits && (
+                <div className="flex items-center gap-2">
+                  <Badge variant="destructive" className="gap-1">
+                    <Coins className="w-3 h-3" />
+                    Insufficient Credits ({creditBalance}/10)
+                  </Badge>
+                </div>
               )}
               {biddingClosed && !isProjectOwner && project.status === 'open' && (
                 <Badge variant="destructive" className="text-sm">

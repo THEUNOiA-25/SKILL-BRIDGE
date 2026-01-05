@@ -6,7 +6,8 @@ import {
   ArrowLeft,
   FolderKanban,
   GraduationCap,
-  FileText
+  FileText,
+  Coins
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import theunoiaLogo from '@/assets/theunoia-logo.png';
@@ -18,6 +19,7 @@ const navItems = [
   { path: '/admin/projects', label: 'Projects', icon: FolderKanban },
   { path: '/admin/colleges', label: 'Colleges', icon: GraduationCap },
   { path: '/admin/blogs', label: 'Blogs', icon: FileText },
+  { path: '/admin/credits', label: 'Credits', icon: Coins },
 ];
 
 export const AdminSidebar = () => {

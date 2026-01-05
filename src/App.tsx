@@ -35,6 +35,7 @@ const AdminVerificationsPage = lazy(() => import("./pages/admin/AdminVerificatio
 const AdminProjectsPage = lazy(() => import("./pages/admin/AdminProjectsPage"));
 const AdminCollegesPage = lazy(() => import("./pages/admin/AdminCollegesPage"));
 const AdminBlogsPage = lazy(() => import("./pages/admin/AdminBlogsPage"));
+const AdminCreditsPage = lazy(() => import("./pages/admin/AdminCreditsPage"));
 
 // Blog pages
 const BlogPage = lazy(() => import("./pages/BlogPage"));
@@ -185,6 +186,11 @@ const App = () => (
                 <Route path="/admin/blogs" element={
                   <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                     <AdminBlogsPage />
+                  </Suspense>
+                } />
+                <Route path="/admin/credits" element={
+                  <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                    <AdminCreditsPage />
                   </Suspense>
                 } />
               </Route>

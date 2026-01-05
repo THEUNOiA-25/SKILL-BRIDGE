@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Calendar, IndianRupee, FileText, CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Calendar, IndianRupee, FileText, CheckCircle2, XCircle, Clock, Coins, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { formatDistanceToNow, format } from 'date-fns';
 
 interface Bid {
   id: string;
@@ -28,17 +28,56 @@ interface Bid {
   };
 }
 
+interface CreditTransaction {
+  id: string;
+  amount: number;
+  balance_after: number;
+  transaction_type: string;
+  notes: string | null;
+  created_at: string;
+}
+
 export default function BidsPage() {
   const { user } = useAuth();
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [receivedBids, setReceivedBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creditBalance, setCreditBalance] = useState<number>(0);
+  const [creditTransactions, setCreditTransactions] = useState<CreditTransaction[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchBids();
+      fetchCreditInfo();
     }
   }, [user]);
+
+  const fetchCreditInfo = async () => {
+    if (!user) return;
+    
+    try {
+      // Fetch credit balance
+      const { data: balanceData, error: balanceError } = await supabase.rpc('get_freelancer_credit_balance', {
+        _user_id: user.id
+      });
+      
+      if (balanceError) throw balanceError;
+      setCreditBalance(balanceData || 0);
+
+      // Fetch recent transactions
+      const { data: txData, error: txError } = await supabase
+        .from('credit_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (txError) throw txError;
+      setCreditTransactions(txData || []);
+    } catch (error) {
+      console.error('Error fetching credit info:', error);
+    }
+  };
 
   const fetchBids = async () => {
     if (!user) return;
@@ -143,6 +182,21 @@ export default function BidsPage() {
     }
   };
 
+  const getTransactionBadge = (type: string) => {
+    switch (type) {
+      case 'admin_grant':
+        return <Badge className="bg-green-500/10 text-green-700 border-green-200 text-xs">Admin Grant</Badge>;
+      case 'admin_deduct':
+        return <Badge className="bg-red-500/10 text-red-700 border-red-200 text-xs">Admin Deduct</Badge>;
+      case 'bid_placed':
+        return <Badge className="bg-blue-500/10 text-blue-700 border-blue-200 text-xs">Bid Placed</Badge>;
+      case 'signup_bonus':
+        return <Badge className="bg-purple-500/10 text-purple-700 border-purple-200 text-xs">Signup Bonus</Badge>;
+      default:
+        return <Badge variant="secondary" className="text-xs">{type}</Badge>;
+    }
+  };
+
   if (loading) {
     return (
       <main className="flex-1 p-8">
@@ -156,15 +210,33 @@ export default function BidsPage() {
   return (
     <main className="flex-1 p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Bids</h1>
-          <p className="text-muted-foreground mt-2">Manage your bids and proposals</p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Bids</h1>
+            <p className="text-muted-foreground mt-2">Manage your bids and proposals</p>
+          </div>
+          {/* Credit Balance Card */}
+          <Card className="rounded-xl border-border/40 min-w-[200px]">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Coins className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Credit Balance</p>
+                  <p className="text-2xl font-bold">{creditBalance}</p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">10 credits per bid</p>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="my-bids" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="my-bids">My Bids ({myBids.length})</TabsTrigger>
             <TabsTrigger value="received">Received ({receivedBids.length})</TabsTrigger>
+            <TabsTrigger value="history">Credit History</TabsTrigger>
           </TabsList>
 
           <TabsContent value="my-bids" className="mt-6">
@@ -287,6 +359,61 @@ export default function BidsPage() {
                 ))}
               </div>
             )}
+          </TabsContent>
+          <TabsContent value="history" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Coins className="h-5 w-5" />
+                  Recent Credit Transactions
+                </CardTitle>
+                <CardDescription>
+                  Your last 10 credit transactions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {creditTransactions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Coins className="w-12 h-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No transactions yet</h3>
+                    <p className="text-muted-foreground text-center max-w-md">
+                      Your credit transactions will appear here.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {creditTransactions.map((tx) => (
+                      <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-3">
+                          {tx.amount > 0 ? (
+                            <ArrowUpRight className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <ArrowDownRight className="h-4 w-4 text-red-600" />
+                          )}
+                          <div>
+                            {getTransactionBadge(tx.transaction_type)}
+                            {tx.notes && (
+                              <p className="text-xs text-muted-foreground mt-1">{tx.notes}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-semibold ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {tx.amount > 0 ? '+' : ''}{tx.amount}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Balance: {tx.balance_after}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(tx.created_at), 'MMM d, yyyy')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
