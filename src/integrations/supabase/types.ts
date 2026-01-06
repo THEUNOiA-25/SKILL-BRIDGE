@@ -671,6 +671,7 @@ export type Database = {
         | "admin_deduct"
         | "signup_bonus"
         | "refund"
+        | "project_posted"
       verification_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -807,6 +808,7 @@ export const Constants = {
         "admin_deduct",
         "signup_bonus",
         "refund",
+        "project_posted",
       ],
       verification_status: ["pending", "approved", "rejected"],
     },

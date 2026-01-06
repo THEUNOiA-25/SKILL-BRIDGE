@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, IndianRupee, Clock, CheckCircle2, Paperclip, CalendarIcon, Users as UsersIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, IndianRupee, Clock, CheckCircle2, Paperclip, CalendarIcon, Users as UsersIcon, Coins } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -91,6 +91,7 @@ const ProjectsPage = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [formType, setFormType] = useState<'work_requirement' | 'portfolio_project'>('work_requirement');
   const [isVerifiedStudent, setIsVerifiedStudent] = useState(false);
+  const [creditBalance, setCreditBalance] = useState<number>(0);
   
   const [workFormData, setWorkFormData] = useState({
     title: "",
@@ -134,6 +135,7 @@ const ProjectsPage = () => {
     if (user) {
       checkVerification();
       fetchUserData();
+      fetchCreditBalance();
     } else {
       setLoading(false);
     }
@@ -173,6 +175,23 @@ const ProjectsPage = () => {
       setUserCollegeId(verificationData?.college_id || null);
     } catch (error) {
       console.error('Error checking verification:', error);
+    }
+  };
+
+  const fetchCreditBalance = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('freelancer_credits')
+        .select('balance')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setCreditBalance(data?.balance || 0);
+    } catch (error) {
+      console.error('Error fetching credit balance:', error);
     }
   };
 
@@ -349,6 +368,12 @@ const ProjectsPage = () => {
       if (formType === 'work_requirement') {
         workRequirementSchema.parse(workFormData);
 
+        // Check credits before creating new task (not for editing)
+        if (!editingProject && creditBalance < 10) {
+          toast.error(`Insufficient credits. You need 10 credits to post a task. Current balance: ${creditBalance}`);
+          return;
+        }
+
         const imageUrls = uploadedImages.map(img => img.url);
         const finalCoverImage = coverImageUrl || imageUrls[0] || null;
 
@@ -384,8 +409,16 @@ const ProjectsPage = () => {
             .from("user_projects")
             .insert(projectData);
 
-          if (error) throw error;
-          toast.success("Work requirement posted successfully!");
+          if (error) {
+            // Handle insufficient credits error from trigger
+            if (error.message?.includes('Insufficient credits')) {
+              toast.error(error.message);
+              return;
+            }
+            throw error;
+          }
+          toast.success("Work requirement posted successfully! (10 credits deducted)");
+          fetchCreditBalance(); // Refresh credit balance
         }
       } else {
         portfolioProjectSchema.parse(portfolioFormData);
@@ -436,6 +469,8 @@ const ProjectsPage = () => {
       console.error("Error saving project:", error);
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
+      } else if (error.message?.includes('Insufficient credits')) {
+        toast.error(error.message);
       } else {
         toast.error("Failed to save project");
       }
@@ -919,6 +954,14 @@ const ProjectsPage = () => {
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
+                    {!editingProject && (
+                      <div className={`flex items-center gap-2 p-3 rounded-lg ${creditBalance >= 10 ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                        <Coins className="w-4 h-4" />
+                        <span className="text-sm font-medium">
+                          Your Balance: {creditBalance} credits {creditBalance < 10 && '(Need 10 credits to post)'}
+                        </span>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <Label htmlFor="title">Title *</Label>
                       <Input

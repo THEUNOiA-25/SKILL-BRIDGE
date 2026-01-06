@@ -185,6 +185,8 @@ export default function AdminCreditsPage() {
         return <Badge className="bg-red-500/10 text-red-700 border-red-200">Admin Deduct</Badge>;
       case 'bid_placed':
         return <Badge className="bg-blue-500/10 text-blue-700 border-blue-200">Bid Placed</Badge>;
+      case 'project_posted':
+        return <Badge className="bg-orange-500/10 text-orange-700 border-orange-200">Task Posted</Badge>;
       case 'signup_bonus':
         return <Badge className="bg-purple-500/10 text-purple-700 border-purple-200">Signup Bonus</Badge>;
       case 'refund':
@@ -212,14 +214,14 @@ export default function AdminCreditsPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">Credit Management</h1>
-          <p className="text-muted-foreground mt-2">Manage freelancer credits and view transaction history</p>
+          <p className="text-muted-foreground mt-2">Manage user credits and view transaction history</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="rounded-2xl border-border/40">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Freelancers</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
               <Coins className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -244,13 +246,21 @@ export default function AdminCreditsPage() {
               <div className="text-2xl font-bold">10</div>
             </CardContent>
           </Card>
+          <Card className="rounded-2xl border-border/40">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Credit Cost per Task</CardTitle>
+              <Coins className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">10</div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Search and Table */}
         <Card className="rounded-2xl border-border/40">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Freelancer Credits</CardTitle>
+              <CardTitle>User Credits</CardTitle>
               <div className="relative w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -266,7 +276,7 @@ export default function AdminCreditsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Freelancer</TableHead>
+                  <TableHead>User</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead className="text-right">Balance</TableHead>
                   <TableHead>Last Updated</TableHead>
@@ -277,7 +287,7 @@ export default function AdminCreditsPage() {
                 {filteredCredits.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      No freelancers found
+                      No users found
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -344,7 +354,7 @@ export default function AdminCreditsPage() {
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div>
-                <Label className="text-muted-foreground">Freelancer</Label>
+                <Label className="text-muted-foreground">User</Label>
                 <p className="font-medium">
                   {selectedUser?.user_profile?.first_name} {selectedUser?.user_profile?.last_name}
                 </p>
