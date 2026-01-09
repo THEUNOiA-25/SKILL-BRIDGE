@@ -45,6 +45,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Pencil, Trash2, Eye, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { BlogImageUploader } from '@/components/BlogImageUploader';
 
 interface Blog {
   id: string;
@@ -53,6 +54,7 @@ interface Blog {
   excerpt: string | null;
   content: string;
   cover_image_url: string | null;
+  blog_images: string[] | null;
   author_id: string;
   status: string;
   published_at: string | null;
@@ -66,6 +68,7 @@ interface BlogFormData {
   excerpt: string;
   content: string;
   cover_image_url: string;
+  blog_images: string[];
   status: string;
 }
 
@@ -75,6 +78,7 @@ const initialFormData: BlogFormData = {
   excerpt: '',
   content: '',
   cover_image_url: '',
+  blog_images: [],
   status: 'draft',
 };
 
@@ -168,6 +172,7 @@ const AdminBlogsPage = () => {
         excerpt: blog.excerpt || '',
         content: blog.content,
         cover_image_url: blog.cover_image_url || '',
+        blog_images: blog.blog_images || [],
         status: blog.status,
       });
     } else {
@@ -274,31 +279,30 @@ const AdminBlogsPage = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cover_image">Cover Image URL</Label>
-                  <Input
-                    id="cover_image"
-                    value={formData.cover_image_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, cover_image_url: e.target.value }))}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="published">Published</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>Blog Images</Label>
+                <BlogImageUploader
+                  images={formData.blog_images}
+                  coverImageUrl={formData.cover_image_url}
+                  onImagesChange={(images) => setFormData(prev => ({ ...prev, blog_images: images }))}
+                  onCoverChange={(url) => setFormData(prev => ({ ...prev, cover_image_url: url }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex justify-end gap-2 pt-4">

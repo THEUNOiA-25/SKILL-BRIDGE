@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Calendar, Clock, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { ImageGallery } from '@/components/ImageGallery';
 
 interface Blog {
   id: string;
@@ -16,6 +17,7 @@ interface Blog {
   excerpt: string | null;
   content: string;
   cover_image_url: string | null;
+  blog_images: string[] | null;
   published_at: string | null;
   created_at: string;
 }
@@ -123,14 +125,21 @@ const BlogDetailPage = () => {
             </Button>
           </div>
 
-          {/* Cover Image */}
-          {blog.cover_image_url && (
+          {/* Blog Images Gallery */}
+          {blog.blog_images && blog.blog_images.length > 0 ? (
+            <div className="mb-8">
+              <ImageGallery 
+                images={blog.blog_images} 
+                coverImageUrl={blog.cover_image_url || undefined}
+              />
+            </div>
+          ) : blog.cover_image_url ? (
             <img
               src={blog.cover_image_url}
               alt={blog.title}
               className="w-full h-[400px] object-cover rounded-xl mb-8"
             />
-          )}
+          ) : null}
 
           {/* Excerpt */}
           {blog.excerpt && (
