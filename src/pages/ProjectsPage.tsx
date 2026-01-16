@@ -596,7 +596,7 @@ const ProjectsPage = () => {
     const gradientIndex = project.id.charCodeAt(0) % gradientColors.length;
     
     return (
-    <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 group">
+    <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:border-primary/50 transition-all group">
       <div className="aspect-video w-full overflow-hidden bg-muted relative">
         {(project.cover_image_url || project.image_url) ? (
           <img
@@ -753,7 +753,7 @@ const ProjectsPage = () => {
   };
 
   const renderPortfolioCard = (project: Project, showActions: boolean = false) => (
-    <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-lg transition-shadow">
+    <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:border-primary/50 transition-all">
       <div className="aspect-video w-full overflow-hidden bg-muted">
         {(project.cover_image_url || project.image_url) ? (
           <img
@@ -863,7 +863,7 @@ const ProjectsPage = () => {
                   setActiveTab('my-projects');
                   openWorkRequirementDialog();
                 }} 
-                className="gap-2 bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90 shadow-lg rounded-xl h-11 px-6"
+                className="gap-2 bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90 rounded-xl h-11 px-6"
               >
                 <Plus className="w-4 h-4" />
                 Create Project
@@ -875,20 +875,20 @@ const ProjectsPage = () => {
           <TabsList className={`grid w-full max-w-lg mb-8 h-12 bg-muted/50 p-1 rounded-xl ${isVerifiedStudent ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger 
               value="browse" 
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white data-[state=active]:shadow-md font-medium"
+              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
             >
               Browse Projects
             </TabsTrigger>
             <TabsTrigger 
               value="my-projects"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white data-[state=active]:shadow-md font-medium"
+              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
             >
               My Projects
             </TabsTrigger>
             {isVerifiedStudent && (
               <TabsTrigger 
                 value="completed"
-                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white data-[state=active]:shadow-md font-medium"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
               >
                 Completed
               </TabsTrigger>

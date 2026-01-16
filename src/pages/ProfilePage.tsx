@@ -301,7 +301,7 @@ const ProfilePage = () => {
     <main className="flex-1 p-8">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Profile Header Card - Colorful */}
-          <Card className="rounded-3xl border-0 overflow-hidden shadow-lg">
+          <Card className="rounded-3xl border overflow-hidden">
             {/* Gradient Banner */}
             <div className="h-32 bg-gradient-to-r from-primary via-accent-purple to-accent-blue relative">
               <div className="absolute inset-0">
@@ -314,7 +314,7 @@ const ProfilePage = () => {
               <div className="flex items-start gap-6 -mt-16">
                 {/* Profile Picture */}
                 <div className="relative group">
-                  <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
+                  <Avatar className="h-32 w-32 border-4 border-background">
                     <AvatarImage src={profile.profilePictureUrl} />
                     <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-accent-purple text-white">
                       {profile.firstName[0]}
@@ -410,7 +410,7 @@ const ProfilePage = () => {
             {/* Left Column */}
             <div className="lg:col-span-1 space-y-6">
               {/* Skills Card - Colorful */}
-              <Card className="rounded-2xl border-0 shadow-md bg-gradient-to-br from-accent-blue/10 via-card to-primary/5">
+              <Card className="rounded-2xl border bg-gradient-to-br from-accent-blue/10 via-card to-primary/5">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-accent-blue/30 flex items-center justify-center">
@@ -486,7 +486,7 @@ const ProfilePage = () => {
               </Card>
 
               {/* Contact Information Card - Colorful */}
-              <Card className="rounded-2xl border-0 shadow-md bg-gradient-to-br from-green/10 via-card to-accent/5">
+              <Card className="rounded-2xl border bg-gradient-to-br from-green/10 via-card to-accent/5">
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-green/30 flex items-center justify-center">
