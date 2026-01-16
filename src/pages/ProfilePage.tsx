@@ -303,7 +303,7 @@ const ProfilePage = () => {
           {/* Profile Header Card - Colorful */}
           <Card className="rounded-3xl border overflow-hidden">
             {/* Gradient Banner */}
-            <div className="h-32 bg-gradient-to-r from-primary via-accent-purple to-accent-blue relative">
+            <div className="h-24 bg-gradient-to-r from-primary via-accent-purple to-accent-blue relative">
               <div className="absolute inset-0">
                 <div className="absolute top-4 right-8 w-20 h-20 bg-white/10 rounded-full blur-xl" />
                 <div className="absolute bottom-2 left-1/4 w-16 h-16 bg-secondary/30 rounded-full blur-lg" />
