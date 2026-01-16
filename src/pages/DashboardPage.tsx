@@ -525,55 +525,65 @@ const DashboardPage = () => {
 
           {/* Recommended For You */}
           <section className="mt-10">
-            <div className="px-2 pb-5">
-              <div className="flex items-center gap-3 pb-5">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green to-accent flex items-center justify-center">
+            <div className="px-2 pb-6">
+              {/* Header */}
+              <div className="flex items-center gap-3 pb-6">
+                <div className="w-11 h-11 rounded-full bg-green flex items-center justify-center shadow-sm">
                   <span className="text-xl">✨</span>
                 </div>
-                <h2 className="text-foreground text-xl font-semibold">Recommended For You</h2>
+                <h2 className="text-foreground text-[1.375rem] font-bold tracking-tight">Recommended For You</h2>
               </div>
-              <div className="flex flex-wrap gap-2.5">
-                <Button 
-                  size="sm" 
-                  variant={selectedCategory === "all" ? "default" : "ghost"}
-                  className={cn(
-                    "rounded-full h-10 px-5 text-[0.875rem] font-medium transition-all",
-                    selectedCategory === "all" 
-                      ? "bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90 shadow-md" 
-                      : "text-muted-foreground hover:bg-primary/10 hover:text-primary border border-border/60"
-                  )}
+              
+              {/* Category Pills */}
+              <div className="flex flex-wrap gap-3">
+                <button 
                   onClick={() => setSelectedCategory("all")}
+                  className={cn(
+                    "inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[0.9375rem] font-medium transition-all duration-200",
+                    selectedCategory === "all" 
+                      ? "bg-gradient-to-r from-primary to-accent-purple text-white shadow-lg shadow-primary/25" 
+                      : "bg-card text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-border/60"
+                  )}
                 >
-                  🎯 All Categories
-                </Button>
-                {getCategoryList().map((category, index) => {
+                  <span>🎯</span>
+                  All Categories
+                </button>
+                
+                {getCategoryList().map((category) => {
                   const categoryEmojis: Record<string, string> = {
-                    'Design': '🎨',
-                    'Development': '💻',
-                    'Writing': '✍️',
-                    'Marketing': '📣',
-                    'Video': '🎬',
-                    'Music': '🎵',
-                    'Business': '💼',
-                    'Data': '📊',
+                    'Writing & Content': '✍️',
+                    'Design & Creative': '⚡',
+                    'Web, Tech & Development': '🚀',
+                    'Social Media & Digital Marketing': '🌟',
+                    'Video, Audio & Multimedia': '🌟',
+                    'Virtual Assistance & Admin': '🔥',
+                    'Education & Tutoring': '⚡',
+                    'AI & Automation': '🚀',
+                    'Music, Audio & Performing Arts': '🌟',
+                    'Art & Illustration': '🌟',
+                    'E-commerce & Online Business': '🔥',
+                    'Student-Friendly Services': '⚡',
+                    'Beginner Tech & STEM Freelancing': '🚀',
+                    'Medical Writing & Editing': '🌟',
+                    'Medical Research & Analytics': '🌟',
+                    'Clinical Services': '🔥',
                   };
-                  const emoji = categoryEmojis[category] || ['🔥', '⚡', '🚀', '💡', '🌟'][index % 5];
+                  const emoji = categoryEmojis[category] || '✨';
                   
                   return (
-                    <Button 
+                    <button 
                       key={category}
-                      size="sm" 
-                      variant={selectedCategory === category ? "default" : "ghost"}
-                      className={cn(
-                        "rounded-full h-10 px-5 text-[0.875rem] font-medium transition-all",
-                        selectedCategory === category 
-                          ? "bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90 shadow-md" 
-                          : "text-muted-foreground hover:bg-primary/10 hover:text-primary border border-border/60"
-                      )}
                       onClick={() => setSelectedCategory(category)}
+                      className={cn(
+                        "inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[0.9375rem] font-medium transition-all duration-200",
+                        selectedCategory === category 
+                          ? "bg-gradient-to-r from-primary to-accent-purple text-white shadow-lg shadow-primary/25" 
+                          : "bg-card text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-border/60"
+                      )}
                     >
-                      {emoji} {category}
-                    </Button>
+                      <span>{emoji}</span>
+                      {category}
+                    </button>
                   );
                 })}
               </div>
