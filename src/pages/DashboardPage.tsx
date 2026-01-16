@@ -528,9 +528,6 @@ const DashboardPage = () => {
             <div className="px-2 pb-6">
               {/* Header */}
               <div className="flex items-center gap-3 pb-6">
-                <div className="w-11 h-11 rounded-full bg-green flex items-center justify-center shadow-sm">
-                  <span className="text-xl">✨</span>
-                </div>
                 <h2 className="text-foreground text-[1.375rem] font-bold tracking-tight">Recommended For You</h2>
               </div>
               
@@ -541,7 +538,7 @@ const DashboardPage = () => {
                   className={cn(
                     "inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[0.9375rem] font-medium transition-all duration-200",
                     selectedCategory === "all" 
-                      ? "bg-gradient-to-r from-primary to-accent-purple text-white shadow-lg shadow-primary/25" 
+                      ? "bg-gradient-to-r from-primary to-accent-purple text-white" 
                       : "bg-card text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-border/60"
                   )}
                 >
@@ -577,7 +574,7 @@ const DashboardPage = () => {
                       className={cn(
                         "inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[0.9375rem] font-medium transition-all duration-200",
                         selectedCategory === category 
-                          ? "bg-gradient-to-r from-primary to-accent-purple text-white shadow-lg shadow-primary/25" 
+                          ? "bg-gradient-to-r from-primary to-accent-purple text-white" 
                           : "bg-card text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-border/60"
                       )}
                     >
