@@ -253,9 +253,16 @@ export default function MessagesPage() {
     <main className="flex h-screen overflow-hidden">
       {/* Left Column - Conversations List */}
       <div className="w-80 border-r border-border flex flex-col bg-background h-full">
-        <div className="p-4 border-b border-border bg-primary/5">
-          <h1 className="text-2xl font-bold text-foreground">Messages</h1>
-          <p className="text-xs text-muted-foreground mt-1">Chat with your clients and freelancers</p>
+        <div className="p-5 border-b border-border bg-gradient-to-r from-primary/10 to-accent-purple/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent-purple flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">Messages</h1>
+              <p className="text-xs text-muted-foreground">Chat with clients & freelancers</p>
+            </div>
+          </div>
         </div>
         
         <div className="flex-1 overflow-y-auto">
@@ -272,8 +279,10 @@ export default function MessagesPage() {
             ))
           ) : (
             <div className="p-8 text-center">
-              <MessageSquare className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-2">No conversations yet</p>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-accent-purple/20 flex items-center justify-center">
+                <MessageSquare className="w-8 h-8 text-primary" />
+              </div>
+              <p className="text-foreground font-medium mb-2">No conversations yet</p>
               <p className="text-sm text-muted-foreground">
                 Start by bidding on a project or posting your own
               </p>

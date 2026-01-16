@@ -586,18 +586,29 @@ const ProjectsPage = () => {
     const isClosingSoon = project.bidding_deadline ? 
       new Date(project.bidding_deadline).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000 && !biddingClosed : false;
     
+    // Colorful gradient backgrounds for cards without images
+    const gradientColors = [
+      'from-primary/20 via-accent-purple/10 to-accent-blue/20',
+      'from-secondary/30 via-yellow/20 to-green/20',
+      'from-accent-blue/20 via-primary/10 to-accent-purple/20',
+      'from-green/20 via-accent/10 to-secondary/20'
+    ];
+    const gradientIndex = project.id.charCodeAt(0) % gradientColors.length;
+    
     return (
-    <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="aspect-video w-full overflow-hidden bg-muted">
+    <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 group">
+      <div className="aspect-video w-full overflow-hidden bg-muted relative">
         {(project.cover_image_url || project.image_url) ? (
           <img
             src={project.cover_image_url || project.image_url || ''}
             alt={project.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-            <ImageIcon className="w-16 h-16 text-muted-foreground/40" />
+          <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${gradientColors[gradientIndex]}`}>
+            <div className="w-16 h-16 rounded-2xl bg-white/50 backdrop-blur-sm flex items-center justify-center">
+              <ImageIcon className="w-8 h-8 text-primary/60" />
+            </div>
           </div>
         )}
       </div>
@@ -825,38 +836,63 @@ const ProjectsPage = () => {
     <main className="flex-1 p-8 bg-background">
         <div className="max-w-7xl mx-auto">
           {!user && (
-            <div className="flex items-center justify-between mb-6 p-4 bg-muted/50 rounded-lg border border-border">
-              <p className="text-sm text-muted-foreground">
-                Sign in to post projects, place bids, and manage your work
-              </p>
-              <Button onClick={() => navigate('/login')} size="sm">
+            <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-primary/10 to-accent-purple/10 rounded-2xl border border-primary/20">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <UsersIcon className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-sm text-foreground font-medium">
+                  Sign in to post projects, place bids, and manage your work
+                </p>
+              </div>
+              <Button onClick={() => navigate('/login')} size="sm" className="bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90">
                 Sign In
               </Button>
             </div>
           )}
           
-          <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Projects</h1>
-            <p className="text-muted-foreground">Browse available projects or manage your own</p>
+          {/* Colorful Header */}
+          <div className="relative mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-foreground mb-2">Projects</h1>
+                <p className="text-muted-foreground">Browse available projects or manage your own</p>
+              </div>
+              <Button 
+                onClick={() => {
+                  setActiveTab('my-projects');
+                  openWorkRequirementDialog();
+                }} 
+                className="gap-2 bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90 shadow-lg rounded-xl h-11 px-6"
+              >
+                <Plus className="w-4 h-4" />
+                Create Project
+              </Button>
+            </div>
           </div>
-          <Button 
-            onClick={() => {
-              setActiveTab('my-projects');
-              openWorkRequirementDialog();
-            }} 
-            className="gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Create Project
-          </Button>
-        </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full max-w-md mb-8 ${isVerifiedStudent ? 'grid-cols-3' : 'grid-cols-2'}`}>
-            <TabsTrigger value="browse">Browse Projects</TabsTrigger>
-            <TabsTrigger value="my-projects">My Projects</TabsTrigger>
-            {isVerifiedStudent && <TabsTrigger value="completed">Completed</TabsTrigger>}
+          <TabsList className={`grid w-full max-w-lg mb-8 h-12 bg-muted/50 p-1 rounded-xl ${isVerifiedStudent ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <TabsTrigger 
+              value="browse" 
+              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white data-[state=active]:shadow-md font-medium"
+            >
+              Browse Projects
+            </TabsTrigger>
+            <TabsTrigger 
+              value="my-projects"
+              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white data-[state=active]:shadow-md font-medium"
+            >
+              My Projects
+            </TabsTrigger>
+            {isVerifiedStudent && (
+              <TabsTrigger 
+                value="completed"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white data-[state=active]:shadow-md font-medium"
+              >
+                Completed
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Browse All Available Work Requirements */}

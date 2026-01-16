@@ -300,15 +300,23 @@ const ProfilePage = () => {
   return (
     <main className="flex-1 p-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          {/* Profile Header Card */}
-          <Card className="rounded-2xl border-border/40">
-            <CardContent className="p-8">
-              <div className="flex items-start gap-6">
+          {/* Profile Header Card - Colorful */}
+          <Card className="rounded-3xl border-0 overflow-hidden shadow-lg">
+            {/* Gradient Banner */}
+            <div className="h-32 bg-gradient-to-r from-primary via-accent-purple to-accent-blue relative">
+              <div className="absolute inset-0">
+                <div className="absolute top-4 right-8 w-20 h-20 bg-white/10 rounded-full blur-xl" />
+                <div className="absolute bottom-2 left-1/4 w-16 h-16 bg-secondary/30 rounded-full blur-lg" />
+              </div>
+            </div>
+            
+            <CardContent className="p-8 pt-0 relative">
+              <div className="flex items-start gap-6 -mt-16">
                 {/* Profile Picture */}
                 <div className="relative group">
-                  <Avatar className="h-32 w-32">
+                  <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
                     <AvatarImage src={profile.profilePictureUrl} />
-                    <AvatarFallback className="text-3xl">
+                    <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-accent-purple text-white">
                       {profile.firstName[0]}
                       {profile.lastName[0]}
                     </AvatarFallback>
@@ -335,22 +343,22 @@ const ProfilePage = () => {
                 </div>
 
                 {/* User Info */}
-                <div className="flex-1">
+                <div className="flex-1 pt-16">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h1 className="text-3xl font-bold">
+                      <h1 className="text-3xl font-bold text-foreground">
                         {profile.firstName} {profile.lastName}
                       </h1>
-                      <Badge variant="secondary" className="mt-2">
+                      <Badge className="mt-2 bg-gradient-to-r from-primary/20 to-accent-purple/20 text-primary border-0">
                         {profile.userType === "student"
                           ? "Student Freelancer"
                           : "Freelancer"}
                       </Badge>
                       {rating && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <div className="flex items-center gap-1 bg-yellow-500/10 px-3 py-1 rounded-full">
-                            <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                            <span className="font-semibold text-foreground">{rating.average.toFixed(1)}</span>
+                        <div className="flex items-center gap-2 mt-3">
+                          <div className="flex items-center gap-1.5 bg-secondary/50 px-3 py-1.5 rounded-full">
+                            <Star className="h-4 w-4 fill-secondary-foreground text-secondary-foreground" />
+                            <span className="font-bold text-secondary-foreground">{rating.average.toFixed(1)}</span>
                           </div>
                           <span className="text-sm text-muted-foreground">
                             ({rating.count} review{rating.count !== 1 ? 's' : ''})
@@ -358,13 +366,14 @@ const ProfilePage = () => {
                         </div>
                       )}
                       {profile.bio && (
-                        <p className="mt-3 text-muted-foreground max-w-2xl">
+                        <p className="mt-4 text-muted-foreground max-w-2xl">
                           {profile.bio}
                         </p>
                       )}
                       {verification?.institute_name && (
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          📚 {verification.institute_name}
+                        <p className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-green/20 flex items-center justify-center">📚</span>
+                          {verification.institute_name}
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-4">
@@ -373,6 +382,7 @@ const ProfilePage = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => navigate("/profile/verify")}
+                          className="rounded-lg"
                         >
                           Verify
                         </Button>
@@ -381,10 +391,13 @@ const ProfilePage = () => {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2">
-                      <Button onClick={() => navigate("/profile/edit")}>
+                      <Button 
+                        onClick={() => navigate("/profile/edit")}
+                        className="bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90 rounded-xl"
+                      >
                         Edit Profile
                       </Button>
-                      <Button variant="outline">View Public Profile</Button>
+                      <Button variant="outline" className="rounded-xl">View Public Profile</Button>
                     </div>
                   </div>
                 </div>
@@ -396,14 +409,20 @@ const ProfilePage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column */}
             <div className="lg:col-span-1 space-y-6">
-              {/* Skills Card */}
-              <Card className="rounded-2xl border-border/40">
+              {/* Skills Card - Colorful */}
+              <Card className="rounded-2xl border-0 shadow-md bg-gradient-to-br from-accent-blue/10 via-card to-primary/5">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg">Skills</CardTitle>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-accent-blue/30 flex items-center justify-center">
+                      <span className="text-lg">⚡</span>
+                    </div>
+                    <CardTitle className="text-lg">Skills</CardTitle>
+                  </div>
                   <Button 
                     variant="ghost" 
                     size="icon"
                     onClick={() => setIsEditingSkills(!isEditingSkills)}
+                    className="rounded-lg"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -422,11 +441,13 @@ const ProfilePage = () => {
                           }
                         }}
                         disabled={addingSkill}
+                        className="rounded-lg"
                       />
                       <Button 
                         onClick={handleAddSkill} 
                         disabled={addingSkill || !newSkill.trim()}
                         size="icon"
+                        className="bg-gradient-to-r from-primary to-accent-purple text-white rounded-lg"
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -436,23 +457,25 @@ const ProfilePage = () => {
                   {/* Skills List */}
                   {skills.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {skills.map((skill, index) => (
-                        <Badge 
-                          key={index} 
-                          variant="secondary"
-                          className={`flex items-center gap-1 ${isEditingSkills ? 'pr-1' : ''}`}
-                        >
-                          {skill}
-                          {isEditingSkills && (
-                            <button
-                              onClick={() => handleDeleteSkill(skill)}
-                              className="ml-1 hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          )}
-                        </Badge>
-                      ))}
+                      {skills.map((skill, index) => {
+                        const colors = ['bg-primary/20 text-primary', 'bg-accent-blue/30 text-accent-blue-foreground', 'bg-green/30 text-green-foreground', 'bg-secondary text-secondary-foreground'];
+                        return (
+                          <Badge 
+                            key={index} 
+                            className={`${colors[index % colors.length]} border-0 ${isEditingSkills ? 'pr-1' : ''}`}
+                          >
+                            {skill}
+                            {isEditingSkills && (
+                              <button
+                                onClick={() => handleDeleteSkill(skill)}
+                                className="ml-1 hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </Badge>
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
@@ -462,24 +485,29 @@ const ProfilePage = () => {
                 </CardContent>
               </Card>
 
-              {/* Contact Information Card */}
-              <Card className="rounded-2xl border-border/40">
+              {/* Contact Information Card - Colorful */}
+              <Card className="rounded-2xl border-0 shadow-md bg-gradient-to-br from-green/10 via-card to-accent/5">
                 <CardHeader>
-                  <CardTitle className="text-lg">Contact Information</CardTitle>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-green/30 flex items-center justify-center">
+                      <span className="text-lg">📧</span>
+                    </div>
+                    <CardTitle className="text-lg">Contact Information</CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 p-2 rounded-lg bg-white/50">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{profile.email}</span>
                   </div>
                   {profile.phone && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/50">
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">{profile.phone}</span>
                     </div>
                   )}
                   {profile.website && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/50">
                       <Globe className="h-4 w-4 text-muted-foreground" />
                       <a
                         href={profile.website}
