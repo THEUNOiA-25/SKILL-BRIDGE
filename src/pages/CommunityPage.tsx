@@ -223,17 +223,17 @@ export default function CommunityPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="tasks" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md bg-card border border-border/60 p-1 h-auto">
+          <TabsList className="grid w-full grid-cols-2 max-w-md bg-muted/50 border border-border/60 p-1 h-12 rounded-xl">
             <TabsTrigger 
               value="tasks"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white py-2.5 rounded-md transition-all"
+              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium transition-all"
             >
               <Briefcase className="w-4 h-4 mr-2" />
               Community Tasks
             </TabsTrigger>
             <TabsTrigger 
               value="members"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white py-2.5 rounded-md transition-all"
+              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium transition-all"
             >
               <Users className="w-4 h-4 mr-2" />
               Members
