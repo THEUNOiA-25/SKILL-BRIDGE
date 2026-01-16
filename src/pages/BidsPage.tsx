@@ -219,7 +219,7 @@ export default function BidsPage() {
             </div>
             
             {/* Credit Balance Card - Colorful */}
-            <Card className="rounded-2xl border-0 shadow-lg bg-gradient-to-br from-primary via-accent-purple to-accent-blue min-w-[220px] overflow-hidden relative">
+            <Card className="rounded-2xl border bg-gradient-to-br from-primary via-accent-purple to-accent-blue min-w-[220px] overflow-hidden relative">
               <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2" />
               <CardContent className="p-5 relative">
                 <div className="flex items-center gap-4">
@@ -244,19 +244,19 @@ export default function BidsPage() {
           <TabsList className="grid w-full max-w-lg grid-cols-3 h-12 bg-muted/50 p-1 rounded-xl mb-8">
             <TabsTrigger 
               value="my-bids"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white data-[state=active]:shadow-md font-medium"
+              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
             >
               My Bids ({myBids.length})
             </TabsTrigger>
             <TabsTrigger 
               value="received"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white data-[state=active]:shadow-md font-medium"
+              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
             >
               Received ({receivedBids.length})
             </TabsTrigger>
             <TabsTrigger 
               value="history"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white data-[state=active]:shadow-md font-medium"
+              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
             >
               Credit History
             </TabsTrigger>
@@ -280,7 +280,7 @@ export default function BidsPage() {
                 {myBids.filter((bid) => bid.user_projects !== null).map((bid, index) => {
                   const cardColors = ['border-l-4 border-l-primary', 'border-l-4 border-l-accent-purple', 'border-l-4 border-l-accent-blue', 'border-l-4 border-l-green'];
                   return (
-                    <Card key={bid.id} className={`rounded-2xl hover:shadow-lg transition-all ${cardColors[index % cardColors.length]}`}>
+                    <Card key={bid.id} className={`rounded-2xl hover:border-primary/50 transition-all ${cardColors[index % cardColors.length]}`}>
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">

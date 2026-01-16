@@ -383,7 +383,7 @@ export default function MessagesPage() {
                 <Button
                   type="submit"
                   size="icon"
-                  className="rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-md flex-shrink-0"
+                  className="rounded-full w-11 h-11 bg-primary hover:bg-primary/90 flex-shrink-0"
                   disabled={(!messageInput.trim() && selectedFiles.length === 0) || sendMessageMutation.isPending || isUploading}
                 >
                   <Send className="h-4 w-4" />
