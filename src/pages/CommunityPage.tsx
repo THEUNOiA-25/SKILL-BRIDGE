@@ -131,14 +131,14 @@ export default function CommunityPage() {
   if (!isVerified || !userCollege) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent-purple/5 p-6">
-        <Card className="max-w-2xl mx-auto mt-12 overflow-hidden border-0 shadow-xl">
+        <Card className="max-w-2xl mx-auto mt-12 overflow-hidden border">
           {/* Gradient Header */}
           <div className="h-32 bg-gradient-to-r from-primary via-accent-purple to-accent-blue relative overflow-hidden">
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
           </div>
           <div className="px-8 pb-8 -mt-12 text-center">
-            <div className="w-24 h-24 rounded-2xl bg-card border-4 border-background shadow-lg flex items-center justify-center mx-auto mb-6">
+            <div className="w-24 h-24 rounded-2xl bg-card border-4 border-background flex items-center justify-center mx-auto mb-6">
               <GraduationCap className="w-12 h-12 text-primary" />
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-3">Verification Required</h2>
@@ -163,14 +163,14 @@ export default function CommunityPage() {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent-purple/5 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Hero Header Card */}
-        <Card className="mb-6 overflow-hidden border-0 shadow-lg">
+        <Card className="mb-6 overflow-hidden border">
           <div className="relative bg-gradient-to-r from-primary via-accent-purple to-accent-blue p-6 md:p-8">
             {/* Decorative elements */}
             <div className="absolute -top-20 -right-20 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
             <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
             
             <div className="relative flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                 <GraduationCap className="w-10 h-10 md:w-12 md:h-12 text-white" />
               </div>
               <div className="text-white">
@@ -223,7 +223,7 @@ export default function CommunityPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="tasks" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-md bg-card border border-border/60 p-1 h-auto shadow-sm">
+          <TabsList className="grid w-full grid-cols-2 max-w-md bg-card border border-border/60 p-1 h-auto">
             <TabsTrigger 
               value="tasks"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white py-2.5 rounded-md transition-all"
@@ -263,7 +263,7 @@ export default function CommunityPage() {
                 {tasks.map((task, index) => (
                   <Card 
                     key={task.id} 
-                    className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md"
+                    className="group overflow-hidden hover:border-primary/50 transition-all duration-300 cursor-pointer border"
                     onClick={() => navigate(`/projects/${task.id}`)}
                   >
                     <div className="relative h-44 overflow-hidden">
@@ -330,7 +330,7 @@ export default function CommunityPage() {
                 {members.map((member, index) => (
                   <Card 
                     key={member.user_id} 
-                    className={`group p-5 hover:shadow-xl transition-all duration-300 border-l-4 ${
+                    className={`group p-5 hover:border-primary/50 transition-all duration-300 border-l-4 ${
                       index % 4 === 0 ? 'border-l-primary' :
                       index % 4 === 1 ? 'border-l-accent-purple' :
                       index % 4 === 2 ? 'border-l-accent-blue' :
@@ -338,7 +338,7 @@ export default function CommunityPage() {
                     }`}
                   >
                     <div className="flex items-center gap-4 mb-4">
-                      <Avatar className="w-14 h-14 border-2 border-border shadow-md">
+                      <Avatar className="w-14 h-14 border-2 border-border">
                         <AvatarImage src={member.profile_picture_url || undefined} alt={`${member.first_name} ${member.last_name}`} />
                         <AvatarFallback className="bg-gradient-to-br from-primary to-accent-purple text-white font-semibold text-lg">
                           {member.first_name[0]}{member.last_name[0]}
