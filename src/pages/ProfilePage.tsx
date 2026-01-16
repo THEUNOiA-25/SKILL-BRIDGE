@@ -309,7 +309,7 @@ const ProfilePage = () => {
               <div className="flex items-start gap-6">
                 {/* Profile Picture */}
                 <div className="relative group">
-                  <Avatar className="h-28 w-28 border-4 border-primary/20 ring-4 ring-primary/10">
+                  <Avatar className="h-36 w-36 border-4 border-primary/20 ring-4 ring-primary/10">
                     <AvatarImage src={profile.profilePictureUrl} />
                     <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-accent-purple text-white">
                       {profile.firstName[0]}
