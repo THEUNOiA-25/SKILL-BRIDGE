@@ -349,8 +349,8 @@ const ProfilePage = () => {
                       <h1 className="text-3xl font-bold text-foreground">
                         {profile.firstName} {profile.lastName}
                       </h1>
-                      <Badge className="mt-2 bg-gradient-to-r from-primary/20 to-accent-purple/20 text-primary border-0">
-                        {profile.userType === "student"
+                      <Badge className="mt-2 bg-gradient-to-r from-primary to-accent-purple text-white border-0 px-3 py-1">
+                        🎓 {profile.userType === "student"
                           ? "Student Freelancer"
                           : "Freelancer"}
                       </Badge>
