@@ -11,7 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, IndianRupee, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare, Images, Tag, Coins, AlertTriangle } from "lucide-react";
+import { ArrowLeft, IndianRupee, Clock, Calendar, User, CheckCircle2, XCircle, MessageSquare, Images, Tag, Coins, AlertTriangle, FileText } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AgreementDialog } from "@/components/AgreementDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -82,6 +84,10 @@ const ProjectDetailPage = () => {
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [acceptedFreelancerId, setAcceptedFreelancerId] = useState<string | null>(null);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
+  // Agreement state
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
+  const [agreementDialogOpen, setAgreementDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user && id) {
@@ -407,76 +413,107 @@ const ProjectDetailPage = () => {
                 </div>
               </div>
               {canPlaceBid && !userAlreadyBid && creditBalance >= 10 && (
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="gap-2">
-                      <IndianRupee className="w-4 h-4" />
-                      Place Bid
-                      <Badge variant="secondary" className="ml-1 text-xs">
-                        <Coins className="w-3 h-3 mr-1" />
-                        10 credits
-                      </Badge>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl bg-background">
-                    <DialogHeader>
-                      <DialogTitle>Place Your Bid</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 mt-4">
-                      {/* Credit Balance Info */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-2">
-                          <Coins className="w-4 h-4 text-primary" />
-                          <span className="text-sm">Your Credit Balance</span>
+                <>
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="gap-2">
+                        <IndianRupee className="w-4 h-4" />
+                        Place Bid
+                        <Badge variant="secondary" className="ml-1 text-xs">
+                          <Coins className="w-3 h-3 mr-1" />
+                          10 credits
+                        </Badge>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl bg-background">
+                      <DialogHeader>
+                        <DialogTitle>Place Your Bid</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 mt-4">
+                        {/* Credit Balance Info */}
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                          <div className="flex items-center gap-2">
+                            <Coins className="w-4 h-4 text-primary" />
+                            <span className="text-sm">Your Credit Balance</span>
+                          </div>
+                          <Badge variant="default">{creditBalance} credits</Badge>
                         </div>
-                        <Badge variant="default">{creditBalance} credits</Badge>
-                      </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 text-amber-700">
-                        <AlertTriangle className="w-4 h-4" />
-                        <span className="text-sm">Placing this bid will cost 10 credits</span>
-                      </div>
-                      <div>
-                        <Label htmlFor="bid-amount">Bid Amount (₹)</Label>
-                        <Input
-                          id="bid-amount"
-                          type="number"
-                          placeholder="Enter your bid amount"
-                          value={bidFormData.amount}
-                          onChange={(e) => setBidFormData({ ...bidFormData, amount: e.target.value })}
-                          className="mt-1"
-                          min={project?.budget ? Math.ceil(project.budget * 0.8) : 0}
-                        />
-                        {project?.budget && (
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 text-amber-700">
+                          <AlertTriangle className="w-4 h-4" />
+                          <span className="text-sm">Placing this bid will cost 10 credits</span>
+                        </div>
+                        <div>
+                          <Label htmlFor="bid-amount">Bid Amount (₹)</Label>
+                          <Input
+                            id="bid-amount"
+                            type="number"
+                            placeholder="Enter your bid amount"
+                            value={bidFormData.amount}
+                            onChange={(e) => setBidFormData({ ...bidFormData, amount: e.target.value })}
+                            className="mt-1"
+                            min={project?.budget ? Math.ceil(project.budget * 0.8) : 0}
+                          />
+                          {project?.budget && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Minimum bid: ₹{Math.ceil(project.budget * 0.8)} (80% of ₹{project.budget} budget)
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <Label htmlFor="bid-proposal">Proposal</Label>
+                          <Textarea
+                            id="bid-proposal"
+                            placeholder="Describe why you're the best fit for this project..."
+                            value={bidFormData.proposal}
+                            onChange={(e) => setBidFormData({ ...bidFormData, proposal: e.target.value })}
+                            className="mt-1 min-h-[150px]"
+                            maxLength={3000}
+                          />
                           <p className="text-xs text-muted-foreground mt-1">
-                            Minimum bid: ₹{Math.ceil(project.budget * 0.8)} (80% of ₹{project.budget} budget)
+                            {bidFormData.proposal.length}/3000 characters
                           </p>
-                        )}
+                        </div>
+                        {/* Freelancer Agreement Checkbox */}
+                        <div className="flex items-start gap-3 p-4 rounded-lg border border-border bg-muted/30">
+                          <Checkbox
+                            id="freelancer-agreement"
+                            checked={agreementAccepted}
+                            onCheckedChange={(checked) => setAgreementAccepted(checked === true)}
+                          />
+                          <div className="flex-1">
+                            <label htmlFor="freelancer-agreement" className="text-sm font-medium cursor-pointer">
+                              I agree to the Freelancer Agreement
+                            </label>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              By placing this bid, you agree to abide by THEUNOiA's terms including the 5% commission on project value.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setAgreementDialogOpen(true)}
+                              className="text-xs text-primary hover:underline mt-1 flex items-center gap-1"
+                            >
+                              <FileText className="w-3 h-3" />
+                              Read full agreement
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-4">
+                          <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handlePlaceBid} disabled={!agreementAccepted}>
+                            Submit Bid (10 credits)
+                          </Button>
+                        </div>
                       </div>
-                      <div>
-                        <Label htmlFor="bid-proposal">Proposal</Label>
-                        <Textarea
-                          id="bid-proposal"
-                          placeholder="Describe why you're the best fit for this project..."
-                          value={bidFormData.proposal}
-                          onChange={(e) => setBidFormData({ ...bidFormData, proposal: e.target.value })}
-                          className="mt-1 min-h-[150px]"
-                          maxLength={3000}
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {bidFormData.proposal.length}/3000 characters
-                        </p>
-                      </div>
-                      <div className="flex justify-end gap-2 pt-4">
-                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handlePlaceBid}>
-                          Submit Bid (10 credits)
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                    </DialogContent>
+                  </Dialog>
+                  <AgreementDialog 
+                    open={agreementDialogOpen} 
+                    onOpenChange={setAgreementDialogOpen}
+                    type="freelancer"
+                  />
+                </>
               )}
               {canPlaceBid && !userAlreadyBid && creditBalance < 10 && !loadingCredits && (
                 <div className="flex items-center gap-2">

@@ -12,7 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, IndianRupee, Clock, CheckCircle2, Paperclip, CalendarIcon, Users as UsersIcon, Coins } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, IndianRupee, Clock, CheckCircle2, Paperclip, CalendarIcon, Users as UsersIcon, Coins, FileText } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AgreementDialog } from "@/components/AgreementDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { z } from "zod";
@@ -126,6 +128,10 @@ const ProjectsPage = () => {
   const [projectToRate, setProjectToRate] = useState<Project | null>(null);
   const [acceptedFreelancerId, setAcceptedFreelancerId] = useState<string | null>(null);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
+  // Client agreement state
+  const [clientAgreementAccepted, setClientAgreementAccepted] = useState(false);
+  const [clientAgreementDialogOpen, setClientAgreementDialogOpen] = useState(false);
 
   useEffect(() => {
     // Always fetch browse projects (public)
@@ -313,6 +319,7 @@ const ProjectsPage = () => {
       setUploadedImages([]);
       setUploadedFiles([]);
       setCoverImageUrl("");
+      setClientAgreementAccepted(false);
     }
 
     setWorkDialogOpen(true);
@@ -1179,8 +1186,38 @@ const ProjectsPage = () => {
                         />
                       )}
                     </div>
+                    {/* Client Agreement Checkbox - Only for new projects */}
+                    {!editingProject && (
+                      <div className="flex items-start gap-3 p-4 rounded-lg border border-border bg-muted/30">
+                        <Checkbox
+                          id="client-agreement"
+                          checked={clientAgreementAccepted}
+                          onCheckedChange={(checked) => setClientAgreementAccepted(checked === true)}
+                        />
+                        <div className="flex-1">
+                          <label htmlFor="client-agreement" className="text-sm font-medium cursor-pointer">
+                            I agree to the Client Service Agreement
+                          </label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            By posting this project, you agree to abide by THEUNOiA's terms including the 5% commission on project value.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setClientAgreementDialogOpen(true)}
+                            className="text-xs text-primary hover:underline mt-1 flex items-center gap-1"
+                          >
+                            <FileText className="w-3 h-3" />
+                            Read full agreement
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex gap-3 pt-4">
-                      <Button onClick={handleSave} className="flex-1">
+                      <Button 
+                        onClick={handleSave} 
+                        className="flex-1"
+                        disabled={!editingProject && !clientAgreementAccepted}
+                      >
                         {editingProject ? "Update" : "Post"} Work Requirement
                       </Button>
                       <Button variant="outline" onClick={() => setWorkDialogOpen(false)}>
@@ -1190,6 +1227,11 @@ const ProjectsPage = () => {
                   </div>
                 </DialogContent>
               </Dialog>
+              <AgreementDialog 
+                open={clientAgreementDialogOpen} 
+                onOpenChange={setClientAgreementDialogOpen}
+                type="client"
+              />
             </div>
 
             {loading ? (
