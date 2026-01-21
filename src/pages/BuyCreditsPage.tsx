@@ -10,6 +10,8 @@ interface CreditPlan {
   name: string;
   credits: number;
   price: number;
+  originalPrice?: number;
+  discount?: number;
   icon: React.ElementType;
   popular?: boolean;
   features: string[];
@@ -35,12 +37,15 @@ const creditPlans: CreditPlan[] = [
     id: 'basic',
     name: 'Basic',
     credits: 100,
-    price: 100,
+    price: 95,
+    originalPrice: 100,
+    discount: 5,
     icon: Sparkles,
     features: [
       '100 Credits',
       'Post 10 projects',
       'Place 10 bids',
+      '5% savings',
       'Valid forever',
     ],
     color: 'from-violet-500 to-purple-500',
@@ -49,14 +54,16 @@ const creditPlans: CreditPlan[] = [
     id: 'professional',
     name: 'Professional',
     credits: 250,
-    price: 250,
+    price: 225,
+    originalPrice: 250,
+    discount: 10,
     icon: Crown,
     popular: true,
     features: [
       '250 Credits',
       'Post 25 projects',
       'Place 25 bids',
-      'Priority support',
+      '10% savings',
       'Valid forever',
     ],
     color: 'from-primary to-accent',
@@ -65,14 +72,15 @@ const creditPlans: CreditPlan[] = [
     id: 'enterprise',
     name: 'Enterprise',
     credits: 500,
-    price: 500,
+    price: 425,
+    originalPrice: 500,
+    discount: 15,
     icon: Gem,
     features: [
       '500 Credits',
       'Post 50 projects',
       'Place 50 bids',
-      'Priority support',
-      'Dedicated assistance',
+      '15% savings',
       'Valid forever',
     ],
     color: 'from-amber-500 to-orange-500',
@@ -151,8 +159,20 @@ const BuyCreditsPage = () => {
                 </div>
                 <CardTitle className="text-xl">{plan.name}</CardTitle>
                 <CardDescription>
-                  <span className="text-3xl font-bold text-foreground">₹{plan.price}</span>
-                  <span className="text-muted-foreground ml-1">one-time</span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-foreground">₹{plan.price}</span>
+                    {plan.originalPrice && (
+                      <span className="text-lg text-muted-foreground line-through">₹{plan.originalPrice}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-muted-foreground text-sm">one-time</span>
+                    {plan.discount && (
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        Save {plan.discount}%
+                      </Badge>
+                    )}
+                  </div>
                 </CardDescription>
               </CardHeader>
               
