@@ -145,9 +145,9 @@ const CheckoutPage = () => {
 
                 <Separator />
 
-                <div className="flex justify-between items-center bg-muted/50 -mx-6 px-6 py-4">
-                  <span className="font-semibold text-foreground uppercase tracking-wide">Total Payable</span>
-                  <span className="text-2xl font-bold text-foreground">₹{totalPayable.toFixed(2)}</span>
+                <div className="flex justify-between items-center bg-primary/10 -mx-6 px-6 py-4 rounded-lg">
+                  <span className="font-semibold text-primary uppercase tracking-wide">Total Payable</span>
+                  <span className="text-2xl font-bold text-primary">₹{totalPayable.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
