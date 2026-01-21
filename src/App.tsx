@@ -28,6 +28,7 @@ const BidsPage = lazy(() => import("./pages/BidsPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
+const BuyCreditsPage = lazy(() => import("./pages/BuyCreditsPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -153,6 +154,14 @@ const App = () => (
                   element={
                     <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
                       <CommunityPage />
+                    </Suspense>
+                  } 
+                />
+                <Route 
+                  path="/buy-credits" 
+                  element={
+                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <BuyCreditsPage />
                     </Suspense>
                   } 
                 />

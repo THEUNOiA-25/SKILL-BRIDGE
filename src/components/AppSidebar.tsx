@@ -1,4 +1,4 @@
-import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, Users, CalendarDays, ShieldCheck } from 'lucide-react';
+import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, Users, CalendarDays, ShieldCheck, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import theunoiaLogo from '@/assets/theunoia-logo.png';
 
@@ -20,6 +20,7 @@ const navItems = [
   { path: '/messages', label: 'Messages', icon: Mail, showForAll: true },
   { path: '/calendar', label: 'Calendar', icon: CalendarDays, showForAll: true },
   { path: '/community', label: 'Community', icon: Users, showForAll: false },
+  { path: '/buy-credits', label: 'Buy Credits', icon: Coins, showForAll: true },
   { path: '/profile', label: 'Profile', icon: User, showForAll: true },
 ];
 
