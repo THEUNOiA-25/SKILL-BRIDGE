@@ -5,7 +5,6 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 interface AgreementDialogProps {
@@ -408,7 +407,6 @@ const getFreelancerSections = (): Section[] => [
 
 export function AgreementDialog({ open, onOpenChange, type, onAccept, showAcceptButton = false }: AgreementDialogProps) {
   const [activeSection, setActiveSection] = useState(0);
-  const [sendEmail, setSendEmail] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -575,18 +573,7 @@ export function AgreementDialog({ open, onOpenChange, type, onAccept, showAccept
             </div>
 
             {/* Footer */}
-            <div className="px-8 py-4 border-t border-border bg-muted/20 flex items-center justify-between gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={sendEmail}
-                  onCheckedChange={(checked) => setSendEmail(checked === true)}
-                  className="rounded"
-                />
-                <span className="text-sm text-muted-foreground">
-                  Send a copy of this agreement to my email
-                </span>
-              </label>
-
+            <div className="px-8 py-4 border-t border-border bg-muted/20 flex items-center justify-end">
               {showAcceptButton ? (
                 <Button 
                   onClick={handleAccept}
