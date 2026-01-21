@@ -93,6 +93,7 @@ const ProjectsPage = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [formType, setFormType] = useState<'work_requirement' | 'portfolio_project'>('work_requirement');
   const [isVerifiedStudent, setIsVerifiedStudent] = useState(false);
+  const [isStudentUser, setIsStudentUser] = useState(false);
   const [creditBalance, setCreditBalance] = useState<number>(0);
   
   const [workFormData, setWorkFormData] = useState({
@@ -142,10 +143,34 @@ const ProjectsPage = () => {
       checkVerification();
       fetchUserData();
       fetchCreditBalance();
+      fetchUserType();
     } else {
       setLoading(false);
     }
   }, [user]);
+
+  const fetchUserType = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('user_type')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      const isStudent = data?.user_type === 'student';
+      setIsStudentUser(isStudent);
+      
+      // Set default tab based on user type
+      if (!isStudent) {
+        setActiveTab('my-projects');
+      }
+    } catch (error) {
+      console.error('Error fetching user type:', error);
+    }
+  };
 
   // Handle create query param from dashboard
   useEffect(() => {
@@ -879,19 +904,32 @@ const ProjectsPage = () => {
           </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full max-w-lg mb-8 h-12 bg-muted/50 p-1 rounded-xl ${isVerifiedStudent ? 'grid-cols-3' : 'grid-cols-2'}`}>
-            <TabsTrigger 
-              value="browse" 
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
-            >
-              Browse Projects
-            </TabsTrigger>
-            <TabsTrigger 
-              value="my-projects"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
-            >
-              My Projects
-            </TabsTrigger>
+          <TabsList className={`grid w-full max-w-lg mb-8 h-12 bg-muted/50 p-1 rounded-xl ${
+            !user 
+              ? 'grid-cols-1'  // Unauthenticated: only Browse
+              : !isStudentUser 
+                ? 'grid-cols-1'  // Non-student: only My Projects
+                : isVerifiedStudent 
+                  ? 'grid-cols-3'  // Verified student: Browse + My Projects + Completed
+                  : 'grid-cols-2'  // Non-verified student: Browse + My Projects
+          }`}>
+            {/* Browse Projects tab only for students or unauthenticated users */}
+            {(!user || isStudentUser) && (
+              <TabsTrigger 
+                value="browse" 
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
+              >
+                Browse Projects
+              </TabsTrigger>
+            )}
+            {user && (
+              <TabsTrigger 
+                value="my-projects"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
+              >
+                My Projects
+              </TabsTrigger>
+            )}
             {isVerifiedStudent && (
               <TabsTrigger 
                 value="completed"

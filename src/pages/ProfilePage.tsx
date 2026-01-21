@@ -348,9 +348,10 @@ const ProfilePage = () => {
                         <GraduationCap className="h-4 w-4" />
                         {profile.userType === "student"
                           ? "Student Freelancer"
-                          : "Freelancer"}
+                          : "Business Owner"}
                       </Badge>
-                      {rating && (
+                      {/* Rating - only for students */}
+                      {profile.userType === "student" && rating && (
                         <div className="flex items-center gap-2 mt-3">
                           <div className="flex items-center gap-1.5 bg-secondary/50 px-3 py-1.5 rounded-full">
                             <Star className="h-4 w-4 fill-secondary-foreground text-secondary-foreground" />
@@ -366,7 +367,8 @@ const ProfilePage = () => {
                           {profile.bio}
                         </p>
                       )}
-                      {verification?.institute_name && (
+                      {/* Institute name - only for students */}
+                      {profile.userType === "student" && verification?.institute_name && (
                         <p className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
                           <span className="w-6 h-6 rounded-lg bg-green/20 flex items-center justify-center">
                             <Building2 className="h-3.5 w-3.5 text-green-600" />
@@ -374,17 +376,20 @@ const ProfilePage = () => {
                           {verification.institute_name}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 mt-4">
-                        {getStatusBadge(verification?.verification_status || "not_verified")}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate("/profile/verify")}
-                          className="rounded-lg"
-                        >
-                          Verify
-                        </Button>
-                      </div>
+                      {/* Verification status - only for students */}
+                      {profile.userType === "student" && (
+                        <div className="flex items-center gap-2 mt-4">
+                          {getStatusBadge(verification?.verification_status || "not_verified")}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate("/profile/verify")}
+                            className="rounded-lg"
+                          >
+                            Verify
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Action Buttons */}
@@ -395,7 +400,10 @@ const ProfilePage = () => {
                       >
                         Edit Profile
                       </Button>
-                      <Button variant="outline" className="rounded-xl">View Public Profile</Button>
+                      {/* View Public Profile - only for students */}
+                      {profile.userType === "student" && (
+                        <Button variant="outline" className="rounded-xl">View Public Profile</Button>
+                      )}
                     </div>
                   </div>
                 </div>
