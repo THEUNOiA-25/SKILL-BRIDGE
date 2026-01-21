@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, Sparkles, Zap, Crown, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
 
 interface CreditPlan {
   id: string;
@@ -88,22 +88,12 @@ const creditPlans: CreditPlan[] = [
 ];
 
 const BuyCreditsPage = () => {
+  const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
-  const handlePurchase = async (plan: CreditPlan) => {
+  const handlePurchase = (plan: CreditPlan) => {
     setSelectedPlan(plan.id);
-    setIsLoading(true);
-    
-    // TODO: Integrate with Razorpay payment gateway
-    toast({
-      title: "Coming Soon!",
-      description: "Payment integration is being set up. Stay tuned!",
-    });
-    
-    setIsLoading(false);
-    setSelectedPlan(null);
+    navigate(`/checkout?plan=${plan.id}`);
   };
 
   return (
@@ -194,9 +184,9 @@ const BuyCreditsPage = () => {
                   className="w-full"
                   variant={plan.popular ? "default" : "outline"}
                   onClick={() => handlePurchase(plan)}
-                  disabled={isLoading && isSelected}
+                  disabled={isSelected}
                 >
-                  {isLoading && isSelected ? 'Processing...' : `Buy ${plan.credits} Credits`}
+                  {`Buy ${plan.credits} Credits`}
                 </Button>
               </CardFooter>
             </Card>
