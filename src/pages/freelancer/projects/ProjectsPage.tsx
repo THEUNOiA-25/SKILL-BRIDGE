@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, IndianRupee, Clock, CheckCircle2, Paperclip, CalendarIcon, Users as UsersIcon, Coins, FileText } from "lucide-react";
+import { 
+  Plus, Edit, Trash2, Star, Calendar, Image as ImageIcon, Search, 
+  IndianRupee, Clock, CheckCircle2, Paperclip, CalendarIcon, 
+  Users as UsersIcon, Coins, FileText, ChevronLeft, ChevronRight,
+  ListFilter, ChevronDown, ArrowRight, Layers
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgreementDialog } from "@/components/AgreementDialog";
 import { toast } from "sonner";
@@ -25,6 +30,7 @@ import { FileList } from "@/components/FileList";
 import { PROJECT_CATEGORIES, getCategoryList, getSubcategoriesForCategory } from "@/data/categories";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RatingDialog } from "@/components/RatingDialog";
+import { recordActivity } from "@/utils/dailyStreak";
 
 interface Project {
   id: string;
@@ -34,7 +40,7 @@ interface Project {
   image_url: string | null;
   cover_image_url: string | null;
   additional_images: string[] | null;
-  attached_files: any[] | null;
+  attached_files: { name: string; url: string; type: string; size: number }[] | null;
   rating: number | null;
   client_feedback: string | null;
   completed_at: string | null;
@@ -88,6 +94,8 @@ const ProjectsPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("browse");
+  const [sortType, setSortType] = useState<'newest' | 'oldest' | 'relevant'>('newest');
+  const [userSkills, setUserSkills] = useState<string[]>([]);
   const [workDialogOpen, setWorkDialogOpen] = useState(false);
   const [portfolioDialogOpen, setPortfolioDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -120,8 +128,8 @@ const ProjectsPage = () => {
     completed_at: "",
   });
 
-  const [uploadedImages, setUploadedImages] = useState<any[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<{ name: string; url: string; type: string; size: number }[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; url: string; type: string; size: number }[]>([]);
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
 
   // Rating dialog state
@@ -133,6 +141,19 @@ const ProjectsPage = () => {
   // Client agreement state
   const [clientAgreementAccepted, setClientAgreementAccepted] = useState(false);
   const [clientAgreementDialogOpen, setClientAgreementDialogOpen] = useState(false);
+
+  // Recommended projects scroll ref
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollRecommended = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 291; // Card width (270) + gap (21)
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   useEffect(() => {
     // Always fetch browse projects (public)
@@ -147,6 +168,7 @@ const ProjectsPage = () => {
     } else {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchUserType = async () => {
@@ -180,6 +202,7 @@ const ProjectsPage = () => {
       // Clear the query param
       setSearchParams({});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user]);
 
   const checkVerification = async () => {
@@ -238,10 +261,26 @@ const ProjectsPage = () => {
         .order("created_at", { ascending: false });
 
       if (allError) throw allError;
-      setAllProjects((allData as Project[]) || []);
+      setAllProjects((allData as unknown as Project[]) || []);
     } catch (error) {
       console.error("Error fetching browse projects:", error);
       toast.error("Failed to load projects");
+    }
+  };
+
+  const fetchUserSkills = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("user_skills")
+        .select("skill_name")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      setUserSkills((data || []).map(skill => skill.skill_name.toLowerCase()));
+    } catch (error) {
+      console.error("Error fetching user skills:", error);
     }
   };
 
@@ -249,6 +288,9 @@ const ProjectsPage = () => {
     if (!user?.id) return;
     
     try {
+      // Fetch user skills
+      await fetchUserSkills();
+
       // Fetch user's own work requirements
       const { data: myData, error: myError } = await supabase
         .from("user_projects")
@@ -258,7 +300,7 @@ const ProjectsPage = () => {
         .order("created_at", { ascending: false });
 
       if (myError) throw myError;
-      setMyProjects((myData as Project[]) || []);
+      setMyProjects((myData as unknown as Project[]) || []);
 
       // Fetch projects where user has placed bids
       const { data: bidData, error: bidError } = await supabase
@@ -274,9 +316,9 @@ const ProjectsPage = () => {
       if (bidError) throw bidError;
       
       const bidProjectsData = (bidData || [])
-        .filter((bid: any) => bid.user_projects !== null)
-        .map((bid: any) => ({
-          ...bid.user_projects,
+        .filter((bid) => bid.user_projects !== null)
+        .map((bid) => ({
+          ...(bid.user_projects as unknown as Project),
           bidStatus: bid.status,
           bidAmount: bid.amount,
         })) as BidProject[];
@@ -292,7 +334,7 @@ const ProjectsPage = () => {
           .order("completed_at", { ascending: false });
 
         if (completedError) throw completedError;
-        setCompletedProjects((completedData as Project[]) || []);
+        setCompletedProjects((completedData as unknown as Project[]) || []);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -352,7 +394,7 @@ const ProjectsPage = () => {
 
   const openPortfolioDialog = (project?: Project) => {
     if (!user) {
-      toast.error("Please log in to create or edit portfolio projects");
+      toast.error("Please log in to create or edit completed projects");
       navigate('/login');
       return;
     }
@@ -436,6 +478,8 @@ const ProjectsPage = () => {
 
           if (error) throw error;
           toast.success("Work requirement updated successfully!");
+          // Record activity for daily streak (project updated)
+          recordActivity(user.id);
         } else {
           const { error } = await supabase
             .from("user_projects")
@@ -451,6 +495,8 @@ const ProjectsPage = () => {
           }
           toast.success("Work requirement posted successfully! (10 credits deducted)");
           fetchCreditBalance(); // Refresh credit balance
+          // Record activity for daily streak (project created)
+          recordActivity(user.id);
         }
       } else {
         portfolioProjectSchema.parse(portfolioFormData);
@@ -479,14 +525,18 @@ const ProjectsPage = () => {
             .eq("id", editingProject.id);
 
           if (error) throw error;
-          toast.success("Portfolio project updated successfully!");
+          toast.success("Completed project updated successfully!");
+          // Record activity for daily streak (project updated)
+          recordActivity(user.id);
         } else {
           const { error } = await supabase
             .from("user_projects")
             .insert(projectData);
 
           if (error) throw error;
-          toast.success("Portfolio project added successfully!");
+          toast.success("Completed project added successfully!");
+          // Record activity for daily streak (project created)
+          recordActivity(user.id);
         }
       }
 
@@ -497,11 +547,11 @@ const ProjectsPage = () => {
       }
       fetchBrowseProjects();
       if (user) fetchUserData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving project:", error);
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
-      } else if (error.message?.includes('Insufficient credits')) {
+      } else if (error instanceof Error && error.message?.includes('Insufficient credits')) {
         toast.error(error.message);
       } else {
         toast.error("Failed to save project");
@@ -608,435 +658,443 @@ const ProjectsPage = () => {
     const matchesCategory = selectedCategory === "all" || project.category === selectedCategory;
     const matchesSubcategory = selectedSubcategory === "all" || project.subcategory === selectedSubcategory;
     
-    return matchesSearch && matchesCategory && matchesSubcategory;
+    // Apply sorting filter
+    const now = new Date();
+    const projectDate = new Date(project.created_at);
+    const daysDiff = Math.floor((now.getTime() - projectDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    let matchesSort = true;
+    if (sortType === 'newest') {
+      // Projects from last 7 days (0-7 days old)
+      matchesSort = daysDiff >= 0 && daysDiff <= 7;
+    } else if (sortType === 'oldest') {
+      // Projects older than 14 days
+      matchesSort = daysDiff > 14;
+    } else if (sortType === 'relevant') {
+      // Projects where skills_required matches user's skills (all ages)
+      if (userSkills.length === 0) {
+        matchesSort = false; // No skills = no relevant projects
+      } else {
+        const projectSkills = (project.skills_required || []).map(skill => skill.toLowerCase().trim());
+        matchesSort = projectSkills.some(skill => 
+          userSkills.some(userSkill => 
+            skill.includes(userSkill) || userSkill.includes(skill) || 
+            skill === userSkill
+          )
+        );
+      }
+    }
+    
+    return matchesSearch && matchesCategory && matchesSubcategory && matchesSort;
   });
 
-  const renderWorkRequirementCard = (project: Project | BidProject, showActions: boolean = false) => {
+  const renderProjectCard = (project: Project | BidProject, showActions: boolean = false, isFeatured: boolean = false) => {
     const bidProject = project as BidProject;
     const hasBidInfo = 'bidStatus' in project;
     const biddingClosed = project.bidding_deadline ? new Date(project.bidding_deadline) < new Date() : false;
-    const isClosingSoon = project.bidding_deadline ? 
-      new Date(project.bidding_deadline).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000 && !biddingClosed : false;
+    
+    // Calculate time ago
+    const timeAgo = format(new Date(project.created_at), "d 'days ago'");
     
     // Colorful gradient backgrounds for cards without images
     const gradientColors = [
-      'from-primary/20 via-accent-purple/10 to-accent-blue/20',
-      'from-secondary/30 via-yellow/20 to-green/20',
-      'from-accent-blue/20 via-primary/10 to-accent-purple/20',
-      'from-green/20 via-accent/10 to-secondary/20'
+      'from-primary-purple/20 via-accent-purple/10 to-accent-blue/20',
+      'from-secondary-yellow/30 via-yellow/20 to-green/20',
+      'from-accent-blue/20 via-primary-purple/10 to-accent-purple/20',
+      'from-green/20 via-accent-green/10 to-secondary-yellow/20'
     ];
     const gradientIndex = project.id.charCodeAt(0) % gradientColors.length;
     
     return (
-    <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:border-primary/50 transition-all group">
-      <div className="aspect-video w-full overflow-hidden bg-muted relative">
-        {(project.cover_image_url || project.image_url) ? (
-          <img
-            src={project.cover_image_url || project.image_url || ''}
-            alt={project.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${gradientColors[gradientIndex]}`}>
-            <div className="w-16 h-16 rounded-2xl bg-white/50 backdrop-blur-sm flex items-center justify-center">
-              <ImageIcon className="w-8 h-8 text-primary/60" />
-            </div>
-          </div>
-        )}
-      </div>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <CardTitle className="text-lg mb-1">{project.title}</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Posted {format(new Date(project.created_at), "MMM d, yyyy")}
-            </p>
-          </div>
-          <Badge variant={project.status === 'open' ? 'default' : 'secondary'}>
-            {project.status}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {(project.category || project.subcategory) && (
-          <div className="flex gap-2 flex-wrap">
-            {project.category && (
-              <Badge variant="outline" className="text-xs">
-                {project.category}
-              </Badge>
-            )}
-            {project.subcategory && (
-              <Badge variant="secondary" className="text-xs">
-                {project.subcategory}
-              </Badge>
+      <div key={project.id} className="group bg-white dark:bg-white/5 rounded-[9px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#f1f0f5] dark:border-white/5 flex flex-col h-full">
+        <div className="relative h-[126px] overflow-hidden">
+          {(project.cover_image_url || project.image_url) ? (
+            <div 
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" 
+              style={{ backgroundImage: `url("${project.cover_image_url || project.image_url}")` }}
+            ></div>
+          ) : (
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradientColors[gradientIndex]} transition-transform duration-500 group-hover:scale-110`}></div>
+          )}
+          
+          <div className="absolute top-2.5 left-2.5 flex gap-1.5">
+            {!biddingClosed && (
+              <span className="px-1.5 py-0.5 bg-secondary-yellow text-[#121118] text-[9px] font-bold uppercase tracking-wider rounded-md shadow-sm">New</span>
             )}
           </div>
-        )}
-        <p className="text-sm text-muted-foreground line-clamp-3">
-          {project.description}
-        </p>
-        <div className="flex items-center gap-4 text-sm flex-wrap">
-          {project.budget && (
-            <div className="flex items-center gap-1">
-              <IndianRupee className="w-4 h-4 text-muted-foreground" />
-              <span className="font-semibold">₹{project.budget}</span>
-            </div>
-          )}
-          {project.timeline && (
-            <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <span className="text-muted-foreground">{project.timeline}</span>
-            </div>
-          )}
-          {project.bidding_deadline && (
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <span className={cn(
-                "text-muted-foreground text-xs",
-                biddingClosed && "text-destructive",
-                isClosingSoon && "text-orange-600 font-semibold"
-              )}>
-                {biddingClosed ? "Bidding Closed" : `Bids until ${format(new Date(project.bidding_deadline), "MMM d")}`}
-              </span>
-            </div>
-          )}
         </div>
-        {biddingClosed && project.status === 'open' && (
-          <Badge variant="destructive" className="text-xs w-fit">
-            Bidding Closed
-          </Badge>
-        )}
-        {isClosingSoon && !biddingClosed && (
-          <Badge variant="outline" className="text-xs w-fit border-orange-600 text-orange-600">
-            Closing Soon
-          </Badge>
-        )}
-        {project.skills_required && project.skills_required.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {project.skills_required.map((skill, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {skill}
-              </Badge>
-            ))}
+        
+        <div className="p-3.5 flex-1 flex flex-col">
+          <div className="flex justify-between items-start mb-1.5">
+            <h3 className="font-bold text-sm leading-snug truncate pr-2 group-hover:text-primary-purple transition-colors">{project.title}</h3>
+            <span className="text-[9px] font-medium text-[#68608a] dark:text-gray-500 whitespace-nowrap">
+              {format(new Date(project.created_at), "MMM d")}
+            </span>
           </div>
-        )}
-        {hasBidInfo && (
-          <div className="pt-2">
-            <Badge 
-              variant={bidProject.bidStatus === 'accepted' ? 'default' : bidProject.bidStatus === 'rejected' ? 'destructive' : 'secondary'}
-              className="text-xs"
-            >
-              Your Bid: ₹{bidProject.bidAmount} - {bidProject.bidStatus === 'accepted' && project.status === 'in_progress' ? 'Working' : bidProject.bidStatus === 'accepted' && project.status === 'completed' ? 'Completed' : bidProject.bidStatus}
-            </Badge>
-          </div>
-        )}
-        {project.attached_files && project.attached_files.length > 0 && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Paperclip className="w-3 h-3" />
-            <span>{project.attached_files.length} files attached</span>
-          </div>
-        )}
-        {showActions ? (
-          <div className="space-y-2 pt-2">
-            <Button 
-              className="w-full" 
-              size="sm" 
-              onClick={() => navigate(`/projects/${project.id}`)}
-            >
-              View Details & Bids
-            </Button>
-            <div className="flex gap-2">
-              {project.status === 'open' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => handleMarkComplete(project.id)}
-                >
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  Mark Complete
-                </Button>
+          
+          <p className="text-[11px] text-[#68608a] dark:text-gray-400 line-clamp-2 mb-2.5">
+            {project.description}
+          </p>
+          
+          <div className="mt-auto space-y-2.5">
+            <div className="flex items-start justify-between">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-bold text-[#68608a] dark:text-gray-500 uppercase tracking-tight">Estimated Budget</span>
+                <span className="text-sm font-extrabold text-primary-purple">
+                  {project.budget ? `₹${project.budget.toLocaleString()}` : 'Negotiable'}
+                </span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] font-bold text-[#68608a] dark:text-gray-500 uppercase tracking-tight">Deadline</span>
+                <span className="text-[11px] font-bold text-[#121118] dark:text-white">
+                  {project.bidding_deadline ? format(new Date(project.bidding_deadline), "d MMM") : "Flexible"}
+                </span>
+              </div>
+            </div>
+            
+            <div className="pt-2.5 border-t border-[#f1f0f5] dark:border-white/5 flex items-center justify-between">
+              {biddingClosed ? (
+                <span className="px-2 py-0.5 bg-gray-100 dark:bg-white/10 text-[#121118] dark:text-white text-[9px] font-bold rounded-full flex items-center gap-1">
+                  <span className="size-1.5 rounded-full bg-[#68608a]"></span> Bid Closed
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1">
+                  <span className="size-1.5 rounded-full bg-[#145214]"></span> Bid Open
+                </span>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => openWorkRequirementDialog(project)}
-              >
-                <Edit className="w-3 h-3 mr-1" />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDelete(project.id)}
-              >
-                <Trash2 className="w-3 h-3" />
-              </Button>
+              
+              {showActions ? (
+                <div className="flex gap-1">
+                   <Button size="icon" variant="ghost" className="h-6 w-6 text-primary-purple hover:text-primary-purple/80 hover:bg-primary-purple/10" onClick={() => openWorkRequirementDialog(project)}>
+                      <Edit className="w-3 h-3" />
+                   </Button>
+                   <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive/80 hover:bg-destructive/10" onClick={() => handleDelete(project.id)}>
+                      <Trash2 className="w-3 h-3" />
+                   </Button>
+                   <Button size="icon" variant="ghost" className="h-6 w-6 text-primary-purple hover:text-primary-purple/80" onClick={() => navigate(`/projects/${project.id}`)}>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                   </Button>
+                </div>
+              ) : (
+                <button className="text-primary-purple hover:text-primary-purple/80 transition-colors" onClick={() => navigate(`/projects/${project.id}`)}>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
-        ) : (
-          <Button className="w-full mt-2" size="sm" onClick={() => navigate(`/projects/${project.id}`)}>
-            View Details & Bid
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      </div>
     );
   };
 
-  const renderPortfolioCard = (project: Project, showActions: boolean = false) => (
-    <Card key={project.id} className="rounded-2xl border-border/40 overflow-hidden hover:border-primary/50 transition-all">
-      <div className="aspect-video w-full overflow-hidden bg-muted">
-        {(project.cover_image_url || project.image_url) ? (
-          <img
-            src={project.cover_image_url || project.image_url || ''}
-            alt={project.title}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-            <ImageIcon className="w-16 h-16 text-muted-foreground/40" />
-          </div>
-        )}
+  const renderRecommendedCard = (project: Project) => (
+    <div key={project.id} className="min-w-[270px] bg-white dark:bg-white/5 rounded-[9px] p-5 border border-[#f1f0f5] dark:border-white/5 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between h-[180px] cursor-pointer" onClick={() => navigate(`/projects/${project.id}`)}>
+      <div className="flex-1 flex flex-col">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1 w-fit">
+            <span className="size-1.5 rounded-full bg-[#145214]"></span> Bid Open
+          </span>
+          <span className="px-2 py-0.5 bg-secondary-yellow text-[#121118] text-[9px] font-bold rounded-full">
+            {format(new Date(project.created_at), "d MMM")}
+          </span>
+        </div>
+        <h3 className="font-bold text-sm leading-snug mb-2 dark:text-white line-clamp-1">{project.title}</h3>
+        <p className="text-[11px] text-[#68608a] dark:text-gray-400 line-clamp-2 flex-1">{project.description}</p>
       </div>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <CardTitle className="text-lg mb-1">{project.title}</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Posted {format(new Date(project.created_at), "MMM d, yyyy")}
-            </p>
-          </div>
-          {project.rating && (
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-              <span>{project.rating}</span>
+      <div className="mt-auto pt-3 flex items-start justify-between">
+        <div className="flex flex-col">
+          <span className="text-[9px] font-bold text-[#68608a] dark:text-gray-500 uppercase tracking-tight mb-0.5">Estimated Budget</span>
+          <span className="text-base font-extrabold text-primary-purple">
+            {project.budget ? `₹${project.budget.toLocaleString()}` : 'Negotiable'}
+          </span>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-[9px] font-bold text-[#68608a] dark:text-gray-500 uppercase tracking-tight mb-0.5">Deadline</span>
+          <span className="text-[11px] font-bold text-[#121118] dark:text-white">
+            {project.bidding_deadline ? format(new Date(project.bidding_deadline), "d MMM") : "Flexible"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderPortfolioCard = (project: Project, showActions: boolean = false) => (
+    <div key={project.id} className="group bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#f1f0f5] dark:border-white/5 flex flex-col h-full">
+      <div className="relative h-[144px] overflow-hidden bg-muted">
+         {(project.cover_image_url || project.image_url) ? (
+            <div 
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" 
+              style={{ backgroundImage: `url("${project.cover_image_url || project.image_url}")` }}
+            ></div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <ImageIcon className="w-11 h-11 text-gray-300" />
             </div>
           )}
+      </div>
+      <div className="p-4.5 flex-1 flex flex-col">
+        <div className="flex justify-between items-start mb-1.5">
+           <h3 className="font-bold text-base leading-snug truncate pr-2">{project.title}</h3>
+           {project.rating && (
+             <div className="flex items-center gap-1 text-xs font-bold text-secondary-yellow darken-10">
+               <Star className="w-3.5 h-3.5 fill-current" />
+               <span>{project.rating}</span>
+             </div>
+           )}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground line-clamp-3">
-          {project.description}
-        </p>
-        {project.completed_at && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CheckCircle2 className="w-3 h-3 text-green-500" />
-            <span>Completed {format(new Date(project.completed_at), "MMM d, yyyy")}</span>
-          </div>
-        )}
+        <p className="text-xs text-[#68608a] dark:text-gray-400 line-clamp-3 mb-3.5">{project.description}</p>
+        
         {project.client_feedback && (
-          <div className="p-3 bg-muted rounded-lg">
-            <p className="text-xs text-muted-foreground italic line-clamp-2">
-              "{project.client_feedback}"
-            </p>
+          <div className="mt-auto p-2.5 bg-[#faf7f1] rounded-lg mb-3.5">
+             <p className="text-[11px] text-[#68608a] italic line-clamp-2">"{project.client_feedback}"</p>
           </div>
         )}
+
         {showActions && (
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => openPortfolioDialog(project)}
-            >
-              <Edit className="w-3 h-3 mr-1" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDelete(project.id)}
-            >
-              <Trash2 className="w-3 h-3" />
-            </Button>
-          </div>
+           <div className="flex gap-1.5 pt-2 border-t border-[#f1f0f5]">
+             <Button size="sm" variant="outline" className="flex-1 text-xs py-1.5" onClick={() => openPortfolioDialog(project)}>Edit</Button>
+             <Button size="sm" variant="outline" className="flex-1 text-xs py-1.5 text-destructive" onClick={() => handleDelete(project.id)}>Delete</Button>
+           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-muted-foreground">Loading projects...</p>
+      <div className="flex items-center justify-center min-h-screen bg-cream-bg">
+        <p className="text-muted-foreground font-medium">Loading projects...</p>
       </div>
     );
   }
 
+  // Split projects for recommended section (just take first 4 for now as mock recommendation)
+  const recommendedProjects = filteredProjects.slice(0, 4);
+  const remainingProjects = filteredProjects; // Show all in grid too, or filteredProjects.slice(4)
+
   return (
-    <main className="flex-1 p-8 bg-background">
-        <div className="max-w-7xl mx-auto">
-          {!user && (
-            <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-primary/10 to-accent-purple/10 rounded-2xl border border-primary/20">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <UsersIcon className="w-5 h-5 text-primary" />
-                </div>
-                <p className="text-sm text-foreground font-medium">
-                  Sign in to post projects, place bids, and manage your work
-                </p>
-              </div>
-              <Button onClick={() => navigate('/login')} size="sm" className="bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90">
-                Sign In
-              </Button>
-            </div>
-          )}
+    <main className="min-h-screen bg-cream-bg dark:bg-dark-bg text-[#121118] dark:text-white font-sans">
+        <div className="max-w-6xl mx-auto px-4 lg:px-11 py-7">
           
-          {/* Colorful Header */}
-          <div className="relative mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-bold text-foreground mb-2">Projects</h1>
-                <p className="text-muted-foreground">Browse available projects or manage your own</p>
-              </div>
-              <Button 
-                onClick={() => {
-                  setActiveTab('my-projects');
-                  openWorkRequirementDialog();
-                }} 
-                className="gap-2 bg-gradient-to-r from-primary to-accent-purple text-white hover:opacity-90 rounded-xl h-11 px-6"
-              >
-                <Plus className="w-4 h-4" />
-                Create Project
-              </Button>
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-7">
+            <div className="space-y-1">
+              <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-[#121118] dark:text-white">Projects</h1>
+              <p className="text-sm text-[#68608a] dark:text-gray-400 font-medium">Browse high-value projects posted by verified clients</p>
+            </div>
+            
+            <div className="flex items-center gap-2.5 bg-white dark:bg-white/5 p-1.5 rounded-xl shadow-sm border border-[#f1f0f5] dark:border-white/10">
+               <button 
+                 onClick={() => setSortType('newest')}
+                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                   sortType === 'newest' 
+                     ? 'bg-primary-purple text-white shadow-md shadow-primary-purple/10' 
+                     : 'text-[#121118] dark:text-white hover:bg-[#f1f0f5] dark:hover:bg-white/10'
+                 }`}
+               >
+                 Newest
+               </button>
+               <button 
+                 onClick={() => setSortType('oldest')}
+                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                   sortType === 'oldest' 
+                     ? 'bg-primary-purple text-white shadow-md shadow-primary-purple/10' 
+                     : 'text-[#121118] dark:text-white hover:bg-[#f1f0f5] dark:hover:bg-white/10'
+                 }`}
+               >
+                 Oldest
+               </button>
+               <button 
+                 onClick={() => setSortType('relevant')}
+                 className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                   sortType === 'relevant' 
+                     ? 'bg-primary-purple text-white shadow-md shadow-primary-purple/10' 
+                     : 'text-[#121118] dark:text-white hover:bg-[#f1f0f5] dark:hover:bg-white/10'
+                 }`}
+               >
+                 Relevant
+               </button>
             </div>
           </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full max-w-lg mb-8 h-12 bg-muted/50 p-1 rounded-xl ${
-            !user 
-              ? 'grid-cols-1'  // Unauthenticated: only Browse
-              : !isStudentUser 
-                ? 'grid-cols-1'  // Non-student: only My Projects
-                : isVerifiedStudent 
-                  ? 'grid-cols-3'  // Verified student: Browse + My Projects + Completed
-                  : 'grid-cols-2'  // Non-verified student: Browse + My Projects
-          }`}>
-            {/* Browse Projects tab only for students or unauthenticated users */}
-            {(!user || isStudentUser) && (
-              <TabsTrigger 
-                value="browse" 
-                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
-              >
-                Browse Projects
-              </TabsTrigger>
-            )}
-            {user && (
-              <TabsTrigger 
-                value="my-projects"
-                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
-              >
-                My Projects
-              </TabsTrigger>
-            )}
-            {isVerifiedStudent && (
-              <TabsTrigger 
-                value="completed"
-                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
-              >
-                Completed
-              </TabsTrigger>
-            )}
-          </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-7">
+            <TabsList className="bg-white dark:bg-white/5 p-1.5 gap-1.5 h-auto mb-7 justify-start border border-[#f1f0f5] dark:border-white/10 w-fit rounded-xl shadow-sm">
+               {(!user || isStudentUser) && (
+                 <TabsTrigger 
+                   value="browse" 
+                   className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
+                 >
+                   Browse Project
+                 </TabsTrigger>
+               )}
+               {user && (
+                 <TabsTrigger 
+                   value="my-projects"
+                   className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
+                 >
+                   My Projects
+                 </TabsTrigger>
+               )}
+               {isVerifiedStudent && (
+                 <TabsTrigger 
+                   value="completed"
+                   className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
+                 >
+                   Completed Project
+                 </TabsTrigger>
+               )}
+            </TabsList>
 
-          {/* Browse All Available Work Requirements */}
-          <TabsContent value="browse" className="space-y-6">
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="relative flex-1 max-w-xl">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search projects by title, description, or skills..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 rounded-2xl border-border/60"
-                />
-              </div>
-              <Select value={selectedCategory} onValueChange={(value) => {
-                setSelectedCategory(value);
-                setSelectedSubcategory("all");
-              }}>
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {getCategoryList().map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedCategory && selectedCategory !== "all" && (
-                <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-                  <SelectTrigger className="w-[220px]">
-                    <SelectValue placeholder="All Subcategories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Subcategories</SelectItem>
-                    {getSubcategoriesForCategory(selectedCategory).map((subcat) => (
-                      <SelectItem key={subcat} value={subcat}>
-                        {subcat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
+            {/* BROWSE TAB */}
+            <TabsContent value="browse" className="space-y-10 mt-0 focus-visible:ring-0">
+               {/* Search and Filters */}
+               <div className="flex flex-wrap items-center gap-3.5 mb-12">
+                  <div className="flex-1 min-w-[270px]">
+                    <div className="flex items-center bg-white dark:bg-white/5 rounded-xl px-3.5 py-2.5 border border-[#f1f0f5] dark:border-white/10 shadow-sm transition-all focus-within:ring-2 ring-primary-purple/20">
+                      <ListFilter className="w-4 h-4 text-primary-purple mr-2.5" />
+                      <input 
+                        className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-[#68608a] focus:outline-none" 
+                        placeholder="Search projects, skills, or clients" 
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+                    <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-white/5 border border-[#f1f0f5] dark:border-white/10 text-xs font-bold whitespace-nowrap hover:border-primary-purple transition-colors text-[#121118] dark:text-white">
+                        Category <ChevronDown className="w-3.5 h-3.5 text-[#121118] dark:text-white" />
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-white/5 border border-[#f1f0f5] dark:border-white/10 text-xs font-bold whitespace-nowrap hover:border-primary-purple transition-colors text-[#121118] dark:text-white">
+                        Budget Range <ChevronDown className="w-3.5 h-3.5 text-[#121118] dark:text-white" />
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-white/5 border border-[#f1f0f5] dark:border-white/10 text-xs font-bold whitespace-nowrap hover:border-primary-purple transition-colors text-[#121118] dark:text-white">
+                        Timeline <ChevronDown className="w-3.5 h-3.5 text-[#121118] dark:text-white" />
+                    </button>
+                    <button className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-primary-purple text-white text-xs font-bold shadow-md shadow-primary-purple/20 hover:bg-primary-purple/90 transition-all">
+                        Apply Filters
+                    </button>
+                  </div>
+               </div>
 
-            {loading ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Loading projects...</p>
-              </div>
-            ) : filteredProjects.length === 0 ? (
-              <Card className="rounded-2xl border-border/40">
-                <CardContent className="py-12 text-center">
-                  <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No Available Projects</h3>
-                  <p className="text-muted-foreground">Check back later for new opportunities</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProjects.map((project) => renderWorkRequirementCard(project, false))}
-              </div>
-            )}
-          </TabsContent>
+               {/* Recommended Section */}
+               <section className="mb-14">
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-xl font-extrabold tracking-tight text-[#121118] dark:text-white">Recommended for You</h2>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => scrollRecommended('left')}
+                        className="p-1.5 rounded-full border border-[#f1f0f5] dark:border-white/10 bg-white dark:bg-white/5 hover:border-primary-purple transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4 text-[#68608a]" />
+                      </button>
+                      <button 
+                        onClick={() => scrollRecommended('right')}
+                        className="p-1.5 rounded-full border border-[#f1f0f5] dark:border-white/10 bg-white dark:bg-white/5 hover:border-primary-purple transition-colors"
+                      >
+                        <ChevronRight className="w-4 h-4 text-[#68608a]" />
+                      </button>
+                    </div>
+                  </div>
+                  <div 
+                    ref={scrollContainerRef}
+                    className="flex gap-5 overflow-x-auto pb-4 -mx-2 px-2 [&::-webkit-scrollbar]:hidden"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                     {recommendedProjects.length > 0 ? (
+                        recommendedProjects.map(project => renderRecommendedCard(project))
+                     ) : (
+                        <div className="w-full py-8 text-center text-[#68608a]">No recommendations available</div>
+                     )}
+                  </div>
+               </section>
 
-          {/* User's Posted Work Requirements */}
-          <TabsContent value="my-projects" className="space-y-6">
-            {!user ? (
-              <Card className="rounded-2xl border-border/40">
-                <CardContent className="py-12 text-center">
-                  <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Sign In Required</h3>
-                  <p className="text-muted-foreground mb-6">Please sign in to view and manage your projects</p>
-                  <Button onClick={() => navigate('/login')} className="gap-2">
-                    Sign In
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                <div className="flex justify-end">
-                  <Dialog open={workDialogOpen} onOpenChange={setWorkDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => openWorkRequirementDialog()} className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Post Work Requirement
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl max-h-[90vh]">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {editingProject ? "Edit Work Requirement" : "Post Work Requirement"}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
-                    {!editingProject && (
-                      <div className={`flex items-center gap-2 p-3 rounded-lg ${creditBalance >= 10 ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+               {/* All Projects Section */}
+               <section>
+                 <h2 className="text-xl font-extrabold tracking-tight text-[#121118] dark:text-white mb-7">All Projects</h2>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
+                    {remainingProjects.length > 0 ? (
+                       remainingProjects.map(project => renderProjectCard(project, false, true))
+                    ) : (
+                       <div className="col-span-full py-10 text-center bg-white rounded-2xl border border-[#f1f0f5]">
+                          <p className="text-base text-[#68608a] font-medium">No projects found matching your criteria.</p>
+                       </div>
+                    )}
+                 </div>
+               </section>
+            </TabsContent>
+
+            {/* MY PROJECTS TAB */}
+            <TabsContent value="my-projects" className="mt-0">
+               {!user ? (
+                 <div className="text-center py-20 bg-white rounded-2xl border border-[#f1f0f5]">
+                    <h3 className="text-xl font-bold mb-2">Sign in to manage projects</h3>
+                    <Button onClick={() => navigate('/login')} className="bg-primary-purple hover:bg-primary-purple/90">Sign In</Button>
+                 </div>
+               ) : (
+                 <div className="space-y-7">
+                    <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-[#f1f0f5]">
+                       <div>
+                          <h2 className="text-xl font-bold">My Posted Projects</h2>
+                          <p className="text-sm text-[#68608a]">Manage your work requirements and view bids</p>
+                       </div>
+                       <Button onClick={() => openWorkRequirementDialog()} className="bg-primary-purple hover:bg-primary-purple/90 gap-1.5 text-xs py-1.5 px-3.5">
+                          <Plus className="w-3.5 h-3.5" /> Post Project
+                       </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+                       {myProjects.length > 0 ? (
+                          myProjects.map(project => renderProjectCard(project, true))
+                       ) : (
+                          <div className="col-span-full text-center py-10 text-[#68608a]">You haven't posted any projects yet.</div>
+                       )}
+                    </div>
+
+                    {bidProjects.length > 0 && (
+                       <div className="mt-10">
+                          <h2 className="text-xl font-bold mb-5">Projects You've Bid On</h2>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+                             {bidProjects.map(project => renderProjectCard(project, false))}
+                          </div>
+                       </div>
+                    )}
+                 </div>
+               )}
+            </TabsContent>
+
+            {/* COMPLETED PROJECTS TAB */}
+            <TabsContent value="completed" className="mt-0">
+                <div className="flex justify-between items-center mb-7">
+                   <h2 className="text-xl font-bold">My Completed Projects</h2>
+                   <Button onClick={() => openPortfolioDialog()} className="bg-primary-purple hover:bg-primary-purple/90 gap-1.5 text-xs py-1.5 px-3.5">
+                      <Plus className="w-3.5 h-3.5" /> Add Completed Project
+                   </Button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+                   {completedProjects.length > 0 ? (
+                      completedProjects.map(project => renderPortfolioCard(project, true))
+                   ) : (
+                      <div className="col-span-full text-center py-10 text-[#68608a]">No completed projects yet.</div>
+                   )}
+                </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+
+        {/* DIALOGS - Hidden Logic Components */}
+        <Dialog open={workDialogOpen} onOpenChange={setWorkDialogOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle>
+                {editingProject ? "Edit Work Requirement" : "Post Work Requirement"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
+              {/* Form Content Copied from original */}
+               {!editingProject && (
+                      <div className={`flex items-center gap-2 p-3 rounded-lg ${creditBalance >= 10 ? 'bg-primary-purple/10 text-primary-purple' : 'bg-destructive/10 text-destructive'}`}>
                         <Coins className="w-4 h-4" />
                         <span className="text-sm font-medium">
                           Your Balance: {creditBalance} credits {creditBalance < 10 && '(Need 10 credits to post)'}
@@ -1164,9 +1222,6 @@ const ProjectsPage = () => {
                           />
                         </PopoverContent>
                       </Popover>
-                      <p className="text-xs text-muted-foreground">
-                        After this date, freelancers won't be able to place bids
-                      </p>
                     </div>
                     {isVerifiedStudent && userCollegeId && (
                       <div className="space-y-2">
@@ -1185,7 +1240,7 @@ const ProjectsPage = () => {
                               onChange={(e) => setIsCommunityTask(e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-purple/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-purple"></div>
                           </label>
                         </div>
                       </div>
@@ -1242,7 +1297,7 @@ const ProjectsPage = () => {
                           <button
                             type="button"
                             onClick={() => setClientAgreementDialogOpen(true)}
-                            className="text-xs text-primary hover:underline mt-1 flex items-center gap-1"
+                            className="text-xs text-primary-purple hover:underline mt-1 flex items-center gap-1"
                           >
                             <FileText className="w-3 h-3" />
                             Read full agreement
@@ -1253,7 +1308,7 @@ const ProjectsPage = () => {
                     <div className="flex gap-3 pt-4">
                       <Button 
                         onClick={handleSave} 
-                        className="flex-1"
+                        className="flex-1 bg-primary-purple"
                         disabled={!editingProject && !clientAgreementAccepted}
                       >
                         {editingProject ? "Update" : "Post"} Work Requirement
@@ -1262,200 +1317,50 @@ const ProjectsPage = () => {
                         Cancel
                       </Button>
                     </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-              <AgreementDialog 
-                open={clientAgreementDialogOpen} 
-                onOpenChange={setClientAgreementDialogOpen}
-                type="client"
-              />
             </div>
+          </DialogContent>
+        </Dialog>
 
-            {loading ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Loading your projects...</p>
+        <Dialog open={portfolioDialogOpen} onOpenChange={setPortfolioDialogOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingProject ? "Edit Completed Project" : "Add Completed Project"}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                {/* Simplified form for Portfolio */}
+                <div className="space-y-2">
+                   <Label htmlFor="portfolio_title">Title *</Label>
+                   <Input id="portfolio_title" value={portfolioFormData.title} onChange={(e) => setPortfolioFormData({ ...portfolioFormData, title: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                   <Label htmlFor="portfolio_description">Description *</Label>
+                   <Textarea id="portfolio_description" value={portfolioFormData.description} onChange={(e) => setPortfolioFormData({ ...portfolioFormData, description: e.target.value })} />
+                </div>
+                 <div className="space-y-2">
+                      <Label>Project Images</Label>
+                      <FileUploader
+                        type="image"
+                        maxFiles={5}
+                        onFilesChange={setUploadedImages}
+                        currentFiles={uploadedImages}
+                      />
+                    </div>
+                <div className="flex gap-3 pt-4">
+                   <Button onClick={handleSave} className="flex-1 bg-primary-purple">{editingProject ? "Update" : "Add"}</Button>
+                   <Button variant="outline" onClick={() => setPortfolioDialogOpen(false)}>Cancel</Button>
+                </div>
               </div>
-            ) : myProjects.length === 0 ? (
-              <Card className="rounded-2xl border-border/40">
-                <CardContent className="py-12 text-center">
-                  <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No Posted Projects</h3>
-                  <p className="text-muted-foreground mb-6">Post your first project to find freelancers</p>
-                  <Button onClick={() => openWorkRequirementDialog()} className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Post Your First Project
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                <div>
-                  <h3 className="text-xl font-semibold mb-4">Your Posted Projects</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {myProjects.map((project) => renderWorkRequirementCard(project, true))}
-                  </div>
-                </div>
+            </DialogContent>
+        </Dialog>
 
-                {bidProjects.length > 0 && (
-                  <div className="mt-10">
-                    <h3 className="text-xl font-semibold mb-4">Projects You've Bid On</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {bidProjects.map((project) => renderWorkRequirementCard(project, false))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-          )}
-          </TabsContent>
+        <AgreementDialog 
+          open={clientAgreementDialogOpen} 
+          onOpenChange={setClientAgreementDialogOpen}
+          type="client"
+        />
 
-          {/* Portfolio Projects - Only for Verified Students */}
-          {isVerifiedStudent && (
-            <TabsContent value="completed" className="space-y-6">
-              <div className="flex justify-end">
-                <Dialog open={portfolioDialogOpen} onOpenChange={setPortfolioDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => openPortfolioDialog()} className="gap-2">
-                      <Plus className="w-4 h-4" />
-                      Add Portfolio Project
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingProject ? "Edit Portfolio Project" : "Add Portfolio Project"}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="portfolio_title">Title *</Label>
-                        <Input
-                          id="portfolio_title"
-                          value={portfolioFormData.title}
-                          onChange={(e) => setPortfolioFormData({ ...portfolioFormData, title: e.target.value })}
-                          placeholder="E-commerce Website Redesign"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="portfolio_description">Description *</Label>
-                        <Textarea
-                          id="portfolio_description"
-                          value={portfolioFormData.description}
-                          onChange={(e) => setPortfolioFormData({ ...portfolioFormData, description: e.target.value })}
-                          placeholder="Describe the project you completed..."
-                          rows={4}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Project Images</Label>
-                        <FileUploader
-                          type="image"
-                          maxFiles={5}
-                          onFilesChange={setUploadedImages}
-                          currentFiles={uploadedImages}
-                        />
-                        {uploadedImages.length > 1 && (
-                          <ImageGallery
-                            images={uploadedImages.map(img => img.url)}
-                            coverImageUrl={coverImageUrl}
-                            onCoverChange={setCoverImageUrl}
-                            editable
-                          />
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Additional Files (PDF, DOC, etc.)</Label>
-                        <FileUploader
-                          type="file"
-                          maxFiles={10}
-                          maxSizeInMB={10}
-                          onFilesChange={setUploadedFiles}
-                          currentFiles={uploadedFiles}
-                        />
-                        {uploadedFiles.length > 0 && (
-                          <FileList 
-                            files={uploadedFiles}
-                            onDelete={(index) => setUploadedFiles(uploadedFiles.filter((_, i) => i !== index))}
-                            editable
-                          />
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="portfolio_rating">Rating (0-5)</Label>
-                          <Input
-                            id="portfolio_rating"
-                            type="number"
-                            min="0"
-                            max="5"
-                            step="0.1"
-                            value={portfolioFormData.rating}
-                            onChange={(e) => setPortfolioFormData({ ...portfolioFormData, rating: e.target.value })}
-                            placeholder="4.5"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="portfolio_completed_at">Completion Date</Label>
-                          <Input
-                            id="portfolio_completed_at"
-                            type="date"
-                            value={portfolioFormData.completed_at}
-                            onChange={(e) => setPortfolioFormData({ ...portfolioFormData, completed_at: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="portfolio_client_feedback">Client Feedback</Label>
-                        <Textarea
-                          id="portfolio_client_feedback"
-                          value={portfolioFormData.client_feedback}
-                          onChange={(e) => setPortfolioFormData({ ...portfolioFormData, client_feedback: e.target.value })}
-                          placeholder="What did the client say about this project?"
-                          rows={3}
-                        />
-                      </div>
-                      <div className="flex gap-3 pt-4">
-                        <Button onClick={handleSave} className="flex-1">
-                          {editingProject ? "Update" : "Add"} Portfolio Project
-                        </Button>
-                      <Button variant="outline" onClick={() => setPortfolioDialogOpen(false)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-              {loading ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">Loading your portfolio...</p>
-                </div>
-              ) : completedProjects.length === 0 ? (
-                <Card className="rounded-2xl border-border/40">
-                  <CardContent className="py-12 text-center">
-                    <Star className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">No Portfolio Projects</h3>
-                    <p className="text-muted-foreground mb-6">Showcase your completed work</p>
-                    <Button onClick={() => openPortfolioDialog()} className="gap-2">
-                      <Plus className="w-4 h-4" />
-                      Add Your First Project
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {completedProjects.map((project) => renderPortfolioCard(project, true))}
-                </div>
-              )}
-            </TabsContent>
-          )}
-        </Tabs>
-        </div>
-
-        {/* Rating Dialog */}
         <RatingDialog
           open={ratingDialogOpen}
           onOpenChange={setRatingDialogOpen}
@@ -1463,7 +1368,7 @@ const ProjectsPage = () => {
           projectTitle={projectToRate?.title || ""}
           isSubmitting={isSubmittingRating}
         />
-      </main>
+    </main>
   );
 };
 

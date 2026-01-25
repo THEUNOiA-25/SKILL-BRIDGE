@@ -8,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { GlobalNotificationProvider } from "./components/GlobalNotificationProvider";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { AdminLayout } from "./components/admin/AdminLayout";
+import { RoleBasedRoute } from "./components/RoleBasedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -18,18 +19,17 @@ import FAQPage from "./pages/FAQPage";
 import ContactPage from "./pages/ContactPage";
 import TermsAndConditionsPage from "./pages/TermsAndConditionsPage";
 
-const DashboardPage = lazy(() => import("./pages/DashboardPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
-const EditProfilePage = lazy(() => import("./pages/EditProfilePage"));
-const StudentVerificationPage = lazy(() => import("./pages/StudentVerificationPage"));
-const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
-const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
-const BidsPage = lazy(() => import("./pages/BidsPage"));
-const MessagesPage = lazy(() => import("./pages/MessagesPage"));
-const CommunityPage = lazy(() => import("./pages/CommunityPage"));
-const CalendarPage = lazy(() => import("./pages/CalendarPage"));
-const BuyCreditsPage = lazy(() => import("./pages/BuyCreditsPage"));
-const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+// Freelancer-specific pages (not role-switched)
+const FreelancerEditProfilePage = lazy(() => import("./pages/freelancer/profile/EditProfilePage"));
+const StudentVerificationPage = lazy(() => import("./pages/freelancer/verification/StudentVerificationPage"));
+
+// Shared pages
+const ProjectDetailPage = lazy(() => import("./pages/freelancer/projects/ProjectDetailPage"));
+const BidsPage = lazy(() => import("./pages/shared/bids/BidsPage"));
+const MessagesPage = lazy(() => import("./pages/shared/messages/MessagesPage"));
+const CalendarPage = lazy(() => import("./pages/shared/calendar/CalendarPage"));
+const BuyCreditsPage = lazy(() => import("./pages/shared/credits/BuyCreditsPage"));
+const CheckoutPage = lazy(() => import("./pages/shared/credits/CheckoutPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -88,33 +88,21 @@ const App = () => (
               <Route element={<DashboardLayout />}>
                 <Route 
                   path="/projects" 
-                  element={
-                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                      <ProjectsPage />
-                    </Suspense>
-                  } 
+                  element={<RoleBasedRoute pageType="projects" />} 
                 />
                 <Route 
                   path="/dashboard" 
-                  element={
-                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                      <DashboardPage />
-                    </Suspense>
-                  } 
+                  element={<RoleBasedRoute pageType="dashboard" />} 
                 />
                 <Route 
                   path="/profile" 
-                  element={
-                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                      <ProfilePage />
-                    </Suspense>
-                  } 
+                  element={<RoleBasedRoute pageType="profile" />} 
                 />
                 <Route 
                   path="/profile/edit" 
                   element={
                     <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                      <EditProfilePage />
+                      <FreelancerEditProfilePage />
                     </Suspense>
                   } 
                 />
@@ -152,11 +140,7 @@ const App = () => (
                 />
                 <Route 
                   path="/community" 
-                  element={
-                    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                      <CommunityPage />
-                    </Suspense>
-                  } 
+                  element={<RoleBasedRoute pageType="community" />} 
                 />
                 <Route 
                   path="/buy-credits" 

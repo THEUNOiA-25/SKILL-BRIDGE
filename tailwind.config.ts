@@ -14,9 +14,14 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Satoshi', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
       colors: {
+        "primary-purple": "#7e63f8",
+        "secondary-yellow": "#fbdd84",
+        "accent-green": "#cbec93",
+        "cream-bg": "#faf7f1",
+        "dark-bg": "#131022",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

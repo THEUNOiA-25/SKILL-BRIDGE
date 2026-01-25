@@ -12,6 +12,7 @@ import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { Send, MessageSquare, Paperclip, Image as ImageIcon, X, IndianRupee, Clock, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { recordActivity } from '@/utils/dailyStreak';
 
 export default function MessagesPage() {
   const { user } = useAuth();
@@ -216,6 +217,10 @@ export default function MessagesPage() {
       setIsUploading(false);
       queryClient.invalidateQueries({ queryKey: ['messages', selectedConversationId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      // Record activity for daily streak (message sent)
+      if (user?.id) {
+        recordActivity(user.id);
+      }
     },
     onError: (error) => {
       console.error('Error sending message:', error);
