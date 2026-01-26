@@ -21,4 +21,3 @@ export interface PhaseColumn {
   name: string;
   tasks: Task[];
 }
-

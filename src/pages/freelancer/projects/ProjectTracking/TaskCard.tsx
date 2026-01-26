@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 interface TaskCardProps {
   task: Task;
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
+  disabled?: boolean;
 }
 
 const getPriorityColor = (priority: TaskPriority) => {
@@ -47,7 +48,7 @@ const getStatusLabel = (status: TaskStatus) => {
   }
 };
 
-export const TaskCard = ({ task, onStatusChange }: TaskCardProps) => {
+export const TaskCard = ({ task, onStatusChange, disabled = false }: TaskCardProps) => {
   const priorityColor = getPriorityColor(task.priority);
   const statusColor = getStatusColor(task.status);
 
@@ -57,11 +58,16 @@ export const TaskCard = ({ task, onStatusChange }: TaskCardProps) => {
   };
 
   const handleStatusSelect = (newStatus: TaskStatus) => {
+    if (disabled) return;
     onStatusChange(task.id, newStatus);
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-none p-2.5 shadow-sm hover:shadow-md transition-all mb-2.5 overflow-hidden">
+    <div className={`bg-white border rounded-none p-2.5 shadow-sm transition-all mb-2.5 overflow-hidden ${
+      disabled 
+        ? 'border-slate-300 opacity-60 cursor-not-allowed' 
+        : 'border-slate-200 hover:shadow-md'
+    }`}>
       {/* Title */}
       <h4 className="font-semibold text-xs text-slate-900 mb-1 line-clamp-1 break-words">{task.title}</h4>
       
@@ -79,37 +85,43 @@ export const TaskCard = ({ task, onStatusChange }: TaskCardProps) => {
       {/* Status: Badge */}
       <div className="flex items-center gap-1.5 mb-1.5">
         <span className="text-[11px] text-slate-600 font-medium">Status:</span>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold border ${statusColor} cursor-pointer hover:opacity-80 transition-opacity`}
-            >
-              {getStatusLabel(task.status)}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-1" align="start">
-            <div className="flex flex-col gap-0.5">
+        {disabled ? (
+          <span className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold border ${statusColor} opacity-60`}>
+            {getStatusLabel(task.status)}
+          </span>
+        ) : (
+          <Popover>
+            <PopoverTrigger asChild>
               <button
-                onClick={() => handleStatusSelect('to-do')}
-                className="px-2.5 py-1 text-[11px] text-left hover:bg-slate-100 rounded-sm transition-colors"
+                className={`px-1.5 py-0.5 rounded-sm text-[9px] font-semibold border ${statusColor} cursor-pointer hover:opacity-80 transition-opacity`}
               >
-                To Do
+                {getStatusLabel(task.status)}
               </button>
-              <button
-                onClick={() => handleStatusSelect('in-progress')}
-                className="px-2.5 py-1 text-[11px] text-left hover:bg-slate-100 rounded-sm transition-colors"
-              >
-                In Progress
-              </button>
-              <button
-                onClick={() => handleStatusSelect('done')}
-                className="px-2.5 py-1 text-[11px] text-left hover:bg-slate-100 rounded-sm transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-1" align="start">
+              <div className="flex flex-col gap-0.5">
+                <button
+                  onClick={() => handleStatusSelect('to-do')}
+                  className="px-2.5 py-1 text-[11px] text-left hover:bg-slate-100 rounded-sm transition-colors"
+                >
+                  To Do
+                </button>
+                <button
+                  onClick={() => handleStatusSelect('in-progress')}
+                  className="px-2.5 py-1 text-[11px] text-left hover:bg-slate-100 rounded-sm transition-colors"
+                >
+                  In Progress
+                </button>
+                <button
+                  onClick={() => handleStatusSelect('done')}
+                  className="px-2.5 py-1 text-[11px] text-left hover:bg-slate-100 rounded-sm transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
 
       {/* Deadline: Date */}

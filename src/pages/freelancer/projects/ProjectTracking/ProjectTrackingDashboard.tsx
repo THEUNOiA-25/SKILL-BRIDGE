@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Folder, CheckCircle2, Clock, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react';
-import { Task, TaskStatus } from './types';
-import { getPhasesForCategory } from './phaseMapping';
+import { Task, TaskStatus } from '@/pages/shared/projects/ProjectTracking/types';
+import { getPhasesForCategory } from '@/pages/shared/projects/ProjectTracking/phaseMapping';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 

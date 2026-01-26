@@ -79,4 +79,3 @@ export const getPhasesForCategory = (category: string | null): string[] => {
   if (!category) return DEFAULT_PHASES;
   return PHASE_MAPPING[category]?.phases || DEFAULT_PHASES;
 };
-

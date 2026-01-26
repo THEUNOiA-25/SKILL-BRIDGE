@@ -10,6 +10,7 @@ import { X } from 'lucide-react';
 interface TaskFormProps {
   phase: string;
   projectId: string;
+  activePhase: string | null;
   onSave: (taskData: {
     title: string;
     description: string;
@@ -21,25 +22,25 @@ interface TaskFormProps {
   onCancel: () => void;
 }
 
-export const TaskForm = ({ phase, projectId, onSave, onCancel }: TaskFormProps) => {
+export const TaskForm = ({ phase, projectId, activePhase, onSave, onCancel }: TaskFormProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [assignee, setAssignee] = useState('');
   const [deadline, setDeadline] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
-  const [status, setStatus] = useState<TaskStatus>('to-do');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !assignee.trim() || !deadline) return;
     
+    // Always set status to 'to-do' when creating a task
     onSave({
       title: title.trim(),
       description: description.trim(),
       assignee: assignee.trim(),
       deadline,
       priority,
-      status,
+      status: 'to-do', // Default status is always 'to-do'
     });
     
     // Reset form
@@ -48,7 +49,6 @@ export const TaskForm = ({ phase, projectId, onSave, onCancel }: TaskFormProps) 
     setAssignee('');
     setDeadline('');
     setPriority('medium');
-    setStatus('to-do');
   };
 
   return (
@@ -122,22 +122,6 @@ export const TaskForm = ({ phase, projectId, onSave, onCancel }: TaskFormProps) 
               <SelectItem value="high">High</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
               <SelectItem value="low">Low</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <Label htmlFor="status" className="text-[11px] font-bold text-slate-900 mb-0.5">
-            Status
-          </Label>
-          <Select value={status} onValueChange={(value) => setStatus(value as TaskStatus)}>
-            <SelectTrigger className="w-full h-7 text-[11px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="to-do">To Do</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="done">Done</SelectItem>
             </SelectContent>
           </Select>
         </div>
