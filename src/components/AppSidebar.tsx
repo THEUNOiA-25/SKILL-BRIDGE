@@ -1,6 +1,5 @@
 import { Grid3X3, Briefcase, Gavel, Mail, User, Settings, LogOut, Users, CalendarDays, ShieldCheck, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import theunoiaLogo from '@/assets/theunoia-logo.png';
 
 interface AppSidebarProps {
   onSignOut: () => void;
@@ -42,7 +41,7 @@ export const AppSidebar = ({
         {/* Logo */}
         <div className="flex items-center">
           <img
-            src={theunoiaLogo}
+            src="/images/theunoia-logo.png"
             alt="THEUNOiA Logo"
             className="h-10 object-contain"
           />

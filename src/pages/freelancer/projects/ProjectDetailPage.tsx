@@ -21,7 +21,6 @@ import {
 import { recordActivity } from "@/utils/dailyStreak";
 import { CollaborationDialog } from "./collaboration/CollaborationDialog";
 import { ProjectTrackingBoard } from "./ProjectTracking/ProjectTrackingBoard";
-import projectVideo from "@/assets/Video/New Project 29 [4ED1F2C].mp4";
 
 interface Project {
   id: string;
@@ -403,7 +402,7 @@ const ProjectDetailPage = () => {
               <div className="flex flex-col gap-5">
               <div className="relative w-full max-w-[90%] aspect-[16/9] rounded-2xl overflow-hidden shadow-xl shadow-slate-200/50 group">
                 <video
-                  src={projectVideo}
+                  src="/Video/New Project 29 [4ED1F2C].mp4"
                   className="absolute inset-0 w-full h-full object-cover"
                   autoPlay
                   loop

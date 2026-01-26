@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import logoImage from '@/assets/theunoia-logo.png';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -18,7 +17,7 @@ const Footer = () => {
           {/* Logo & Description */}
           <div className="flex flex-col gap-4 grow shrink w-64">
             <Link to="/" className="flex items-center gap-2">
-              <img src={logoImage} alt="THEUNOiA" className="h-10 w-auto" />
+              <img src="/images/theunoia-logo.png" alt="THEUNOiA" className="h-10 w-auto" />
             </Link>
             <p className="text-primary-foreground/80 text-sm leading-relaxed">
               Streamline your workflow, manage projects, and empower your team.

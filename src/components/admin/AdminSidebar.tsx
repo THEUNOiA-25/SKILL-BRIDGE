@@ -10,7 +10,6 @@ import {
   Coins
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import theunoiaLogo from '@/assets/theunoia-logo.png';
 
 const navItems = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -31,7 +30,7 @@ export const AdminSidebar = () => {
       {/* Logo */}
       <div className="p-6 border-b border-border">
         <div className="flex items-center gap-3">
-          <img src={theunoiaLogo} alt="THEUNOiA" className="h-10 w-10 object-contain" />
+          <img src="/images/theunoia-logo.png" alt="THEUNOiA" className="h-10 w-10 object-contain" />
           <div>
             <h1 className="font-bold text-lg text-foreground">Admin Panel</h1>
             <p className="text-xs text-muted-foreground">THEUNOiA</p>

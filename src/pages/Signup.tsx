@@ -6,10 +6,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
-import slide1 from '@/assets/auth-slide-1.png';
-import slide2 from '@/assets/auth-slide-2.png';
-import slide3 from '@/assets/auth-slide-3.png';
-import theunoiaLogo from '@/assets/theunoia-logo.png';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileText } from 'lucide-react';
@@ -39,7 +35,7 @@ const Signup = () => {
   const { toast } = useToast();
   const { signUp, user } = useAuth();
 
-  const slides = [slide1, slide2, slide3];
+  const slides = ['/images/auth-slide-1.png', '/images/auth-slide-2.png', '/images/auth-slide-3.png'];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -109,7 +105,7 @@ const Signup = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-muted flex-col justify-between p-12">
         <div className="flex items-center">
           <img
-            src={theunoiaLogo}
+            src="/images/theunoia-logo.png"
             alt="THEUNOiA Logo"
             className="h-10 object-contain"
           />

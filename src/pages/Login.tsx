@@ -5,10 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import slide1 from '@/assets/auth-slide-1.png';
-import slide2 from '@/assets/auth-slide-2.png';
-import slide3 from '@/assets/auth-slide-3.png';
-import theunoiaLogo from '@/assets/theunoia-logo.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -19,7 +15,7 @@ const Login = () => {
   const { toast } = useToast();
   const { signIn, user } = useAuth();
 
-  const slides = [slide1, slide2, slide3];
+  const slides = ['/images/auth-slide-1.png', '/images/auth-slide-2.png', '/images/auth-slide-3.png'];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -78,7 +74,7 @@ const Login = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-muted flex-col justify-between lg:p-8 xl:p-12">
         <div className="flex items-center">
           <img
-            src={theunoiaLogo}
+            src="/images/theunoia-logo.png"
             alt="THEUNOiA Logo"
             className="h-10 object-contain"
           />

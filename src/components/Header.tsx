@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import theunoiaLogo from '@/assets/theunoia-logo.png';
 
 const Header = () => {
   const location = useLocation();
@@ -21,7 +20,7 @@ const Header = () => {
         <nav className="flex items-stretch gap-12 text-foreground font-medium flex-wrap my-auto max-md:max-w-full">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src={theunoiaLogo}
+              src="/images/theunoia-logo.png"
               alt="THEUNOiA Logo"
               className="h-14 object-contain object-left"
             />

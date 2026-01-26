@@ -1,5 +1,4 @@
 import React from 'react';
-import dashboardPreview from '@/assets/dashboard-hero.png';
 
 const Hero = () => {
   return (
@@ -68,7 +67,7 @@ const Hero = () => {
           className="aspect-[1.33] object-contain w-20 -mt-10"
         />
         <img
-          src={dashboardPreview}
+          src="/images/dashboard-hero.png"
           alt="Platform dashboard preview"
           className="aspect-[1.45] object-contain w-full max-w-4xl mx-auto rounded-3xl animate-subtle-fade animation-delay-600"
         />
