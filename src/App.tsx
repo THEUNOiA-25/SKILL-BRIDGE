@@ -25,7 +25,7 @@ const StudentVerificationPage = lazy(() => import("./pages/freelancer/verificati
 
 // Shared pages
 const ProjectDetailPage = lazy(() => import("./pages/freelancer/projects/ProjectDetailPage"));
-const BidsPage = lazy(() => import("./pages/shared/bids/BidsPage"));
+const BidsPage = lazy(() => import("./pages/freelancer/bids/BidsPage"));
 const MessagesPage = lazy(() => import("./pages/shared/messages/MessagesPage"));
 const CalendarPage = lazy(() => import("./pages/shared/calendar/CalendarPage"));
 const BuyCreditsPage = lazy(() => import("./pages/shared/credits/BuyCreditsPage"));

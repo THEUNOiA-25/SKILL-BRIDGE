@@ -40,7 +40,6 @@ interface CreditTransaction {
 export default function BidsPage() {
   const { user } = useAuth();
   const [myBids, setMyBids] = useState<Bid[]>([]);
-  const [receivedBids, setReceivedBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
   const [creditBalance, setCreditBalance] = useState<number>(0);
   const [creditTransactions, setCreditTransactions] = useState<CreditTransaction[]>([]);
@@ -99,53 +98,7 @@ export default function BidsPage() {
 
       if (myBidsError) throw myBidsError;
 
-      // Fetch bids on my projects
-      const { data: myProjectsData, error: myProjectsError } = await supabase
-        .from('user_projects')
-        .select('id')
-        .eq('user_id', user.id);
-
-      if (myProjectsError) throw myProjectsError;
-
-      const projectIds = myProjectsData?.map(p => p.id) || [];
-
-      let receivedBidsData: Bid[] = [];
-      if (projectIds.length > 0) {
-        const { data: bidsData, error } = await supabase
-          .from('bids')
-          .select(`
-            *,
-            user_projects (
-              title,
-              description,
-              user_id
-            )
-          `)
-          .in('project_id', projectIds)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        // Fetch profiles for all freelancers
-        if (bidsData && bidsData.length > 0) {
-          const freelancerIds = bidsData.map(b => b.freelancer_id);
-          const { data: profilesData, error: profilesError } = await supabase
-            .from('user_profiles')
-            .select('user_id, first_name, last_name')
-            .in('user_id', freelancerIds);
-
-          if (profilesError) throw profilesError;
-
-          // Map profiles to bids
-          receivedBidsData = bidsData.map(bid => ({
-            ...bid,
-            user_profiles: profilesData?.find(p => p.user_id === bid.freelancer_id)
-          })) as Bid[];
-        }
-      }
-
       setMyBids(myBidsData || []);
-      setReceivedBids(receivedBidsData);
     } catch (error: any) {
       console.error('Error fetching bids:', error);
       toast.error('Failed to load bids');
@@ -218,8 +171,8 @@ export default function BidsPage() {
               <p className="text-muted-foreground">Manage your bids and proposals</p>
             </div>
             
-            {/* Credit Balance Card - Colorful */}
-            <Card className="rounded-2xl border bg-gradient-to-br from-primary via-accent-purple to-accent-blue min-w-[220px] overflow-hidden relative">
+            {/* Credit Balance Card - Primary Color */}
+            <Card className="rounded-2xl border bg-primary-purple min-w-[220px] overflow-hidden relative">
               <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2" />
               <CardContent className="p-5 relative">
                 <div className="flex items-center gap-4">
@@ -241,22 +194,16 @@ export default function BidsPage() {
         </div>
 
         <Tabs defaultValue="my-bids" className="w-full">
-          <TabsList className="grid w-full max-w-lg grid-cols-3 h-12 bg-muted/50 p-1 rounded-xl mb-8">
+          <TabsList className="bg-white dark:bg-white/5 p-1.5 gap-1.5 h-auto mb-7 justify-start border border-[#f1f0f5] dark:border-white/10 w-fit rounded-xl shadow-sm">
             <TabsTrigger 
               value="my-bids"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
+              className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
             >
               My Bids ({myBids.length})
             </TabsTrigger>
             <TabsTrigger 
-              value="received"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
-            >
-              Received ({receivedBids.length})
-            </TabsTrigger>
-            <TabsTrigger 
               value="history"
-              className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent-purple data-[state=active]:text-white font-medium"
+              className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
             >
               Credit History
             </TabsTrigger>
@@ -317,77 +264,6 @@ export default function BidsPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="received" className="mt-6">
-            {receivedBids.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-16">
-                  <FileText className="w-12 h-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No bids received</h3>
-                  <p className="text-muted-foreground text-center max-w-md">
-                    When freelancers bid on your projects, they'll appear here.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {receivedBids.filter((bid) => bid.user_projects !== null).map((bid) => (
-                  <Card key={bid.id}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-xl mb-2">{bid.user_projects.title}</CardTitle>
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm text-muted-foreground">From:</span>
-                            <span className="text-sm font-semibold text-foreground">
-                              {bid.user_profiles?.first_name} {bid.user_profiles?.last_name}
-                            </span>
-                          </div>
-                        </div>
-                        {getStatusBadge(bid.status)}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <IndianRupee className="w-4 h-4" />
-                            <span className="font-semibold text-foreground">₹{bid.amount}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            <span>{formatDistanceToNow(new Date(bid.created_at), { addSuffix: true })}</span>
-                          </div>
-                        </div>
-                        <div className="pt-4 border-t border-border">
-                          <h4 className="font-semibold text-sm text-foreground mb-2">Proposal</h4>
-                          <p className="text-sm text-muted-foreground">{bid.proposal}</p>
-                        </div>
-                        {bid.status === 'pending' && (
-                          <div className="flex gap-2 pt-4">
-                            <Button
-                              onClick={() => updateBidStatus(bid.id, 'accepted')}
-                              className="flex-1"
-                            >
-                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                              Accept
-                            </Button>
-                            <Button
-                              onClick={() => updateBidStatus(bid.id, 'rejected')}
-                              variant="outline"
-                              className="flex-1"
-                            >
-                              <XCircle className="w-4 h-4 mr-2" />
-                              Reject
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
           <TabsContent value="history" className="mt-6">
             <Card>
               <CardHeader>
