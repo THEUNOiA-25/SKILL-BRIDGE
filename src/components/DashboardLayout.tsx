@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { AppSidebar } from '@/components/AppSidebar';
 import { useQuery } from '@tanstack/react-query';
 import { useAdminRole } from '@/hooks/useAdminRole';
 
@@ -110,17 +109,7 @@ export const DashboardLayout = () => {
 
   return (
     <div className="min-h-screen w-full bg-background">
-      <AppSidebar
-        currentPath={location.pathname}
-        displayName={displayName}
-        displayEmail={displayEmail}
-        profilePictureUrl={profile?.profile_picture_url}
-        unreadMessageCount={unreadCount}
-        isVerifiedStudent={isVerifiedStudent}
-        isAdmin={isAdmin}
-        onSignOut={handleSignOut}
-      />
-      <main className={`ml-64 ${location.pathname === '/messages' ? '' : 'p-6'}`}>
+      <main className={`w-full ${location.pathname === '/messages' ? '' : 'p-6'}`}>
         <Outlet />
       </main>
     </div>

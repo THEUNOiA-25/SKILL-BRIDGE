@@ -5,7 +5,9 @@ import {
   Bell, MessageSquare, FileText, Search, 
   Target, Calendar, CheckSquare2, Eye, 
   Flame, Quote, ArrowRight, Plus,
-  Wallet, Package, FileCheck, Gavel, Rss
+  Wallet, Package, FileCheck, Gavel, Rss,
+  GraduationCap, Briefcase, Star, Users, Clock, TrendingUp,
+  DollarSign, TrendingDown, BarChart3, PieChart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -104,6 +106,106 @@ const DashboardPage = () => {
 
   // Weekly Roadmap Widget state (separate from planner dialog)
   const [roadmapSelectedDay, setRoadmapSelectedDay] = useState<Date>(new Date());
+
+  // Tech news items data
+  const techNewsItems = [
+    { source: "TechCrunch", time: "2h ago", icon: "T", iconBg: "bg-black", headline: "Apple releases new M4 chips with focus on AI capabilities." },
+    { source: "The Verge", time: "5h ago", icon: "V", iconBg: "bg-blue-600", headline: "Google's Project Astra: The future of multimodal AI assistants." },
+    { source: "Wired", time: "1d ago", icon: "W", iconBg: "bg-red-600", headline: "How Decentralized Computing is Changing the Freelance Economy." },
+    { source: "Hacker News", time: "3h ago", icon: "H", iconBg: "bg-emerald-600", headline: "The Best Open Source Tools for Freelance Project Management in 2024." },
+    { source: "Ars Technica", time: "4h ago", icon: "A", iconBg: "bg-purple-600", headline: "Microsoft announces breakthrough in quantum computing with new Azure Quantum platform." },
+    { source: "Engadget", time: "6h ago", icon: "E", iconBg: "bg-orange-600", headline: "OpenAI releases GPT-5 with enhanced reasoning capabilities and multimodal understanding." },
+    { source: "MIT Tech Review", time: "8h ago", icon: "M", iconBg: "bg-indigo-600", headline: "Breakthrough in neural interfaces enables direct brain-to-computer communication." },
+    { source: "CNET", time: "12h ago", icon: "C", iconBg: "bg-pink-600", headline: "Tesla unveils next-generation autonomous driving system with improved safety features." },
+  ];
+
+  // Combined suggested items (classes and projects mixed)
+  const suggestedItems = [
+    { 
+      id: 1, 
+      type: "class",
+      title: "Advanced React Development", 
+      instructor: "Sarah Johnson", 
+      duration: "8 weeks", 
+      students: 1240, 
+      rating: 4.8, 
+      icon: "⚛️", 
+      color: "bg-blue-50", 
+      iconColor: "text-blue-600", 
+      badge: "Best Ratings",
+      animation: "slide-in-left"
+    },
+    { 
+      id: 2, 
+      type: "project",
+      title: "E-commerce Website Redesign", 
+      client: "TechCorp Inc.", 
+      budget: "₹25,000", 
+      deadline: "15 days", 
+      skills: ["React", "UI/UX"], 
+      icon: "🛒", 
+      color: "bg-orange-50", 
+      iconColor: "text-orange-600", 
+      badge: "Recommended Batch",
+      animation: "slide-in-right"
+    },
+    { 
+      id: 3, 
+      type: "class",
+      title: "UI/UX Design Masterclass", 
+      instructor: "Michael Chen", 
+      duration: "6 weeks", 
+      students: 890, 
+      rating: 4.9, 
+      icon: "🎨", 
+      color: "bg-purple-50", 
+      iconColor: "text-purple-600", 
+      badge: "Top Recommended",
+      animation: "bounce-in"
+    },
+    { 
+      id: 4, 
+      type: "project",
+      title: "Mobile App Development", 
+      client: "StartupXYZ", 
+      budget: "₹45,000", 
+      deadline: "30 days", 
+      skills: ["React Native", "Node.js"], 
+      icon: "📱", 
+      color: "bg-indigo-50", 
+      iconColor: "text-indigo-600", 
+      badge: "Recommended Batch",
+      animation: "slide-in-left"
+    },
+    { 
+      id: 5, 
+      type: "class",
+      title: "Full Stack Web Development", 
+      instructor: "David Williams", 
+      duration: "12 weeks", 
+      students: 2100, 
+      rating: 4.7, 
+      icon: "💻", 
+      color: "bg-emerald-50", 
+      iconColor: "text-emerald-600", 
+      badge: "Best Ratings",
+      animation: "slide-in-right"
+    },
+    { 
+      id: 6, 
+      type: "project",
+      title: "Brand Identity Design", 
+      client: "Creative Studio", 
+      budget: "₹15,000", 
+      deadline: "10 days", 
+      skills: ["Figma", "Illustration"], 
+      icon: "✨", 
+      color: "bg-pink-50", 
+      iconColor: "text-pink-600", 
+      badge: "Recommended Batch",
+      animation: "bounce-in"
+    },
+  ];
 
   // Fetch user profile
   useEffect(() => {
@@ -488,15 +590,15 @@ const DashboardPage = () => {
     }
   }, [weeklyData]);
 
+
   return (
-    <div className="flex-1 flex flex-col bg-[#FDF8F3]">
+    <div className="flex-1 flex flex-col">
       {/* Main Content Area */}
       <main className="flex-1 p-5 overflow-y-auto">
-        <div className="max-w-[1080px] mx-auto">
           {/* Header Section */}
           <div className="flex flex-wrap items-center justify-between gap-3.5 mb-5">
             <div>
-              <h2 className="text-2xl font-black text-foreground tracking-tight">
+              <h2 className="text-5xl font-black text-foreground tracking-tight animate-bounce-welcome">
                 Welcome back, {userName}
               </h2>
               <p className="text-muted-foreground mt-1 font-medium text-xs">
@@ -580,7 +682,7 @@ const DashboardPage = () => {
           {/* Daily Motivation & Today's Goal */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 mb-5">
             {/* Daily Motivation Card */}
-            <Card className="lg:col-span-2 group relative overflow-hidden rounded-xl border border-border shadow-sm p-5 flex flex-col md:flex-row gap-5 items-center">
+            <Card className="lg:col-span-2 group relative overflow-hidden rounded-xl border border-black/20 shadow-sm p-5 flex flex-col md:flex-row gap-5 items-center bg-[#FDF8F3]">
               <div className="w-full md:w-1/3 aspect-video md:aspect-square bg-cover bg-center rounded-xl shadow-inner bg-gradient-to-br from-orange-200 via-blue-200 to-gray-300">
                 {/* Placeholder for motivation image */}
               </div>
@@ -605,7 +707,7 @@ const DashboardPage = () => {
             </Card>
 
             {/* Today's Goal Card */}
-            <Card className="bg-card rounded-xl border border-border shadow-sm p-5 flex flex-col justify-between">
+            <Card className="bg-[#FDF8F3] rounded-xl border border-black/20 shadow-sm p-5 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start mb-3">
                   <h4 className="font-bold text-sm">Today's Goal</h4>
@@ -630,72 +732,199 @@ const DashboardPage = () => {
           {/* Quick Access Cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 mb-5">
             <Card 
-              className="bg-card p-3.5 rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2.5"
+              className="bg-[#FDF8F3] p-3.5 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2.5"
               onClick={() => navigate('/projects')}
             >
-              <div className="size-9 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-500 flex items-center justify-center">
+              <div className="size-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                 <Search className="w-4 h-4" />
                   </div>
               <span className="text-[11px] font-bold text-muted-foreground">Browse Projects</span>
             </Card>
             <Card 
-              className="bg-card p-3 rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
+              className="bg-[#FDF8F3] p-3 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
               onClick={() => navigate('/bids')}
             >
-              <div className="size-9 rounded-full bg-orange-50 dark:bg-orange-500/10 text-orange-500 flex items-center justify-center">
+              <div className="size-9 rounded-full bg-secondary/20 text-secondary-foreground flex items-center justify-center">
                 <Gavel className="w-4 h-4" />
                 </div>
               <span className="text-[11px] font-bold text-muted-foreground">My Bids</span>
             </Card>
             <Card 
-              className="bg-card p-3 rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
+              className="bg-[#FDF8F3] p-3 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
               onClick={() => navigate('/projects')}
             >
-              <div className="size-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+              <div className="size-9 rounded-full bg-accent/20 text-accent-foreground flex items-center justify-center">
                 <Package className="w-4 h-4" />
                     </div>
               <span className="text-[11px] font-bold text-muted-foreground">Deliverables</span>
             </Card>
             <Card 
-              className="bg-card p-3 rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
+              className="bg-[#FDF8F3] p-3 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
                       onClick={() => navigate('/projects')}
             >
-              <div className="size-9 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <div className="size-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                 <FileCheck className="w-4 h-4" />
               </div>
               <span className="text-[11px] font-bold text-muted-foreground">Contracts</span>
                   </Card>
             <Card 
-              className="bg-card p-3 rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
+              className="bg-[#FDF8F3] p-3 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
               onClick={() => navigate('/buy-credits')}
             >
-              <div className="size-9 rounded-full bg-pink-50 dark:bg-pink-500/10 text-pink-500 flex items-center justify-center">
+              <div className="size-9 rounded-full bg-accent/20 text-accent-foreground flex items-center justify-center">
                 <Wallet className="w-4 h-4" />
               </div>
               <span className="text-[11px] font-bold text-muted-foreground">Wallet</span>
             </Card>
           </div>
 
+          {/* Suggested for You */}
+          <div className="mb-5 w-full">
+            <h3 className="text-base font-bold mb-4 flex items-center gap-1.5 animate-fade-in-up">
+              <TrendingUp className="w-4 h-4 text-primary animate-pulse-glow" />
+              <span>Suggested for you</span>
+            </h3>
+            <Card className="bg-[#FDF8F3] rounded-xl border border-black/20 shadow-sm p-6 hover:shadow-md transition-all w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {suggestedItems.map((item, idx) => (
+                  <div 
+                    key={item.id} 
+                    className={cn(
+                      "bg-white/90 backdrop-blur-sm rounded-xl border border-black/10 p-4 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group relative overflow-hidden",
+                      item.animation === "slide-in-left" && "animate-slide-in-left",
+                      item.animation === "slide-in-right" && "animate-slide-in-right",
+                      item.animation === "bounce-in" && "animate-bounce-in"
+                    )}
+                    style={{ 
+                      animationDelay: `${idx * 0.15}s`
+                    }}
+                  >
+                    {/* Animated background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-150"></div>
+                    
+                    {/* Floating icon with animation */}
+                    <div className="flex items-start gap-3 relative z-10">
+                      <div className={cn(
+                        "size-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 transition-all duration-300 shadow-md group-hover:shadow-lg",
+                        item.color,
+                        "group-hover:scale-125 group-hover:rotate-12 animate-float"
+                      )} style={{ animationDelay: `${idx * 0.2}s` }}>
+                        <span className="animate-wiggle" style={{ animationDelay: `${idx * 0.3}s` }}>{item.icon}</span>
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        {/* Type badge */}
+                        <div className="flex items-center gap-2 mb-2">
+                          {item.type === "class" ? (
+                            <div className="flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                              <GraduationCap className="w-3 h-3 text-blue-600" />
+                              <span className="text-[8px] font-bold text-blue-600 uppercase">Class</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">
+                              <Briefcase className="w-3 h-3 text-orange-600" />
+                              <span className="text-[8px] font-bold text-orange-600 uppercase">Project</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-start justify-between mb-2 gap-2">
+                          <div className="flex-1">
+                            <h5 className="text-sm font-bold text-foreground leading-tight group-hover:text-primary transition-colors mb-1.5 line-clamp-2">
+                              {item.title}
+                            </h5>
+                            <span className={cn(
+                              "inline-block text-[9px] font-bold text-white px-2 py-0.5 rounded-full",
+                              item.badge === "Best Ratings" 
+                                ? "bg-primary" 
+                                : item.badge === "Top Recommended"
+                                ? "bg-primary"
+                                : "bg-accent"
+                            )}>
+                              {item.badge}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Class specific content */}
+                        {item.type === "class" && (
+                          <>
+                            <p className="text-xs text-muted-foreground mb-2.5">by {item.instructor}</p>
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded-full border border-yellow-200">
+                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                <span className="text-[10px] font-bold text-yellow-700">{item.rating}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                <span>{item.duration}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                <span>{item.students?.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {/* Project specific content */}
+                        {item.type === "project" && (
+                          <>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs text-muted-foreground">Client: {item.client}</p>
+                              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">{item.budget}</span>
+                            </div>
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                <Calendar className="w-3 h-3" />
+                                <span>{item.deadline}</span>
+                              </div>
+                              <div className="flex gap-1 flex-wrap">
+                                {item.skills?.map((skill, skillIdx) => (
+                                  <span key={skillIdx} className="text-[9px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20">
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Shimmer effect on hover */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
           {/* Progress Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-5">
-            <Card className="bg-card p-5 rounded-xl border border-border shadow-sm flex flex-col justify-between">
+            <Card className="bg-[#FDF8F3] p-5 rounded-xl border border-black/20 shadow-sm flex flex-col justify-between">
               <div className="flex justify-between items-center mb-3.5">
                 <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Current Successful</p>
-                <span className="text-emerald-500 text-[11px] font-bold bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-lg">+12%</span>
+                <span className="text-accent-foreground text-[11px] font-bold bg-accent px-1.5 py-0.5 rounded-lg">+12%</span>
               </div>
               <div className="flex items-end gap-3.5">
                 <p className="text-3xl font-black">{String(stats.successful).padStart(2, '0')}</p>
                 <div className="flex-1 h-11 flex items-end gap-1.5">
-                  <div className="w-full bg-emerald-500/20 h-1/2 rounded-sm"></div>
-                  <div className="w-full bg-emerald-500/20 h-2/3 rounded-sm"></div>
-                  <div className="w-full bg-emerald-500/20 h-1/3 rounded-sm"></div>
-                  <div className="w-full bg-emerald-500/20 h-3/4 rounded-sm"></div>
-                  <div className="w-full bg-emerald-500 h-full rounded-sm"></div>
+                  <div className="w-full bg-accent/20 h-1/2 rounded-sm"></div>
+                  <div className="w-full bg-accent/20 h-2/3 rounded-sm"></div>
+                  <div className="w-full bg-accent/20 h-1/3 rounded-sm"></div>
+                  <div className="w-full bg-accent/20 h-3/4 rounded-sm"></div>
+                  <div className="w-full bg-accent h-full rounded-sm"></div>
                 </div>
               </div>
             </Card>
 
-            <Card className="bg-card p-5 rounded-xl border border-border shadow-sm flex flex-col justify-between">
+            <Card className="bg-[#FDF8F3] p-5 rounded-xl border border-black/20 shadow-sm flex flex-col justify-between">
               <div className="flex justify-between items-center mb-3.5">
                 <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Ongoing Projects</p>
                 <span className="text-primary text-[11px] font-bold bg-primary/5 px-1.5 py-0.5 rounded-lg">Stable</span>
@@ -712,19 +941,19 @@ const DashboardPage = () => {
               </div>
             </Card>
 
-            <Card className="bg-card p-5 rounded-xl border border-border shadow-sm flex flex-col justify-between">
+            <Card className="bg-[#FDF8F3] p-5 rounded-xl border border-black/20 shadow-sm flex flex-col justify-between">
               <div className="flex justify-between items-center mb-3.5">
                 <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Pending Approval</p>
-                <span className="text-orange-500 text-[11px] font-bold bg-orange-50 dark:bg-orange-500/10 px-1.5 py-0.5 rounded-lg">-2</span>
+                <span className="text-secondary-foreground text-[11px] font-bold bg-secondary px-1.5 py-0.5 rounded-lg">-2</span>
               </div>
               <div className="flex items-end gap-3.5">
                 <p className="text-3xl font-black">{String(stats.pending).padStart(2, '0')}</p>
                 <div className="flex-1 h-11 flex items-end gap-1.5">
-                  <div className="w-full bg-orange-500/20 h-full rounded-sm"></div>
-                  <div className="w-full bg-orange-500/20 h-3/4 rounded-sm"></div>
-                  <div className="w-full bg-orange-500 h-1/2 rounded-sm"></div>
-                  <div className="w-full bg-orange-500/20 h-1/3 rounded-sm"></div>
-                  <div className="w-full bg-orange-500/20 h-1/4 rounded-sm"></div>
+                  <div className="w-full bg-secondary/20 h-full rounded-sm"></div>
+                  <div className="w-full bg-secondary/20 h-3/4 rounded-sm"></div>
+                  <div className="w-full bg-secondary h-1/2 rounded-sm"></div>
+                  <div className="w-full bg-secondary/20 h-1/3 rounded-sm"></div>
+                  <div className="w-full bg-secondary/20 h-1/4 rounded-sm"></div>
                 </div>
               </div>
             </Card>
@@ -740,57 +969,59 @@ const DashboardPage = () => {
                   <Rss className="w-3.5 h-3.5 text-primary" />
                   Latest in Tech
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                  <Card className="bg-card p-3.5 rounded-xl border border-border shadow-sm hover:border-primary/20 transition-all cursor-pointer group">
-                    <div className="flex items-center gap-1.5 mb-2.5">
-                      <div className="size-5 rounded-full bg-black flex items-center justify-center text-[9px] text-white font-bold">T</div>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase">TechCrunch • 2h ago</span>
-                    </div>
-                    <p className="text-xs font-bold leading-snug group-hover:text-primary transition-colors">
-                      Apple releases new M4 chips with focus on AI capabilities.
-                    </p>
-                  </Card>
-                  <Card className="bg-card p-3.5 rounded-xl border border-border shadow-sm hover:border-primary/20 transition-all cursor-pointer group">
-                    <div className="flex items-center gap-1.5 mb-2.5">
-                      <div className="size-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] text-white font-bold">V</div>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase">The Verge • 5h ago</span>
-                    </div>
-                    <p className="text-xs font-bold leading-snug group-hover:text-primary transition-colors">
-                      Google's Project Astra: The future of multimodal AI assistants.
-                    </p>
-                  </Card>
-                  <Card className="bg-card p-3.5 rounded-xl border border-border shadow-sm hover:border-primary/20 transition-all cursor-pointer group">
-                    <div className="flex items-center gap-1.5 mb-2.5">
-                      <div className="size-5 rounded-full bg-red-600 flex items-center justify-center text-[9px] text-white font-bold">W</div>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase">Wired • 1d ago</span>
-                            </div>
-                    <p className="text-xs font-bold leading-snug group-hover:text-primary transition-colors">
-                      How Decentralized Computing is Changing the Freelance Economy.
-                    </p>
-                  </Card>
-                  <Card className="bg-card p-3.5 rounded-xl border border-border shadow-sm hover:border-primary/20 transition-all cursor-pointer group">
-                    <div className="flex items-center gap-1.5 mb-2.5">
-                      <div className="size-5 rounded-full bg-emerald-600 flex items-center justify-center text-[9px] text-white font-bold">H</div>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase">Hacker News • 3h ago</span>
-                    </div>
-                    <p className="text-xs font-bold leading-snug group-hover:text-primary transition-colors">
-                      The Best Open Source Tools for Freelance Project Management in 2024.
-                    </p>
-                  </Card>
-                </div>
+                <Card className="bg-[#FDF8F3] rounded-xl border border-black/20 shadow-sm p-4 h-[200px] overflow-hidden relative">
+                  <div className="animate-scroll-up">
+                    {/* First set of items */}
+                    {techNewsItems.map((item, index) => (
+                      <div key={`first-${index}`} className="flex items-center gap-3 py-2 border-b border-black/10 last:border-b-0">
+                        <div className={cn("size-5 rounded-full flex items-center justify-center text-[9px] text-white font-bold flex-shrink-0", item.iconBg)}>
+                          {item.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase">{item.source}</span>
+                            <span className="text-[9px] text-muted-foreground">•</span>
+                            <span className="text-[9px] text-muted-foreground">{item.time}</span>
+                          </div>
+                          <p className="text-xs font-bold leading-tight text-foreground">
+                            {item.headline}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Duplicate set for seamless loop */}
+                    {techNewsItems.map((item, index) => (
+                      <div key={`second-${index}`} className="flex items-center gap-3 py-2 border-b border-black/10 last:border-b-0">
+                        <div className={cn("size-5 rounded-full flex items-center justify-center text-[9px] text-white font-bold flex-shrink-0", item.iconBg)}>
+                          {item.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase">{item.source}</span>
+                            <span className="text-[9px] text-muted-foreground">•</span>
+                            <span className="text-[9px] text-muted-foreground">{item.time}</span>
+                          </div>
+                          <p className="text-xs font-bold leading-tight text-foreground">
+                            {item.headline}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
                           </div>
                           
               {/* Weekly Roadmap & To-Do List - Side by Side */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Weekly Roadmap */}
-                <Card className="bg-card rounded-2xl p-5 shadow-sm border border-border flex flex-col h-full">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                      <div className="size-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                        <Calendar className="w-3.5 h-3.5" />
+                <Card className="bg-[#FDF8F3] rounded-2xl p-6 shadow-sm border border-black/20 flex flex-col h-full">
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                        <Calendar className="w-5 h-5" />
                       </div>
-                      <h3 className="text-sm font-bold flex-shrink-0">Weekly Roadmap</h3>
-                      <span className="text-[7px] font-bold text-accent-foreground bg-accent px-1 py-0.5 rounded flex-shrink-0 whitespace-nowrap">
+                      <h3 className="text-base font-bold flex-shrink-0">Weekly Roadmap</h3>
+                      <span className="text-[9px] font-bold text-accent-foreground bg-accent px-2 py-1 rounded flex-shrink-0 whitespace-nowrap">
                         {formatWeekDateRange()}
                       </span>
                     </div>
@@ -811,10 +1042,10 @@ const DashboardPage = () => {
                           <button
                             key={getDayKey(day)}
                             onClick={() => setRoadmapSelectedDay(day)}
-                            className="flex flex-col items-center gap-1.5 group flex-1"
+                            className="flex flex-col items-center gap-2 group flex-1"
                           >
                             <span className={cn(
-                              "text-[9px] font-bold",
+                              "text-xs font-bold",
                               isSelected ? "text-primary" : "text-muted-foreground"
                             )}>{dayAbbr}</span>
                             <div className={cn(
@@ -826,13 +1057,13 @@ const DashboardPage = () => {
                                 : "border-dashed border-border bg-muted/50 hover:border-primary/50"
                             )}>
                               {allTasksCompleted ? (
-                                <span className="text-[11px] text-primary">✓</span>
+                                <span className="text-sm text-primary">✓</span>
                               ) : hasCompletedTasks ? (
-                                <span className="text-[11px] text-primary">✓</span>
+                                <span className="text-sm text-primary">✓</span>
                               ) : isSelected ? (
-                                <span className="text-[11px] text-primary font-bold">✎</span>
+                                <span className="text-sm text-primary font-bold">✎</span>
                               ) : (
-                                <Plus className="w-2.5 h-2.5 text-muted-foreground group-hover:text-primary" />
+                                <Plus className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                               )}
                             </div>
                           </button>
@@ -884,22 +1115,22 @@ const DashboardPage = () => {
                 </Card>
 
                 {/* To-Do List */}
-                <Card className="bg-card rounded-2xl p-5 shadow-sm border border-border flex flex-col h-full">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-1.5">
-                      <div className="size-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                        <CheckSquare2 className="w-3.5 h-3.5" />
+                <Card className="bg-[#FDF8F3] rounded-2xl p-6 shadow-sm border border-black/20 flex flex-col h-full">
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <CheckSquare2 className="w-5 h-5" />
                       </div>
-                      <h3 className="text-sm font-bold">To-Do List</h3>
+                      <h3 className="text-base font-bold">To-Do List</h3>
                     </div>
                     <Dialog open={addTaskDialogOpen} onOpenChange={setAddTaskDialogOpen}>
                       <DialogTrigger asChild>
                           <Button 
                           variant="outline" 
                           size="sm"
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border-primary text-primary text-[11px] font-bold hover:bg-primary/5"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border-primary text-primary text-xs font-bold hover:bg-primary/5"
                           >
-                          <Plus className="w-2.5 h-2.5" />
+                          <Plus className="w-4 h-4" />
                           Add Task
                           </Button>
                       </DialogTrigger>
@@ -996,9 +1227,9 @@ const DashboardPage = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
-                  <div className="flex-1 space-y-px bg-muted rounded-xl overflow-hidden max-h-[140px] overflow-y-auto">
+                  <div className="flex-1 space-y-px bg-muted rounded-xl overflow-hidden max-h-[220px] overflow-y-auto">
                     {todos.length === 0 ? (
-                      <div className="p-3.5 bg-card text-center text-xs text-muted-foreground">
+                      <div className="p-5 bg-[#FDF8F3] text-center text-sm text-muted-foreground">
                         No tasks yet. Add one to get started!
                   </div>
                 ) : (
@@ -1006,18 +1237,18 @@ const DashboardPage = () => {
                         <div
                           key={todo.id}
                           className={cn(
-                            "flex items-center gap-2.5 p-2.5 bg-card",
+                            "flex items-center gap-3 p-3 bg-[#FDF8F3]",
                             index < todos.length - 1 && "border-b border-border"
                           )}
                         >
                           <Checkbox
                             checked={todo.completed}
                             onCheckedChange={() => toggleTodo(todo.id)}
-                            className="size-3.5 rounded text-primary"
+                            className="size-4 rounded text-primary"
                           />
                           <span
                             className={cn(
-                              "text-xs font-medium flex-1",
+                              "text-sm font-medium flex-1",
                               todo.completed
                                 ? "text-muted-foreground line-through decoration-muted-foreground"
                                 : "text-foreground"
@@ -1028,7 +1259,7 @@ const DashboardPage = () => {
                           <Badge
                             variant="outline"
                             className={cn(
-                              "text-[11px] font-medium px-1.5 py-0.5 rounded",
+                              "text-xs font-medium px-2 py-1 rounded",
                               getPriorityBadge(todo.priority)
                             )}
                           >
@@ -1040,6 +1271,7 @@ const DashboardPage = () => {
                   </div>
                 </Card>
               </div>
+
             </div>
 
             {/* Right Column - Active Snapshots */}
@@ -1062,7 +1294,7 @@ const DashboardPage = () => {
                     const isOverdue = deadline && new Date(project.bidding_deadline) < new Date();
                         
                         return (
-                      <Card key={project.id} className="bg-card p-4.5 rounded-xl border border-border shadow-sm group">
+                      <Card key={project.id} className="bg-[#FDF8F3] p-4.5 rounded-xl border border-black/20 shadow-sm group">
                         <div className="flex justify-between items-start mb-3.5">
                           <div>
                             <h4 className="font-bold text-sm mb-1">{project.title}</h4>
@@ -1093,14 +1325,75 @@ const DashboardPage = () => {
                     );
                   })
                 ) : (
-                  <Card className="bg-card p-5 rounded-xl border border-border shadow-sm">
+                  <Card className="bg-[#FDF8F3] p-5 rounded-xl border border-black/20 shadow-sm">
                     <p className="text-muted-foreground text-center py-3.5 text-xs">No active projects at the moment</p>
                   </Card>
                 )}
           </div>
             </div>
           </div>
-        </div>
+
+          {/* Earnings & Profit Analytics - Full Width */}
+          <div className="mb-5 w-full">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-primary" />
+                Earnings & Profit
+              </h3>
+            </div>
+            <Card className="bg-[#FDF8F3] rounded-xl border border-black/20 shadow-sm p-5 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Total Earnings */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-black/10 p-4 hover:shadow-md transition-all">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                        <Wallet className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-bold text-muted-foreground uppercase">Total Earnings</span>
+                    </div>
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                  </div>
+                  <p className="text-2xl font-black text-primary">₹2,45,000</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+18.5%</span>
+                    <span className="text-[10px] text-muted-foreground">vs last month</span>
+                  </div>
+                </div>
+
+                {/* Net Profit */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-black/10 p-4 hover:shadow-md transition-all">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="size-8 rounded-lg bg-accent/20 text-accent-foreground flex items-center justify-center">
+                        <TrendingUp className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-bold text-muted-foreground uppercase">Net Profit</span>
+                    </div>
+                    <BarChart3 className="w-4 h-4 text-accent-foreground" />
+                  </div>
+                  <p className="text-2xl font-black text-accent">₹1,87,500</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[10px] font-bold text-accent-foreground bg-accent/20 px-2 py-0.5 rounded-full">76.5%</span>
+                    <span className="text-[10px] text-muted-foreground">profit margin</span>
+                  </div>
+                </div>
+
+                {/* Average per Project */}
+                <div className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-xl border border-black/10 p-4 hover:shadow-md transition-all">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <span className="text-xs font-bold text-muted-foreground uppercase">Avg. per Project</span>
+                      <p className="text-2xl font-black text-foreground mt-1">₹20,417</p>
+                    </div>
+                    <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                      <DollarSign className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
       </main>
 
       {/* Weekly Planner Dialog */}
