@@ -30,7 +30,7 @@ const BidsPage = lazy(() => import("./pages/freelancer/bids/BidsPage"));
 const MessagesPage = lazy(() => import("./pages/shared/messages/MessagesPage"));
 const CalendarPage = lazy(() => import("./pages/shared/calendar/CalendarPage"));
 const BuyCreditsPage = lazy(() => import("./pages/freelancer/credits/BuyCreditsPage"));
-const CheckoutPage = lazy(() => import("./pages/shared/credits/CheckoutPage"));
+const CheckoutPage = lazy(() => import("./pages/freelancer/credits/CheckoutPage"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));

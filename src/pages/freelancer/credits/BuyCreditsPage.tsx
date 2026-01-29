@@ -109,8 +109,8 @@ const BuyCreditsPage = () => {
             </button>
           </div>
 
-          {/* Pro Card (Featured) */}
-          <div className="bg-white rounded-xl p-8 border-2 border-[#7e63f8] featured-shadow flex flex-col h-full relative md:scale-105 hover:translate-y-[-4px] transition-transform duration-300 z-10">
+          {/* Pro Card */}
+          <div className="bg-white rounded-xl p-8 border-2 border-[#7e63f8] premium-shadow flex flex-col h-full relative hover:translate-y-[-4px] transition-transform duration-300">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="bg-[#7e63f8] text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
                 Most Popular
