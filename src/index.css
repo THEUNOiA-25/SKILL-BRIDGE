@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 40 20% 97%;
+    --background: 0 0% 100%;
     --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
@@ -145,6 +145,42 @@ All colors MUST be HSL.
 
   .animation-delay-800 {
     animation-delay: 0.8s;
+  }
+
+  /* Earnings & Profit cards: scattered drift – each card moves in a different path, small range so they don't touch */
+  @keyframes earnings-drift-1 {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-5px, -6px); }
+    50% { transform: translate(4px, 3px); }
+    75% { transform: translate(-3px, 5px); }
+  }
+
+  @keyframes earnings-drift-2 {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(5px, 4px); }
+    50% { transform: translate(-4px, -5px); }
+    75% { transform: translate(3px, -4px); }
+  }
+
+  @keyframes earnings-drift-3 {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(4px, -5px); }
+    50% { transform: translate(-5px, 4px); }
+    75% { transform: translate(-4px, -3px); }
+  }
+
+  .animate-earnings-drift-1 {
+    animation: earnings-drift-1 3s ease-in-out infinite;
+  }
+
+  .animate-earnings-drift-2 {
+    animation: earnings-drift-2 3s ease-in-out infinite;
+    animation-delay: 0.5s;
+  }
+
+  .animate-earnings-drift-3 {
+    animation: earnings-drift-3 3s ease-in-out infinite;
+    animation-delay: 1s;
   }
 
   .hover-lift {
@@ -348,5 +384,18 @@ All colors MUST be HSL.
 
   .animate-wiggle {
     animation: wiggle 2s ease-in-out infinite;
+  }
+
+  /* Pricing page shadows (match reference) */
+  .premium-shadow {
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04), 0 4px 10px -5px rgba(0, 0, 0, 0.02);
+  }
+  .featured-shadow {
+    box-shadow: 0 20px 40px -15px rgba(126, 99, 248, 0.12), 0 8px 16px -8px rgba(126, 99, 248, 0.08);
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    font-family: 'Material Symbols Outlined';
   }
 }

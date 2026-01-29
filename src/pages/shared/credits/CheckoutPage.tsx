@@ -17,11 +17,10 @@ interface UserProfile {
   pinCode?: string;
 }
 
-const creditPlans: Record<string, { name: string; credits: number; price: number; originalPrice?: number }> = {
-  starter: { name: 'Starter', credits: 50, price: 50 },
-  basic: { name: 'Basic', credits: 100, price: 95, originalPrice: 100 },
-  professional: { name: 'Professional', credits: 250, price: 225, originalPrice: 250 },
-  enterprise: { name: 'Enterprise', credits: 500, price: 425, originalPrice: 500 },
+const creditPlans: Record<string, { name: string; tokens: number; price: number; originalPrice?: number }> = {
+  starter: { name: 'Starter', tokens: 100, price: 99 },
+  value: { name: 'Value', tokens: 670, price: 499 },
+  pro: { name: 'Pro', tokens: 1500, price: 999 },
 };
 
 const CheckoutPage = () => {
@@ -201,7 +200,7 @@ const CheckoutPage = () => {
                 <span className="text-xl text-muted-foreground">.{(totalPayable % 1).toFixed(2).substring(2)}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                {plan.name} Plan • {plan.credits} Credits
+                {plan.name} Plan • {plan.tokens} Tokens
               </p>
 
               <Button 

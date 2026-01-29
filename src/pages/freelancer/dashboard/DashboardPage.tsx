@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
-  Bell, MessageSquare, FileText, Search, 
+  Search, 
   Target, Calendar, CheckSquare2, Eye, 
   Flame, Quote, ArrowRight, Plus,
   Wallet, Package, FileCheck, Gavel, Rss,
   GraduationCap, Briefcase, Star, Users, Clock, TrendingUp,
-  DollarSign, TrendingDown, BarChart3, PieChart
+  DollarSign, TrendingDown, BarChart3, PieChart,
+  CheckCircle2, RotateCw, Hourglass
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -45,24 +45,103 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const { streak } = useDailyStreak(true); // Auto-record activity on dashboard visit
   const [profile, setProfile] = useState<{ first_name: string; last_name: string } | null>(null);
-  const [unreadMessages, setUnreadMessages] = useState(0);
-  const [newBidsOnProjects, setNewBidsOnProjects] = useState<Array<{
-    id: string;
-    amount: number;
-    created_at: string;
-    user_projects: {
-      id: string;
-      title: string;
-      user_id: string;
-    };
-  }>>([]);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [activeProjects, setActiveProjects] = useState<Project[]>([]);
+  const [currentTechCardIndex, setCurrentTechCardIndex] = useState(0);
+
+  // Our Top Picks For Your Skills – 3 mock items, swap every 3s, loop
+  const topPicksSkills = [
+    {
+      id: '1',
+      image: '/images/class1.png',
+      title: 'The Ultimate Python Bootcamp: Learn by Building 50 Projects',
+      description: 'Only Python course that you need',
+      author: 'By Hitesh Choudhary',
+      updated: 'Updated November 2025',
+      hours: '30.5 total hours',
+      lectures: '153 lectures',
+      level: 'All Levels',
+      rating: 4.7,
+      ratingCount: '1,874',
+    },
+    {
+      id: '2',
+      image: '/images/class3.png',
+      title: 'React & Node.js: Full-Stack Web Development Mastery',
+      description: 'Build real-world apps from scratch',
+      author: 'By Hitesh Choudhary',
+      updated: 'Updated January 2026',
+      hours: '42 total hours',
+      lectures: '220 lectures',
+      level: 'Intermediate',
+      rating: 4.8,
+      ratingCount: '2,341',
+    },
+    {
+      id: '3',
+      image: '/images/dashboard-hero.png',
+      title: 'Data Science & Machine Learning with Python',
+      description: 'From zero to deployment in one course',
+      author: 'By Hitesh Choudhary',
+      updated: 'Updated December 2025',
+      hours: '28 total hours',
+      lectures: '180 lectures',
+      level: 'All Levels',
+      rating: 4.6,
+      ratingCount: '956',
+    },
+  ];
+  const [topPicksSkillIndex, setTopPicksSkillIndex] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setTopPicksSkillIndex((prev) => (prev + 1) % 3);
+    }, 3000);
+    return () => clearInterval(t);
+  }, []);
+
   const [stats, setStats] = useState({
     successful: 0,
     ongoing: 0,
     pending: 0,
   });
+
+  // Earnings & Profit – count-up animation when section scrolls into view
+  const EARNINGS_TOTAL = 245000;
+  const EARNINGS_NET = 187500;
+  const EARNINGS_AVG = 20417;
+  const [displayTotal, setDisplayTotal] = useState(0);
+  const [displayNet, setDisplayNet] = useState(0);
+  const [displayAvg, setDisplayAvg] = useState(0);
+  const earningsSectionRef = useRef<HTMLDivElement>(null);
+  const earningsAnimatedRef = useRef(false);
+
+  useEffect(() => {
+    const el = earningsSectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0].isIntersecting || earningsAnimatedRef.current) return;
+        earningsAnimatedRef.current = true;
+        const duration = 1500;
+        const start = performance.now();
+        const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+        const tick = (now: number) => {
+          const elapsed = now - start;
+          const p = Math.min(elapsed / duration, 1);
+          const eased = easeOutCubic(p);
+          setDisplayTotal(Math.round(EARNINGS_TOTAL * eased));
+          setDisplayNet(Math.round(EARNINGS_NET * eased));
+          setDisplayAvg(Math.round(EARNINGS_AVG * eased));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      },
+      { threshold: 0.2, rootMargin: '0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const formatEarnings = (n: number) => n.toLocaleString('en-IN');
 
   // To-Do List state
   type Priority = 'low' | 'medium' | 'high';
@@ -117,6 +196,58 @@ const DashboardPage = () => {
     { source: "Engadget", time: "6h ago", icon: "E", iconBg: "bg-orange-600", headline: "OpenAI releases GPT-5 with enhanced reasoning capabilities and multimodal understanding." },
     { source: "MIT Tech Review", time: "8h ago", icon: "M", iconBg: "bg-indigo-600", headline: "Breakthrough in neural interfaces enables direct brain-to-computer communication." },
     { source: "CNET", time: "12h ago", icon: "C", iconBg: "bg-pink-600", headline: "Tesla unveils next-generation autonomous driving system with improved safety features." },
+  ];
+
+  // Latest in Tech cards data
+  const latestTechCards = [
+    {
+      id: 1,
+      author: "James Clear",
+      category: "Technology",
+      title: "30 One-Sentence Stories From People Who Have Built Better Habits",
+      description: "But no matter what, keep taking action in small ways each day. It is so gratifying for me to see people making real changes in their life b...",
+      backgroundImage: "/images/auth-slide-1.png"
+    },
+    {
+      id: 2,
+      author: "Tyler Cowen",
+      category: "Technology",
+      title: "Who gains new AI?",
+      description: "One striking systems is th to use them. Stable Diffus",
+      backgroundImage: "/images/auth-slide-2.png"
+    },
+    {
+      id: 3,
+      author: "Sarah Johnson",
+      category: "Technology",
+      title: "The Future of Remote Work",
+      description: "Exploring how technology is reshaping the way we work and collaborate in distributed teams.",
+      backgroundImage: "/images/auth-slide-3.png"
+    },
+    {
+      id: 4,
+      author: "Michael Chen",
+      category: "Technology",
+      title: "AI Revolution in 2024",
+      description: "Understanding the latest breakthroughs in artificial intelligence and their impact on everyday life.",
+      backgroundImage: "/images/dashboard-hero.png"
+    },
+    {
+      id: 5,
+      author: "David Kim",
+      category: "Technology",
+      title: "Blockchain Beyond Cryptocurrency",
+      description: "Discovering practical applications of blockchain technology in various industries beyond finance.",
+      backgroundImage: "/images/auth-slide-1.png"
+    },
+    {
+      id: 6,
+      author: "Emily Rodriguez",
+      category: "Technology",
+      title: "Sustainable Tech Solutions",
+      description: "How technology companies are addressing environmental challenges through innovation.",
+      backgroundImage: "/images/auth-slide-2.png"
+    }
   ];
 
   // Combined suggested items (classes and projects mixed)
@@ -228,47 +359,6 @@ const DashboardPage = () => {
     fetchProfile();
   }, [user]);
 
-  // Fetch notifications
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchNotifications = async () => {
-      try {
-        // Get unread messages count
-        const { count: msgCount } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_read', false)
-          .neq('sender_id', user.id);
-        
-        setUnreadMessages(msgCount || 0);
-
-        // Get recent bids on user's projects (last 7 days)
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        
-        const { data: recentBids } = await supabase
-          .from('bids')
-          .select(`
-            id,
-            amount,
-            created_at,
-            user_projects!inner(id, title, user_id)
-          `)
-          .eq('user_projects.user_id', user.id)
-          .gte('created_at', sevenDaysAgo.toISOString())
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        setNewBidsOnProjects(recentBids || []);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      }
-    };
-
-    fetchNotifications();
-  }, [user]);
-
   // Fetch stats and active projects
   useEffect(() => {
     if (!user) return;
@@ -327,7 +417,6 @@ const DashboardPage = () => {
     fetchStats();
   }, [user]);
 
-  const totalNotifications = unreadMessages + newBidsOnProjects.length;
   const firstName = profile?.first_name || 'User';
   const userName = `${firstName}`;
 
@@ -354,6 +443,19 @@ const DashboardPage = () => {
     if (!user?.id) return;
     localStorage.setItem(`todos_${user.id}`, JSON.stringify(todos));
   }, [todos, user?.id]);
+
+  // Auto-swipe Latest in Tech cards every 5 seconds
+  useEffect(() => {
+    const totalPairs = Math.ceil(latestTechCards.length / 2);
+    const interval = setInterval(() => {
+      setCurrentTechCardIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % totalPairs;
+        return nextIndex;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [latestTechCards.length]);
 
   // Toggle todo completion
   const toggleTodo = (id: string) => {
@@ -609,74 +711,8 @@ const DashboardPage = () => {
               <div className="flex items-center gap-1.5 bg-green text-green-foreground px-4 py-2 rounded-xl font-bold text-xs shadow-sm">
                 <Flame className="w-3 h-3 text-orange-600 fill-orange-600" />
                 Daily Streak: {streak} {streak === 1 ? 'Day' : 'Days'}
-                    </div>
-            <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                    className="h-10 w-10 rounded-xl border-border hover:bg-muted relative"
-                >
-                  <Bell className="w-4 h-4" />
-                  {totalNotifications > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[11px] flex items-center justify-center font-medium">
-                      {totalNotifications > 9 ? '9+' : totalNotifications}
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-72 p-0" align="end">
-                <div className="p-3.5 border-b border-border">
-                  <h3 className="font-semibold text-foreground text-sm">Notifications</h3>
-                </div>
-                <div className="max-h-72 overflow-y-auto">
-                  {totalNotifications === 0 ? (
-                    <div className="p-3.5 text-center text-muted-foreground text-xs">
-                      No new notifications
-                    </div>
-                  ) : (
-                    <div className="py-2">
-                      {unreadMessages > 0 && (
-                        <button
-                          className="w-full px-3.5 py-2.5 text-left hover:bg-muted/50 flex items-center gap-2.5 border-b border-border/40"
-                          onClick={() => {
-                            navigate('/messages');
-                            setNotificationsOpen(false);
-                          }}
-                        >
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <MessageSquare className="w-3 h-3 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs font-medium text-foreground">Unread Messages</p>
-                            <p className="text-[11px] text-muted-foreground">{unreadMessages} new message{unreadMessages > 1 ? 's' : ''}</p>
-                          </div>
-                        </button>
-                      )}
-                      {newBidsOnProjects.map((bid) => (
-                        <button
-                          key={bid.id}
-                          className="w-full px-3 py-2 text-left hover:bg-muted/50 flex items-center gap-2 border-b border-border/40 last:border-b-0"
-                          onClick={() => {
-                            navigate(`/projects/${bid.user_projects.id}`);
-                            setNotificationsOpen(false);
-                          }}
-                        >
-                          <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                            <FileText className="w-3 h-3 text-green-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-foreground truncate">New bid: ₹{bid.amount}</p>
-                            <p className="text-[11px] text-muted-foreground truncate">{bid.user_projects.title}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
+              </div>
+            </div>
           </div>
 
           {/* Daily Motivation & Today's Goal */}
@@ -709,72 +745,102 @@ const DashboardPage = () => {
             {/* Today's Goal Card */}
             <Card className="bg-[#FDF8F3] rounded-xl border border-black/20 shadow-sm p-5 flex flex-col justify-between">
               <div>
-                <div className="flex justify-between items-start mb-3">
-                  <h4 className="font-bold text-sm">Today's Goal</h4>
-                  <Target className="w-3.5 h-3.5 text-primary" />
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-sm">Today's Goal</h4>
+                    <Badge className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-md">
+                      CURRENT PROJECT
+                    </Badge>
                   </div>
-                <div className="space-y-3">
+                  <Target className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <div className="space-y-3 mb-4">
                   <div className="flex justify-between items-end">
                     <p className="text-xl font-black">{todayGoalProgress}%</p>
                     <p className="text-[11px] text-muted-foreground mb-1">{todayTasksCompleted} of {todayTasksTotal} tasks</p>
-                </div>
+                  </div>
                   <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
                     <div className="h-full bg-primary" style={{ width: `${todayGoalProgress}%` }}></div>
+                  </div>
+                </div>
+                
+                {/* Project Progress Section */}
+                <div className="pt-4 border-t border-border/50">
+                  <h5 className="text-xs font-bold text-foreground mb-3 uppercase tracking-wide">Project Progress</h5>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="flex flex-col items-center text-center">
+                      <div className="mb-2 p-2 rounded-full bg-green-50">
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      </div>
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase mb-1">Successful Projects</p>
+                      <p className="text-base font-black">{stats.successful}</p>
+                    </div>
+                    <div className="flex flex-col items-center text-center border-x border-border/50">
+                      <div className="mb-2 p-2 rounded-full bg-primary/10">
+                        <RotateCw className="w-5 h-5 text-primary" />
+                      </div>
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase mb-1">In Progress</p>
+                      <p className="text-base font-black">{stats.ongoing}</p>
+                    </div>
+                    <div className="flex flex-col items-center text-center">
+                      <div className="mb-2 p-2 rounded-full bg-orange-50">
+                        <Hourglass className="w-5 h-5 text-orange-600" />
+                      </div>
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase mb-1">Pending Projects</p>
+                      <p className="text-base font-black">{stats.pending}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-4 italic">
-                "Focus on the step in front of you, not the whole staircase."
-              </p>
             </Card>
           </div>
 
           {/* Quick Access Cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 mb-5">
             <Card 
-              className="bg-[#FDF8F3] p-3.5 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2.5"
+              className="bg-primary/55 p-3.5 rounded-xl border border-primary/30 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2.5"
               onClick={() => navigate('/projects')}
             >
-              <div className="size-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+              <div className="size-9 rounded-full bg-primary/30 text-black flex items-center justify-center">
                 <Search className="w-4 h-4" />
-                  </div>
-              <span className="text-[11px] font-bold text-muted-foreground">Browse Projects</span>
+              </div>
+              <span className="text-[11px] font-bold text-black">Browse Projects</span>
             </Card>
             <Card 
-              className="bg-[#FDF8F3] p-3 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
+              className="bg-secondary/55 p-3 rounded-xl border border-secondary-foreground/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
               onClick={() => navigate('/bids')}
             >
-              <div className="size-9 rounded-full bg-secondary/20 text-secondary-foreground flex items-center justify-center">
+              <div className="size-9 rounded-full bg-secondary-foreground/15 text-black flex items-center justify-center">
                 <Gavel className="w-4 h-4" />
-                </div>
-              <span className="text-[11px] font-bold text-muted-foreground">My Bids</span>
+              </div>
+              <span className="text-[11px] font-bold text-black">My Bids</span>
             </Card>
             <Card 
-              className="bg-[#FDF8F3] p-3 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
+              className="bg-accent/55 p-3 rounded-xl border border-accent-foreground/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
               onClick={() => navigate('/projects')}
             >
-              <div className="size-9 rounded-full bg-accent/20 text-accent-foreground flex items-center justify-center">
+              <div className="size-9 rounded-full bg-accent-foreground/15 text-black flex items-center justify-center">
                 <Package className="w-4 h-4" />
-                    </div>
-              <span className="text-[11px] font-bold text-muted-foreground">Deliverables</span>
+              </div>
+              <span className="text-[11px] font-bold text-black">Deliverables</span>
             </Card>
             <Card 
-              className="bg-[#FDF8F3] p-3 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
-                      onClick={() => navigate('/projects')}
+              className="bg-primary/55 p-3 rounded-xl border border-primary/30 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
+              onClick={() => navigate('/projects')}
             >
-              <div className="size-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+              <div className="size-9 rounded-full bg-primary/30 text-black flex items-center justify-center">
                 <FileCheck className="w-4 h-4" />
               </div>
-              <span className="text-[11px] font-bold text-muted-foreground">Contracts</span>
-                  </Card>
+              <span className="text-[11px] font-bold text-black">Contracts</span>
+            </Card>
             <Card 
-              className="bg-[#FDF8F3] p-3 rounded-xl border border-black/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
+              className="bg-secondary/55 p-3 rounded-xl border border-secondary-foreground/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer flex flex-col items-center text-center gap-2"
               onClick={() => navigate('/buy-credits')}
             >
-              <div className="size-9 rounded-full bg-accent/20 text-accent-foreground flex items-center justify-center">
+              <div className="size-9 rounded-full bg-secondary-foreground/15 text-black flex items-center justify-center">
                 <Wallet className="w-4 h-4" />
               </div>
-              <span className="text-[11px] font-bold text-muted-foreground">Wallet</span>
+              <span className="text-[11px] font-bold text-black">Wallet</span>
             </Card>
           </div>
 
@@ -784,179 +850,307 @@ const DashboardPage = () => {
               <TrendingUp className="w-4 h-4 text-primary animate-pulse-glow" />
               <span>Suggested for you</span>
             </h3>
-            <Card className="bg-[#FDF8F3] rounded-xl border border-black/20 shadow-sm p-6 hover:shadow-md transition-all w-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {suggestedItems.map((item, idx) => (
-                  <div 
-                    key={item.id} 
-                    className={cn(
-                      "bg-white/90 backdrop-blur-sm rounded-xl border border-black/10 p-4 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group relative overflow-hidden",
-                      item.animation === "slide-in-left" && "animate-slide-in-left",
-                      item.animation === "slide-in-right" && "animate-slide-in-right",
-                      item.animation === "bounce-in" && "animate-bounce-in"
-                    )}
-                    style={{ 
-                      animationDelay: `${idx * 0.15}s`
-                    }}
-                  >
-                    {/* Animated background gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:scale-150"></div>
-                    
-                    {/* Floating icon with animation */}
-                    <div className="flex items-start gap-3 relative z-10">
-                      <div className={cn(
-                        "size-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 transition-all duration-300 shadow-md group-hover:shadow-lg",
-                        item.color,
-                        "group-hover:scale-125 group-hover:rotate-12 animate-float"
-                      )} style={{ animationDelay: `${idx * 0.2}s` }}>
-                        <span className="animate-wiggle" style={{ animationDelay: `${idx * 0.3}s` }}>{item.icon}</span>
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        {/* Type badge */}
-                        <div className="flex items-center gap-2 mb-2">
-                          {item.type === "class" ? (
-                            <div className="flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
-                              <GraduationCap className="w-3 h-3 text-blue-600" />
-                              <span className="text-[8px] font-bold text-blue-600 uppercase">Class</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200">
-                              <Briefcase className="w-3 h-3 text-orange-600" />
-                              <span className="text-[8px] font-bold text-orange-600 uppercase">Project</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-start justify-between mb-2 gap-2">
-                          <div className="flex-1">
-                            <h5 className="text-sm font-bold text-foreground leading-tight group-hover:text-primary transition-colors mb-1.5 line-clamp-2">
-                              {item.title}
-                            </h5>
-                            <span className={cn(
-                              "inline-block text-[9px] font-bold text-white px-2 py-0.5 rounded-full",
-                              item.badge === "Best Ratings" 
-                                ? "bg-primary" 
-                                : item.badge === "Top Recommended"
-                                ? "bg-primary"
-                                : "bg-accent"
-                            )}>
-                              {item.badge}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Class specific content */}
-                        {item.type === "class" && (
-                          <>
-                            <p className="text-xs text-muted-foreground mb-2.5">by {item.instructor}</p>
-                            <div className="flex items-center justify-between gap-2 mb-2">
-                              <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded-full border border-yellow-200">
-                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                <span className="text-[10px] font-bold text-yellow-700">{item.rating}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                <span>{item.duration}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                <span>{item.students?.toLocaleString()}</span>
-                              </div>
-                            </div>
-                          </>
-                        )}
-
-                        {/* Project specific content */}
-                        {item.type === "project" && (
-                          <>
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="text-xs text-muted-foreground">Client: {item.client}</p>
-                              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">{item.budget}</span>
-                            </div>
-                            <div className="flex items-center justify-between flex-wrap gap-2">
-                              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                <Calendar className="w-3 h-3" />
-                                <span>{item.deadline}</span>
-                              </div>
-                              <div className="flex gap-1 flex-wrap">
-                                {item.skills?.map((skill, skillIdx) => (
-                                  <span key={skillIdx} className="text-[9px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20">
-                                    {skill}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </>
-                        )}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Project Card 1 */}
+                <div className="group bg-white rounded-[9px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#f1f0f5] flex flex-col h-full">
+                  <div className="relative h-[126px] overflow-hidden">
+                    <video 
+                      className="w-full h-full object-cover"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    >
+                      <source src="/Video/New Project 29 [4ED1F2C].mp4" type="video/mp4" />
+                    </video>
+                  </div>
+                  <div className="p-3.5 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-1.5">
+                      <h3 className="font-bold text-sm leading-snug truncate pr-2 group-hover:text-primary transition-colors text-black">Project One</h3>
+                      <div className="flex items-center gap-1.5">
+                        <Badge className="px-1 py-0.25 bg-secondary text-[#121118] text-[7px] font-bold uppercase tracking-tight rounded-md shadow-sm">
+                          Skillbridge Choice
+                        </Badge>
+                        <span className="text-[9px] font-medium text-[#68608a] whitespace-nowrap">Jan 1</span>
                       </div>
                     </div>
+                    <p className="text-[11px] text-[#68608a] line-clamp-2 mb-2.5">Project description placeholder text goes here</p>
+                    <div className="mt-auto space-y-2.5">
+                      <div className="flex items-start justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-[#68608a] uppercase tracking-tight">Estimated Budget</span>
+                          <span className="text-sm font-extrabold text-primary">₹7,000</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[9px] font-bold text-[#68608a] uppercase tracking-tight">Deadline</span>
+                          <span className="text-[11px] font-bold text-black">Flexible</span>
+                        </div>
+                      </div>
+                      <div className="pt-2.5 border-t border-[#f1f0f5] flex items-center justify-between">
+                        <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-[#145214]"></span> Bid Open
+                        </span>
+                        <button className="text-primary hover:text-primary/80 transition-colors" onClick={() => navigate('/projects')}>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                    {/* Shimmer effect on hover */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+                {/* Project Card 2 */}
+                <div className="group bg-white rounded-[9px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#f1f0f5] flex flex-col h-full">
+                  <div className="relative h-[126px] overflow-hidden">
+                    <video 
+                      className="w-full h-full object-cover"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      poster="/images/dashboard-hero.png"
+                    >
+                      <source src="/Video/WhatsApp Video 2026-01-16 at 2.07.43 AM.mp4" type="video/mp4" />
+                    </video>
+                  </div>
+                  <div className="p-3.5 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-1.5">
+                      <h3 className="font-bold text-sm leading-snug truncate pr-2 group-hover:text-primary transition-colors text-black">Project Two</h3>
+                      <div className="flex items-center gap-1.5">
+                        <Badge className="px-1 py-0.25 bg-secondary text-[#121118] text-[7px] font-bold uppercase tracking-tight rounded-md shadow-sm">
+                          Top Recommender
+                        </Badge>
+                        <span className="text-[9px] font-medium text-[#68608a] whitespace-nowrap">Jan 1</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-[#68608a] line-clamp-2 mb-2.5">Project description placeholder text goes here</p>
+                    <div className="mt-auto space-y-2.5">
+                      <div className="flex items-start justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-[#68608a] uppercase tracking-tight">Estimated Budget</span>
+                          <span className="text-sm font-extrabold text-primary">₹7,000</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[9px] font-bold text-[#68608a] uppercase tracking-tight">Deadline</span>
+                          <span className="text-[11px] font-bold text-black">Flexible</span>
+                        </div>
+                      </div>
+                      <div className="pt-2.5 border-t border-[#f1f0f5] flex items-center justify-between">
+                        <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-[#145214]"></span> Bid Open
+                        </span>
+                        <button className="text-primary hover:text-primary/80 transition-colors" onClick={() => navigate('/projects')}>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Project Card 3 */}
+                <div className="group bg-white rounded-[9px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#f1f0f5] flex flex-col h-full">
+                  <div className="relative h-[126px] overflow-hidden">
+                    <video 
+                      className="w-full h-full object-cover"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    >
+                      <source src="/Video/WhatsApp Video 2026-01-28 at 6.24.41 PM.mp4" type="video/mp4" />
+                    </video>
+                  </div>
+                  <div className="p-3.5 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-1.5">
+                      <h3 className="font-bold text-sm leading-snug truncate pr-2 group-hover:text-primary transition-colors text-black">Project Three</h3>
+                      <div className="flex items-center gap-1.5">
+                        <Badge className="px-1 py-0.25 bg-secondary text-[#121118] text-[7px] font-bold uppercase tracking-tight rounded-md shadow-sm">
+                          Skillbridge Choice
+                        </Badge>
+                        <span className="text-[9px] font-medium text-[#68608a] whitespace-nowrap">Jan 1</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-[#68608a] line-clamp-2 mb-2.5">Project description placeholder text goes here</p>
+                    <div className="mt-auto space-y-2.5">
+                      <div className="flex items-start justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-[#68608a] uppercase tracking-tight">Estimated Budget</span>
+                          <span className="text-sm font-extrabold text-primary">₹7,000</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[9px] font-bold text-[#68608a] uppercase tracking-tight">Deadline</span>
+                          <span className="text-[11px] font-bold text-black">Flexible</span>
+                        </div>
+                      </div>
+                      <div className="pt-2.5 border-t border-[#f1f0f5] flex items-center justify-between">
+                        <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-[#145214]"></span> Bid Open
+                        </span>
+                        <button className="text-primary hover:text-primary/80 transition-colors" onClick={() => navigate('/projects')}>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Project Card 4 */}
+                <div className="group bg-white rounded-[9px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#f1f0f5] flex flex-col h-full">
+                  <div className="relative h-[126px] overflow-hidden">
+                    <video 
+                      className="w-full h-full object-cover"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    >
+                      <source src="/Video/video1.mp4" type="video/mp4" />
+                    </video>
+                  </div>
+                  <div className="p-3.5 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-1.5">
+                      <h3 className="font-bold text-sm leading-snug truncate pr-2 group-hover:text-primary transition-colors text-black">Project Four</h3>
+                      <div className="flex items-center gap-1.5">
+                        <Badge className="px-1 py-0.25 bg-secondary text-[#121118] text-[7px] font-bold uppercase tracking-tight rounded-md shadow-sm">
+                          Top Choice for you
+                        </Badge>
+                        <span className="text-[9px] font-medium text-[#68608a] whitespace-nowrap">Jan 1</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-[#68608a] line-clamp-2 mb-2.5">Project description placeholder text goes here</p>
+                    <div className="mt-auto space-y-2.5">
+                      <div className="flex items-start justify-between">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] font-bold text-[#68608a] uppercase tracking-tight">Estimated Budget</span>
+                          <span className="text-sm font-extrabold text-primary">₹7,000</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[9px] font-bold text-[#68608a] uppercase tracking-tight">Deadline</span>
+                          <span className="text-[11px] font-bold text-black">Flexible</span>
+                        </div>
+                      </div>
+                      <div className="pt-2.5 border-t border-[#f1f0f5] flex items-center justify-between">
+                        <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-[#145214]"></span> Bid Open
+                        </span>
+                        <button className="text-primary hover:text-primary/80 transition-colors" onClick={() => navigate('/projects')}>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+
+          {/* Earnings & Profit Analytics */}
+          <div className="mb-5 w-full">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-primary" />
+                Earnings & Profit
+              </h3>
+            </div>
+            <div ref={earningsSectionRef} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Total Earnings – scattered drift path 1 */}
+              <div className="bg-primary/55 rounded-xl border border-primary/30 shadow-sm p-4 hover:shadow-md transition-all animate-earnings-drift-1">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="size-8 rounded-lg bg-primary/30 flex items-center justify-center [color:#000]">
+                      <Wallet className="w-4 h-4 [stroke:#000]" stroke="#000" />
+                    </div>
+                    <span className="text-xs font-bold !text-black uppercase">Total Earnings</span>
+                  </div>
+                  <TrendingUp className="w-4 h-4 !text-black [stroke:black]" stroke="black" />
+                </div>
+                <p className="text-2xl font-black !text-black">₹{formatEarnings(displayTotal)}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] font-bold !text-black bg-primary/30 px-2 py-0.5 rounded-full">+18.5%</span>
+                  <span className="text-[10px] font-bold !text-black">vs last month</span>
+                </div>
+              </div>
+
+              {/* Net Profit – scattered drift path 2 */}
+              <div className="bg-secondary/55 rounded-xl border border-secondary-foreground/20 shadow-sm p-4 hover:shadow-md transition-all animate-earnings-drift-2">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="size-8 rounded-lg bg-secondary-foreground/15 flex items-center justify-center [color:#000]">
+                      <TrendingUp className="w-4 h-4 [stroke:#000]" stroke="#000" />
+                    </div>
+                    <span className="text-xs font-bold !text-black uppercase">Net Profit</span>
+                  </div>
+                  <BarChart3 className="w-4 h-4 !text-black [stroke:black]" stroke="black" />
+                </div>
+                <p className="text-2xl font-black !text-black">₹{formatEarnings(displayNet)}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] font-bold !text-black bg-secondary-foreground/15 px-2 py-0.5 rounded-full">76.5%</span>
+                  <span className="text-[10px] font-bold !text-black">profit margin</span>
+                </div>
+              </div>
+
+              {/* Average per Project – scattered drift path 3 */}
+              <div className="bg-accent/55 rounded-xl border border-accent-foreground/20 shadow-sm p-4 hover:shadow-md transition-all animate-earnings-drift-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <span className="text-xs font-bold !text-black uppercase">Avg. per Project</span>
+                    <p className="text-2xl font-black !text-black mt-1">₹{formatEarnings(displayAvg)}</p>
+                  </div>
+                  <div className="size-10 rounded-xl bg-accent-foreground/15 flex items-center justify-center [color:#000]">
+                    <DollarSign className="w-5 h-5 [stroke:#000]" stroke="#000" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Our Top Picks For Your Skills – 3 items, swipe every 3s (like Latest in Tech), loop */}
+          <div className="mb-5 w-full">
+            <h3 className="text-base font-bold mb-3 flex items-center gap-1.5">
+              <GraduationCap className="w-3.5 h-3.5 text-primary" />
+              Our Top Picks For Your Skills
+            </h3>
+            <div className="relative overflow-hidden">
+              <div
+                className="flex transition-transform duration-700 ease-in-out"
+                style={{ transform: `translateX(-${topPicksSkillIndex * 100}%)` }}
+              >
+                {topPicksSkills.map((pick) => (
+                  <div
+                    key={pick.id}
+                    className="w-full flex-shrink-0 min-w-full flex flex-col md:flex-row overflow-hidden items-start"
+                  >
+                    <div className="w-full md:w-[38%] h-[200px] md:h-[220px] flex-shrink-0 relative overflow-hidden">
+                      <img
+                        src={pick.image}
+                        alt={pick.title}
+                        className="w-full h-full object-cover object-center"
+                      />
+                    </div>
+                    <div className="flex-1 flex flex-col items-start pt-0 pb-4 md:pb-5 px-4 md:px-6 -mt-px">
+                      <h4 className="text-lg md:text-xl font-bold text-[#121118] leading-tight mb-1">
+                        {pick.title}
+                      </h4>
+                      <p className="text-sm text-[#68608a] mb-1">{pick.description}</p>
+                      <p className="text-sm text-[#68608a] mb-2">{pick.author}</p>
+                      <p className="text-xs text-[#68608a] mb-2">
+                        <span className="text-accent-green font-semibold">{pick.updated}</span>
+                        <span className="text-[#68608a]"> · {pick.hours} · {pick.lectures} · {pick.level}</span>
+                      </p>
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <span className="font-bold text-[#121118]">{pick.rating}</span>
+                        <span className="text-yellow-500 flex gap-0.5" aria-hidden="true">
+                          <Star className="w-4 h-4 fill-yellow-500 stroke-yellow-500" />
+                          <Star className="w-4 h-4 fill-yellow-500 stroke-yellow-500" />
+                          <Star className="w-4 h-4 fill-yellow-500 stroke-yellow-500" />
+                          <Star className="w-4 h-4 fill-yellow-500 stroke-yellow-500" />
+                          <Star className="w-4 h-4 fill-yellow-500 stroke-yellow-400" />
+                        </span>
+                        <span className="text-[#68608a]">({pick.ratingCount})</span>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </Card>
-          </div>
-
-          {/* Progress Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-5">
-            <Card className="bg-[#FDF8F3] p-5 rounded-xl border border-black/20 shadow-sm flex flex-col justify-between">
-              <div className="flex justify-between items-center mb-3.5">
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Current Successful</p>
-                <span className="text-accent-foreground text-[11px] font-bold bg-accent px-1.5 py-0.5 rounded-lg">+12%</span>
-              </div>
-              <div className="flex items-end gap-3.5">
-                <p className="text-3xl font-black">{String(stats.successful).padStart(2, '0')}</p>
-                <div className="flex-1 h-11 flex items-end gap-1.5">
-                  <div className="w-full bg-accent/20 h-1/2 rounded-sm"></div>
-                  <div className="w-full bg-accent/20 h-2/3 rounded-sm"></div>
-                  <div className="w-full bg-accent/20 h-1/3 rounded-sm"></div>
-                  <div className="w-full bg-accent/20 h-3/4 rounded-sm"></div>
-                  <div className="w-full bg-accent h-full rounded-sm"></div>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="bg-[#FDF8F3] p-5 rounded-xl border border-black/20 shadow-sm flex flex-col justify-between">
-              <div className="flex justify-between items-center mb-3.5">
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Ongoing Projects</p>
-                <span className="text-primary text-[11px] font-bold bg-primary/5 px-1.5 py-0.5 rounded-lg">Stable</span>
-              </div>
-              <div className="flex items-end gap-3.5">
-                <p className="text-3xl font-black">{String(stats.ongoing).padStart(2, '0')}</p>
-                <div className="flex-1 h-11 flex items-end gap-1.5">
-                  <div className="w-full bg-primary/20 h-1/2 rounded-sm"></div>
-                  <div className="w-full bg-primary/20 h-1/2 rounded-sm"></div>
-                  <div className="w-full bg-primary h-1/2 rounded-sm"></div>
-                  <div className="w-full bg-primary/20 h-1/2 rounded-sm"></div>
-                  <div className="w-full bg-primary/20 h-1/2 rounded-sm"></div>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="bg-[#FDF8F3] p-5 rounded-xl border border-black/20 shadow-sm flex flex-col justify-between">
-              <div className="flex justify-between items-center mb-3.5">
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Pending Approval</p>
-                <span className="text-secondary-foreground text-[11px] font-bold bg-secondary px-1.5 py-0.5 rounded-lg">-2</span>
-              </div>
-              <div className="flex items-end gap-3.5">
-                <p className="text-3xl font-black">{String(stats.pending).padStart(2, '0')}</p>
-                <div className="flex-1 h-11 flex items-end gap-1.5">
-                  <div className="w-full bg-secondary/20 h-full rounded-sm"></div>
-                  <div className="w-full bg-secondary/20 h-3/4 rounded-sm"></div>
-                  <div className="w-full bg-secondary h-1/2 rounded-sm"></div>
-                  <div className="w-full bg-secondary/20 h-1/3 rounded-sm"></div>
-                  <div className="w-full bg-secondary/20 h-1/4 rounded-sm"></div>
-                </div>
-              </div>
-            </Card>
+            </div>
           </div>
 
           {/* Latest in Tech, Weekly Roadmap, To-Do List & Active Snapshots */}
@@ -969,47 +1163,66 @@ const DashboardPage = () => {
                   <Rss className="w-3.5 h-3.5 text-primary" />
                   Latest in Tech
                 </h3>
-                <Card className="bg-[#FDF8F3] rounded-xl border border-black/20 shadow-sm p-4 h-[200px] overflow-hidden relative">
-                  <div className="animate-scroll-up">
-                    {/* First set of items */}
-                    {techNewsItems.map((item, index) => (
-                      <div key={`first-${index}`} className="flex items-center gap-3 py-2 border-b border-black/10 last:border-b-0">
-                        <div className={cn("size-5 rounded-full flex items-center justify-center text-[9px] text-white font-bold flex-shrink-0", item.iconBg)}>
-                          {item.icon}
+                <div className="relative overflow-hidden rounded-xl">
+                  {/* Auto-swiping cards container */}
+                  <div 
+                    className="flex transition-transform duration-700 ease-in-out"
+                    style={{ 
+                      transform: `translateX(-${currentTechCardIndex * 100}%)`
+                    }}
+                  >
+                    {/* Render cards in pairs */}
+                    {Array.from({ length: Math.ceil(latestTechCards.length / 2) }).map((_, pairIndex) => {
+                      const pairCards = latestTechCards.slice(pairIndex * 2, pairIndex * 2 + 2);
+                      return (
+                        <div key={pairIndex} className="flex gap-4 w-full flex-shrink-0 min-w-full">
+                          {pairCards.map((card) => (
+                            <div
+                              key={card.id}
+                              className="flex-1 rounded-xl overflow-hidden shadow-lg border border-black/20 relative h-[400px] group"
+                            >
+                              {/* Background Image */}
+                              <div className="absolute inset-0">
+                                <img
+                                  src={card.backgroundImage}
+                                  alt={card.title}
+                                  className="w-full h-full object-cover"
+                                />
+                                {/* Gradient overlay for text readability */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                              </div>
+                              
+                              {/* Content */}
+                              <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                                {/* Author and Category */}
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="text-sm font-semibold">{card.author}</span>
+                                  <span className="text-xs opacity-70">•</span>
+                                  <span className="text-xs opacity-70">{card.category}</span>
+                                </div>
+                                
+                                {/* Title */}
+                                <h4 className="text-xl font-bold mb-3 leading-tight line-clamp-2">
+                                  {card.title}
+                                </h4>
+                                
+                                {/* Description */}
+                                <p className="text-sm opacity-90 line-clamp-3">
+                                  {card.description}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                          {/* If odd number of cards, add empty space for the last pair */}
+                          {pairCards.length === 1 && (
+                            <div className="flex-1" />
+                          )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[9px] font-bold text-muted-foreground uppercase">{item.source}</span>
-                            <span className="text-[9px] text-muted-foreground">•</span>
-                            <span className="text-[9px] text-muted-foreground">{item.time}</span>
-                          </div>
-                          <p className="text-xs font-bold leading-tight text-foreground">
-                            {item.headline}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    {/* Duplicate set for seamless loop */}
-                    {techNewsItems.map((item, index) => (
-                      <div key={`second-${index}`} className="flex items-center gap-3 py-2 border-b border-black/10 last:border-b-0">
-                        <div className={cn("size-5 rounded-full flex items-center justify-center text-[9px] text-white font-bold flex-shrink-0", item.iconBg)}>
-                          {item.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[9px] font-bold text-muted-foreground uppercase">{item.source}</span>
-                            <span className="text-[9px] text-muted-foreground">•</span>
-                            <span className="text-[9px] text-muted-foreground">{item.time}</span>
-                          </div>
-                          <p className="text-xs font-bold leading-tight text-foreground">
-                            {item.headline}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                </Card>
-                          </div>
+                </div>
+              </div>
                           
               {/* Weekly Roadmap & To-Do List - Side by Side */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1294,34 +1507,34 @@ const DashboardPage = () => {
                     const isOverdue = deadline && new Date(project.bidding_deadline) < new Date();
                         
                         return (
-                      <Card key={project.id} className="bg-[#FDF8F3] p-4.5 rounded-xl border border-black/20 shadow-sm group">
-                        <div className="flex justify-between items-start mb-3.5">
-                          <div>
-                            <h4 className="font-bold text-sm mb-1">{project.title}</h4>
-                            <p className="text-[11px] text-muted-foreground font-medium">Status: {project.status}</p>
-                              </div>
+                      <Card key={project.id} className="bg-[#FDF8F3] p-5 rounded-xl border border-black/20 shadow-sm group">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex-1 pr-4 min-w-0">
+                            <h4 className="font-bold text-base mb-1.5 text-foreground">{project.title}</h4>
+                            <p className="text-xs text-muted-foreground italic">Client: Coming Soon</p>
+                          </div>
                           {deadline && (
-                            <div className="flex flex-col items-end">
+                            <div className="flex flex-col items-end text-right pl-4 flex-shrink-0">
                               <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
                                 Deadline
                               </span>
-                            <span className={cn(
-                                "text-xs font-bold",
+                              <span className={cn(
+                                "text-sm font-bold",
                                 isOverdue ? "text-red-500" : "text-foreground"
-                            )}>
+                              )}>
                                 {deadline}
-                            </span>
-                          </div>
+                              </span>
+                            </div>
                           )}
-                    </div>
-                    <Button 
+                        </div>
+                        <Button 
                           className="w-full bg-primary text-primary-foreground font-bold py-2.5 rounded-xl text-xs transition-all hover:shadow-lg hover:shadow-primary/30 flex items-center justify-center gap-1.5"
                           onClick={() => navigate(`/projects/${project.id}`)}
-                    >
+                        >
                           Open Project
                           <ArrowRight className="w-3.5 h-3.5" />
-                    </Button>
-              </Card>
+                        </Button>
+                      </Card>
                     );
                   })
                 ) : (
@@ -1333,67 +1546,6 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Earnings & Profit Analytics - Full Width */}
-          <div className="mb-5 w-full">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold flex items-center gap-1.5">
-                <DollarSign className="w-3.5 h-3.5 text-primary" />
-                Earnings & Profit
-              </h3>
-            </div>
-            <Card className="bg-[#FDF8F3] rounded-xl border border-black/20 shadow-sm p-5 w-full">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Total Earnings */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-black/10 p-4 hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                        <Wallet className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs font-bold text-muted-foreground uppercase">Total Earnings</span>
-                    </div>
-                    <TrendingUp className="w-4 h-4 text-primary" />
-                  </div>
-                  <p className="text-2xl font-black text-primary">₹2,45,000</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">+18.5%</span>
-                    <span className="text-[10px] text-muted-foreground">vs last month</span>
-                  </div>
-                </div>
-
-                {/* Net Profit */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-black/10 p-4 hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="size-8 rounded-lg bg-accent/20 text-accent-foreground flex items-center justify-center">
-                        <TrendingUp className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs font-bold text-muted-foreground uppercase">Net Profit</span>
-                    </div>
-                    <BarChart3 className="w-4 h-4 text-accent-foreground" />
-                  </div>
-                  <p className="text-2xl font-black text-accent">₹1,87,500</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[10px] font-bold text-accent-foreground bg-accent/20 px-2 py-0.5 rounded-full">76.5%</span>
-                    <span className="text-[10px] text-muted-foreground">profit margin</span>
-                  </div>
-                </div>
-
-                {/* Average per Project */}
-                <div className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-xl border border-black/10 p-4 hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <span className="text-xs font-bold text-muted-foreground uppercase">Avg. per Project</span>
-                      <p className="text-2xl font-black text-foreground mt-1">₹20,417</p>
-                    </div>
-                    <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                      <DollarSign className="w-5 h-5" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
       </main>
 
       {/* Weekly Planner Dialog */}

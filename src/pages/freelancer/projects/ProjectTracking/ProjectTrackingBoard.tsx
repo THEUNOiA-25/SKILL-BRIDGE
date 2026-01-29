@@ -375,64 +375,64 @@ export const ProjectTrackingBoard = ({ projectId, projectCategory }: ProjectTrac
     <div className="w-full pb-4 px-3.5 space-y-3.5">
       {/* Top 4 Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white border border-slate-200 rounded-sm p-3 shadow-sm">
+        <div className="bg-primary border border-slate-200 rounded-sm p-3 shadow-sm">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-slate-600 font-medium">Total task</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+            <span className="text-[10px] text-black font-bold">Total task</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-black" />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-slate-900">{metrics.total}</span>
-            <div className="flex items-center gap-0.5 text-green-600">
+            <span className="text-lg font-bold text-black">{metrics.total}</span>
+            <div className="flex items-center gap-0.5 text-black">
               <TrendingUp className="w-2.5 h-2.5" />
-              <span className="text-[9px] font-semibold">+7%</span>
+              <span className="text-[9px] font-bold">+7%</span>
             </div>
           </div>
-          <p className="text-[8px] text-slate-500 mt-0.5">from last month</p>
+          <p className="text-[8px] text-black font-bold mt-0.5">from last month</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-3 shadow-sm">
+        <div className="bg-secondary border border-slate-200 rounded-sm p-3 shadow-sm">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-slate-600 font-medium">On progress</span>
-            <Clock className="w-3.5 h-3.5 text-blue-600" />
+            <span className="text-[10px] text-black font-bold">On progress</span>
+            <Clock className="w-3.5 h-3.5 text-black" />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-slate-900">{metrics.inProgress}</span>
-            <div className="flex items-center gap-0.5 text-green-600">
+            <span className="text-lg font-bold text-black">{metrics.inProgress}</span>
+            <div className="flex items-center gap-0.5 text-black">
               <TrendingUp className="w-2.5 h-2.5" />
-              <span className="text-[9px] font-semibold">+3%</span>
+              <span className="text-[9px] font-bold">+3%</span>
             </div>
           </div>
-          <p className="text-[8px] text-slate-500 mt-0.5">from last month</p>
+          <p className="text-[8px] text-black font-bold mt-0.5">from last month</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-3 shadow-sm">
+        <div className="bg-accent border border-slate-200 rounded-sm p-3 shadow-sm">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-slate-600 font-medium">Completed</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+            <span className="text-[10px] text-black font-bold">Completed</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-black" />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-slate-900">{metrics.completed}</span>
-            <div className="flex items-center gap-0.5 text-green-600">
+            <span className="text-lg font-bold text-black">{metrics.completed}</span>
+            <div className="flex items-center gap-0.5 text-black">
               <TrendingUp className="w-2.5 h-2.5" />
-              <span className="text-[9px] font-semibold">+9%</span>
+              <span className="text-[9px] font-bold">+9%</span>
             </div>
           </div>
-          <p className="text-[8px] text-slate-500 mt-0.5">from last month</p>
+          <p className="text-[8px] text-black font-bold mt-0.5">from last month</p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-3 shadow-sm">
+        <div className="bg-secondary border border-slate-200 rounded-sm p-3 shadow-sm">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] text-slate-600 font-medium">Overdue</span>
-            <AlertCircle className="w-3.5 h-3.5 text-red-600" />
+            <span className="text-[10px] text-black font-bold">Overdue</span>
+            <AlertCircle className="w-3.5 h-3.5 text-black" />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-slate-900">{metrics.overdue}</span>
-            <div className="flex items-center gap-0.5 text-red-600">
+            <span className="text-lg font-bold text-black">{metrics.overdue}</span>
+            <div className="flex items-center gap-0.5 text-black">
               <TrendingDown className="w-2.5 h-2.5" />
-              <span className="text-[9px] font-semibold">-2%</span>
+              <span className="text-[9px] font-bold">-2%</span>
             </div>
           </div>
-          <p className="text-[8px] text-slate-500 mt-0.5">from last month</p>
+          <p className="text-[8px] text-black font-bold mt-0.5">from last month</p>
         </div>
       </div>
 
@@ -451,7 +451,7 @@ export const ProjectTrackingBoard = ({ projectId, projectCategory }: ProjectTrac
                         <Folder className="w-3.5 h-3.5" style={{ color }} />
                       </div>
                       <div>
-                        <h4 className="text-[11px] font-bold text-slate-900">
+                        <h4 className="text-[11px] font-bold text-black">
                           Phase {phase.phaseNumber}: {phase.phase}
                         </h4>
                         <div className="flex items-center gap-1 mt-0.5">
@@ -464,17 +464,17 @@ export const ProjectTrackingBoard = ({ projectId, projectCategory }: ProjectTrac
                             </div>
                           ))}
                           {phase.assignees.length > 4 && (
-                            <span className="text-[8px] text-slate-600">+{phase.assignees.length - 4}</span>
+                            <span className="text-[8px] text-black font-bold">+{phase.assignees.length - 4}</span>
                           )}
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[9px] text-slate-600">
+                    <span className="text-[9px] text-black font-bold">
                       {phase.completedTasks} of {phase.totalTasks} tasks completed
                     </span>
-                    <span className="text-[9px] font-bold text-slate-900">{phase.progress}%</span>
+                    <span className="text-[9px] font-bold text-black">{phase.progress}%</span>
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-1.5">
                     <div
@@ -689,7 +689,7 @@ export const ProjectTrackingBoard = ({ projectId, projectCategory }: ProjectTrac
       {/* Tasks Progress and Latest Activity - Below Kanban Board */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* Tasks Progress */}
-          <div className="bg-white border border-slate-200 rounded-sm p-3 shadow-sm">
+          <div className="bg-secondary border border-slate-200 rounded-sm p-3 shadow-sm">
             <h3 className="text-xs font-bold text-slate-900 mb-2.5">Tasks progress</h3>
             {taskStatusData.length > 0 ? (
               <div className="relative h-[180px]">
@@ -741,7 +741,7 @@ export const ProjectTrackingBoard = ({ projectId, projectCategory }: ProjectTrac
           </div>
 
           {/* Latest Activity */}
-          <div className="bg-white border border-slate-200 rounded-sm p-3 shadow-sm">
+          <div className="bg-accent border border-slate-200 rounded-sm p-3 shadow-sm">
             <h3 className="text-xs font-bold text-slate-900 mb-2.5">Latest Activity</h3>
             <div className="space-y-2.5 max-h-[350px] overflow-y-auto">
               {Object.entries(groupedActivities).map(([date, dateActivities]) => (

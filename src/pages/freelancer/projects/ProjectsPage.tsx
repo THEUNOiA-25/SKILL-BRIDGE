@@ -187,7 +187,7 @@ const ProjectsPage = () => {
       
       // Set default tab based on user type
       if (!isStudent) {
-        setActiveTab('my-projects');
+        setActiveTab('my-projects'); // In Progress tab
       }
     } catch (error) {
       console.error('Error fetching user type:', error);
@@ -291,18 +291,34 @@ const ProjectsPage = () => {
       // Fetch user skills
       await fetchUserSkills();
 
-      // Fetch user's own work requirements
-      const { data: myData, error: myError } = await supabase
-        .from("user_projects")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("project_type", "work_requirement")
+      // Fetch projects where freelancer has accepted bid and status is 'in_progress' (In Progress projects)
+      const { data: inProgressData, error: inProgressError } = await supabase
+        .from("bids")
+        .select(`
+          amount,
+          status,
+          user_projects (*)
+        `)
+        .eq("freelancer_id", user.id)
+        .eq("status", "accepted")
         .order("created_at", { ascending: false });
 
-      if (myError) throw myError;
-      setMyProjects((myData as unknown as Project[]) || []);
+      if (inProgressError) throw inProgressError;
+      
+      const inProgressProjects = (inProgressData || [])
+        .filter((bid) => {
+          if (!bid.user_projects) return false;
+          const project = bid.user_projects as unknown as Project;
+          return project.status === 'in_progress';
+        })
+        .map((bid) => ({
+          ...(bid.user_projects as unknown as Project),
+          bidStatus: bid.status,
+          bidAmount: bid.amount,
+        })) as BidProject[];
+      setMyProjects(inProgressProjects as unknown as Project[]);
 
-      // Fetch projects where user has placed bids
+      // Fetch projects where user has placed bids (for display purposes)
       const { data: bidData, error: bidError } = await supabase
         .from("bids")
         .select(`
@@ -324,17 +340,49 @@ const ProjectsPage = () => {
         })) as BidProject[];
       setBidProjects(bidProjectsData);
 
-      // Fetch user's portfolio projects (only if verified student)
+      // Fetch projects where freelancer has accepted bid and status is 'completed' (Completed projects)
       if (isVerifiedStudent) {
-        const { data: completedData, error: completedError } = await supabase
+        const { data: completedBidData, error: completedBidError } = await supabase
+          .from("bids")
+          .select(`
+            amount,
+            status,
+            user_projects (*)
+          `)
+          .eq("freelancer_id", user.id)
+          .eq("status", "accepted")
+          .order("created_at", { ascending: false });
+
+        if (completedBidError) throw completedBidError;
+        
+        const completedProjectsFromBids = (completedBidData || [])
+          .filter((bid) => {
+            if (!bid.user_projects) return false;
+            const project = bid.user_projects as unknown as Project;
+            return project.status === 'completed';
+          })
+          .map((bid) => ({
+            ...(bid.user_projects as unknown as Project),
+            bidStatus: bid.status,
+            bidAmount: bid.amount,
+          })) as BidProject[];
+
+        // Also fetch user's portfolio projects (manually added)
+        const { data: portfolioData, error: portfolioError } = await supabase
           .from("user_projects")
           .select("*")
           .eq("user_id", user.id)
           .eq("project_type", "portfolio_project")
           .order("completed_at", { ascending: false });
 
-        if (completedError) throw completedError;
-        setCompletedProjects((completedData as unknown as Project[]) || []);
+        if (portfolioError) throw portfolioError;
+        
+        // Combine completed projects from bids and portfolio projects
+        const allCompletedProjects = [
+          ...completedProjectsFromBids,
+          ...((portfolioData as unknown as Project[]) || [])
+        ];
+        setCompletedProjects(allCompletedProjects);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -862,7 +910,7 @@ const ProjectsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-cream-bg">
+      <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF]">
         <p className="text-muted-foreground font-medium">Loading projects...</p>
       </div>
     );
@@ -873,7 +921,7 @@ const ProjectsPage = () => {
   const remainingProjects = filteredProjects; // Show all in grid too, or filteredProjects.slice(4)
 
   return (
-    <main className="min-h-screen bg-cream-bg dark:bg-dark-bg text-[#121118] dark:text-white font-sans">
+    <main className="min-h-screen bg-[#FFFFFF] dark:bg-dark-bg text-[#121118] dark:text-white font-sans">
         <div className="max-w-6xl mx-auto px-4 lg:px-11 py-7">
           
           {/* Header Section */}
@@ -883,7 +931,7 @@ const ProjectsPage = () => {
               <p className="text-sm text-[#68608a] dark:text-gray-400 font-medium">Browse high-value projects posted by verified clients</p>
             </div>
             
-            <div className="flex items-center gap-2.5 bg-white dark:bg-white/5 p-1.5 rounded-xl shadow-sm border border-[#f1f0f5] dark:border-white/10">
+            <div className="flex items-center gap-2.5 bg-[#FDF8F3] dark:bg-white/5 p-1.5 rounded-xl shadow-sm border border-[#f1f0f5] dark:border-white/10">
                <button 
                  onClick={() => setSortType('newest')}
                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
@@ -918,7 +966,7 @@ const ProjectsPage = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-7">
-            <TabsList className="bg-white dark:bg-white/5 p-1.5 gap-1.5 h-auto mb-7 justify-start border border-[#f1f0f5] dark:border-white/10 w-fit rounded-xl shadow-sm">
+            <TabsList className="bg-[#FDF8F3] dark:bg-white/5 p-1.5 gap-1.5 h-auto mb-7 justify-start border border-[#f1f0f5] dark:border-white/10 w-fit rounded-xl shadow-sm">
                {(!user || isStudentUser) && (
                  <TabsTrigger 
                    value="browse" 
@@ -932,7 +980,7 @@ const ProjectsPage = () => {
                    value="my-projects"
                    className="rounded-lg px-5 py-2 text-xs font-bold text-[#121118] dark:text-white data-[state=active]:bg-primary-purple data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-primary-purple/20 transition-all duration-200 hover:text-primary-purple hover:bg-primary-purple/10 data-[state=active]:hover:bg-primary-purple data-[state=active]:hover:text-white"
                  >
-                   My Projects
+                   In Progress
                  </TabsTrigger>
                )}
                {isVerifiedStudent && (
@@ -950,7 +998,7 @@ const ProjectsPage = () => {
                {/* Search and Filters */}
                <div className="flex flex-wrap items-center gap-3.5 mb-12">
                   <div className="flex-1 min-w-[270px]">
-                    <div className="flex items-center bg-white dark:bg-white/5 rounded-xl px-3.5 py-2.5 border border-[#f1f0f5] dark:border-white/10 shadow-sm transition-all focus-within:ring-2 ring-primary-purple/20">
+                    <div className="flex items-center bg-[#FDF8F3] dark:bg-white/5 rounded-xl px-3.5 py-2.5 border border-[#f1f0f5] dark:border-white/10 shadow-sm transition-all focus-within:ring-2 ring-primary-purple/20">
                       <ListFilter className="w-4 h-4 text-primary-purple mr-2.5" />
                       <input 
                         className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-[#68608a] focus:outline-none" 
@@ -962,13 +1010,13 @@ const ProjectsPage = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-                    <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-white/5 border border-[#f1f0f5] dark:border-white/10 text-xs font-bold whitespace-nowrap hover:border-primary-purple transition-colors text-[#121118] dark:text-white">
+                    <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FDF8F3] dark:bg-white/5 border border-[#f1f0f5] dark:border-white/10 text-xs font-bold whitespace-nowrap hover:border-primary-purple transition-colors text-[#121118] dark:text-white">
                         Category <ChevronDown className="w-3.5 h-3.5 text-[#121118] dark:text-white" />
                     </button>
-                    <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-white/5 border border-[#f1f0f5] dark:border-white/10 text-xs font-bold whitespace-nowrap hover:border-primary-purple transition-colors text-[#121118] dark:text-white">
+                    <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FDF8F3] dark:bg-white/5 border border-[#f1f0f5] dark:border-white/10 text-xs font-bold whitespace-nowrap hover:border-primary-purple transition-colors text-[#121118] dark:text-white">
                         Budget Range <ChevronDown className="w-3.5 h-3.5 text-[#121118] dark:text-white" />
                     </button>
-                    <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-white/5 border border-[#f1f0f5] dark:border-white/10 text-xs font-bold whitespace-nowrap hover:border-primary-purple transition-colors text-[#121118] dark:text-white">
+                    <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FDF8F3] dark:bg-white/5 border border-[#f1f0f5] dark:border-white/10 text-xs font-bold whitespace-nowrap hover:border-primary-purple transition-colors text-[#121118] dark:text-white">
                         Timeline <ChevronDown className="w-3.5 h-3.5 text-[#121118] dark:text-white" />
                     </button>
                     <button className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-primary-purple text-white text-xs font-bold shadow-md shadow-primary-purple/20 hover:bg-primary-purple/90 transition-all">
@@ -1022,58 +1070,51 @@ const ProjectsPage = () => {
                     )}
                  </div>
                </section>
+
+               {/* Projects You've Bid On Section */}
+               {user && bidProjects.length > 0 && (
+                 <section className="mt-14">
+                   <h2 className="text-xl font-extrabold tracking-tight text-[#121118] dark:text-white mb-7">Projects You've Bid On</h2>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
+                     {bidProjects.map(project => renderProjectCard(project, false, true))}
+                   </div>
+                 </section>
+               )}
             </TabsContent>
 
-            {/* MY PROJECTS TAB */}
+            {/* IN PROGRESS TAB */}
             <TabsContent value="my-projects" className="mt-0">
                {!user ? (
                  <div className="text-center py-20 bg-white rounded-2xl border border-[#f1f0f5]">
-                    <h3 className="text-xl font-bold mb-2">Sign in to manage projects</h3>
+                    <h3 className="text-xl font-bold mb-2">Sign in to view your projects</h3>
                     <Button onClick={() => navigate('/login')} className="bg-primary-purple hover:bg-primary-purple/90">Sign In</Button>
                  </div>
                ) : (
-                 <div className="space-y-7">
-                    <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-[#f1f0f5]">
-                       <div>
-                          <h2 className="text-xl font-bold">My Posted Projects</h2>
-                          <p className="text-sm text-[#68608a]">Manage your work requirements and view bids</p>
-                       </div>
-                       <Button onClick={() => openWorkRequirementDialog()} className="bg-primary-purple hover:bg-primary-purple/90 gap-1.5 text-xs py-1.5 px-3.5">
-                          <Plus className="w-3.5 h-3.5" /> Post Project
-                       </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
-                       {myProjects.length > 0 ? (
-                          myProjects.map(project => renderProjectCard(project, true))
-                       ) : (
-                          <div className="col-span-full text-center py-10 text-[#68608a]">You haven't posted any projects yet.</div>
-                       )}
-                    </div>
-
-                    {bidProjects.length > 0 && (
-                       <div className="mt-10">
-                          <h2 className="text-xl font-bold mb-5">Projects You've Bid On</h2>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
-                             {bidProjects.map(project => renderProjectCard(project, false))}
-                          </div>
-                       </div>
-                    )}
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+                   {myProjects.length > 0 ? (
+                      myProjects.map(project => renderProjectCard(project, false, true))
+                   ) : (
+                      <div className="col-span-full text-center py-10 text-[#68608a]">No projects in progress. Bid on projects to get started!</div>
+                   )}
                  </div>
                )}
             </TabsContent>
 
-            {/* COMPLETED PROJECTS TAB */}
+            {/* PORTFOLIO PROJECT TAB */}
             <TabsContent value="completed" className="mt-0">
                 <div className="flex justify-between items-center mb-7">
-                   <h2 className="text-xl font-bold">My Completed Projects</h2>
-                   <Button onClick={() => openPortfolioDialog()} className="bg-primary-purple hover:bg-primary-purple/90 gap-1.5 text-xs py-1.5 px-3.5">
-                      <Plus className="w-3.5 h-3.5" /> Add Completed Project
-                   </Button>
+                   <h2 className="text-xl font-bold">Portfolio Project</h2>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
                    {completedProjects.length > 0 ? (
-                      completedProjects.map(project => renderPortfolioCard(project, true))
+                      completedProjects.map(project => {
+                        // Check if it's a portfolio project or a completed work requirement
+                        if (project.project_type === 'portfolio_project') {
+                          return renderPortfolioCard(project, true);
+                        } else {
+                          return renderProjectCard(project, false, true);
+                        }
+                      })
                    ) : (
                       <div className="col-span-full text-center py-10 text-[#68608a]">No completed projects yet.</div>
                    )}

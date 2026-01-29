@@ -466,7 +466,7 @@ export default function BidsPage() {
                 })}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {displayBids.filter((bid) => bid.user_projects !== null).map((bid) => {
                   const isRejected = bid.status === 'rejected';
                   const deadline = bid.user_projects.bidding_deadline 
@@ -484,7 +484,7 @@ export default function BidsPage() {
                   return (
                     <div
                       key={bid.id}
-                      className={`group bg-white dark:bg-white/5 rounded-lg p-4 shadow-md border border-[#121118]/5 hover:shadow-lg transition-all duration-300 flex flex-col relative overflow-hidden ${
+                      className={`group bg-white dark:bg-white/5 rounded-lg p-4 shadow-md border border-[#121118]/5 hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden min-h-[300px] ${
                         isRejected ? 'opacity-80 grayscale-[0.3] hover:grayscale-0 hover:opacity-100' : ''
                       }`}
                     >
@@ -492,7 +492,7 @@ export default function BidsPage() {
                       <div className={`absolute left-0 top-0 h-full w-1 ${getStatusBorderColor(bid.status)}`} />
                       
                       {/* Header with Status */}
-                      <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-start justify-between mb-1.5">
                         <div className="flex-1 min-w-0">
                           <h3 className="text-base font-extrabold text-[#121118] dark:text-white mb-0.5 group-hover:text-primary-purple transition-colors truncate">
                             {bid.user_projects.title}
@@ -504,12 +504,12 @@ export default function BidsPage() {
                       </div>
 
                       {/* Description */}
-                      <p className="text-xs text-[#68608a] dark:text-white/60 font-medium mb-2 line-clamp-2">
+                      <p className="text-xs text-[#68608a] dark:text-white/60 font-medium mb-1.5 line-clamp-2">
                         {bid.user_projects.description}
                       </p>
 
                       {/* Tags */}
-                      <div className="flex flex-wrap gap-1 mb-3">
+                      <div className="flex flex-wrap gap-1 mb-2">
                         {bid.user_projects.category && (
                           <span className="px-2 py-0.5 bg-secondary-yellow/30 text-[#614e1a] text-[9px] font-bold rounded-md uppercase tracking-wider">
                             {bid.user_projects.category}
@@ -523,7 +523,7 @@ export default function BidsPage() {
                       </div>
 
                       {/* Bid Information - Horizontal Layout */}
-                      <div className="flex flex-row items-center justify-between gap-3 py-2 border-y border-[#121118]/5 dark:border-white/5 mb-3">
+                      <div className="flex flex-row items-center justify-between gap-3 py-1.5 border-y border-[#121118]/5 dark:border-white/5 mb-2">
                         <div className="flex flex-col items-start">
                           <span className="text-[9px] font-bold text-[#68608a] dark:text-white/40 uppercase tracking-widest mb-0.5">Your Bid</span>
                           <span className="text-xl font-black text-primary-purple">₹{bid.amount.toLocaleString()}</span>
@@ -544,7 +544,7 @@ export default function BidsPage() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex gap-1.5 mt-auto">
+                      <div className="flex gap-1.5 mt-2">
                         <Button 
                           variant="outline"
                           disabled={isRejected}

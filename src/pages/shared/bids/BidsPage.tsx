@@ -109,12 +109,36 @@ export default function BidsPage() {
 
   const updateBidStatus = async (bidId: string, status: 'accepted' | 'rejected') => {
     try {
-      const { error } = await supabase
+      // First, get the bid to find the project_id
+      const { data: bidData, error: bidFetchError } = await supabase
+        .from('bids')
+        .select('project_id')
+        .eq('id', bidId)
+        .single();
+
+      if (bidFetchError) throw bidFetchError;
+
+      // Update bid status
+      const { error: bidUpdateError } = await supabase
         .from('bids')
         .update({ status })
         .eq('id', bidId);
 
-      if (error) throw error;
+      if (bidUpdateError) throw bidUpdateError;
+
+      // If bid is accepted, update project status to 'in_progress'
+      if (status === 'accepted' && bidData?.project_id) {
+        const { error: projectUpdateError } = await supabase
+          .from('user_projects')
+          .update({ status: 'in_progress' })
+          .eq('id', bidData.project_id)
+          .eq('status', 'open'); // Only update if still 'open'
+
+        if (projectUpdateError) {
+          console.error('Error updating project status:', projectUpdateError);
+          // Don't fail the whole operation if project update fails
+        }
+      }
 
       toast.success(`Bid ${status}`);
       fetchBids();
