@@ -1,17 +1,41 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useIsFreelancer } from '@/hooks/useIsFreelancer';
+import { FreeTokenPolicySection } from '@/components/credits/FreeTokenPolicySection';
 
 const BuyCreditsPage = () => {
   const navigate = useNavigate();
+  const { isFreelancer, isLoading } = useIsFreelancer();
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isFreelancer) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isFreelancer, isLoading, navigate]);
 
   const handleSelectPlan = (planId: string) => {
     navigate(`/checkout?plan=${planId}`);
   };
 
+  if (isLoading || !isFreelancer) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white min-h-screen antialiased" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <main className="max-w-[1200px] mx-auto px-6 py-12 lg:py-16">
+      <main className="max-w-[1200px] mx-auto px-6 pt-4 pb-10 lg:pt-6 lg:pb-12">
+        {/* Free Token Policy – freelancers only */}
+        <section className="mb-16">
+          <FreeTokenPolicySection />
+        </section>
+
         {/* Heading Section */}
-        <div className="text-center max-w-2xl mx-auto mb-12">
+        <div className="text-center max-w-2xl mx-auto mb-8">
           <h1 className="text-3xl lg:text-4xl font-black text-[#111118] mb-4 tracking-tight">
             Simple, transparent pricing
           </h1>

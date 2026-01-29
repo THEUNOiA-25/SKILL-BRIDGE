@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useIsFreelancer } from '@/hooks/useIsFreelancer';
 
 interface UserProfile {
   firstName: string;
@@ -23,12 +24,20 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isFreelancer, isLoading: isRoleLoading } = useIsFreelancer();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
 
   const planId = searchParams.get('plan');
   const plan = planId ? creditPlans[planId] : null;
+
+  useEffect(() => {
+    if (isRoleLoading) return;
+    if (!isFreelancer) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isFreelancer, isRoleLoading, navigate]);
 
   useEffect(() => {
     if (!user) {
@@ -58,6 +67,14 @@ const CheckoutPage = () => {
 
     fetchProfile();
   }, [user, navigate]);
+
+  if (isRoleLoading || !isFreelancer) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] bg-white">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#7e63f8] border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!plan) {
     return (

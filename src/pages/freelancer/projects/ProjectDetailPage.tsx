@@ -16,8 +16,9 @@ import {
   ArrowLeft, Clock, MapPin, UserPlus, IndianRupee, 
   FileText, CheckCircle2, MapPin as LocationIcon, Calendar,
   Star, Coins, AlertTriangle, FileText as DocIcon,
-  Paperclip, Download, MessageSquare
+  Paperclip, Download, MessageSquare, Check, X
 } from "lucide-react";
+import { TOKEN_REFUND_POLICY } from "@/lib/credits/tokenRefundPolicy";
 import { recordActivity } from "@/utils/dailyStreak";
 import { CollaborationDialog } from "./collaboration/CollaborationDialog";
 import { ProjectTrackingBoard } from "./ProjectTracking/ProjectTrackingBoard";
@@ -600,6 +601,18 @@ const ProjectDetailPage = () => {
                       <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 text-amber-700">
                         <AlertTriangle className="w-4 h-4" />
                         <span className="text-sm">Placing this bid will cost 10 credits</span>
+                      </div>
+                      {/* Token Refund Policy – about the bid */}
+                      <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3 space-y-2">
+                        <p className="text-xs font-semibold text-slate-700">Token Refund Policy</p>
+                        <p className="text-[11px] text-slate-600 flex items-start gap-1.5">
+                          <Check className="h-3.5 w-3.5 text-green-600 shrink-0 mt-0.5" />
+                          <span>Refunded only if: {TOKEN_REFUND_POLICY.refundedWhen.join('; ')}</span>
+                        </p>
+                        <p className="text-[11px] text-slate-600 flex items-start gap-1.5">
+                          <X className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                          <span>Not refunded if: {TOKEN_REFUND_POLICY.notRefundedWhen.join('; ')}</span>
+                        </p>
                       </div>
                       <div>
                         <Label htmlFor="bid-amount">Bid Amount (₹)</Label>

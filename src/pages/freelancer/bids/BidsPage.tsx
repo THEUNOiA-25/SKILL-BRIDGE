@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useTokenBalances } from '@/hooks/useTokenBalances';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Calendar, FileText, CheckCircle2, XCircle, Clock, Coins, ArrowUpRight, ArrowDownRight, Verified, Ban, List, Grid3x3 } from 'lucide-react';
+import { Calendar, FileText, CheckCircle2, XCircle, Clock, Coins, Gift, ArrowUpRight, ArrowDownRight, Verified, Ban, List, Grid3x3, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 
 // Helper function to format date with ordinal (e.g., "October 24th", "November 5th")
@@ -55,11 +56,15 @@ interface CreditTransaction {
 
 export default function BidsPage() {
   const { user } = useAuth();
+  const { data: tokenBalances, refetch: refetchBalances } = useTokenBalances();
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creditBalance, setCreditBalance] = useState<number>(0);
   const [creditTransactions, setCreditTransactions] = useState<CreditTransaction[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  const paidBalance = tokenBalances?.paidBalance ?? 0;
+  const freeBalance = tokenBalances?.freeBalance ?? 0;
+  const totalCreditsForBid = paidBalance + freeBalance;
 
   useEffect(() => {
     if (user) {
@@ -73,12 +78,7 @@ export default function BidsPage() {
     if (!user) return;
     
     try {
-      const { data: balanceData, error: balanceError } = await supabase.rpc('get_freelancer_credit_balance', {
-        _user_id: user.id
-      });
-      
-      if (balanceError) throw balanceError;
-      setCreditBalance(balanceData || 0);
+      refetchBalances();
 
       const { data: txData, error: txError } = await supabase
         .from('credit_transactions')
@@ -279,25 +279,50 @@ export default function BidsPage() {
             <p className="text-[#68608a] dark:text-white/60 text-sm font-medium">Tracking your active and historical applications</p>
           </div>
           
-          {/* Credit Balance Card */}
-          <Card className="rounded-xl border bg-primary-purple min-w-[200px] overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2" />
-            <CardContent className="p-4 relative">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-                  <Coins className="h-5 w-5 text-white" />
+          {/* Free Tokens Card (left) + Credit Balance / Paid Tokens Card (right) */}
+          <div className="flex flex-wrap items-stretch gap-3">
+            {/* Free Tokens – secondary container; warning content in primary */}
+            <Card className="rounded-xl border bg-secondary min-w-[200px] overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2" />
+              <CardContent className="p-4 relative flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-secondary-foreground/15 backdrop-blur-sm">
+                    <Gift className="h-5 w-5 text-secondary-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-secondary-foreground/80 font-medium">Free Tokens</p>
+                    <p className="text-2xl font-bold text-secondary-foreground">{freeBalance}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-white/80 font-medium">Credit Balance</p>
-                  <p className="text-2xl font-bold text-white">{creditBalance}</p>
+                {/* Warning container – primary background, medium rounded, white text */}
+                <div className="rounded-lg bg-primary p-3 flex items-center gap-2.5">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0 text-white" />
+                  <p className="text-[11px] font-medium leading-tight text-white">
+                    Expire after 30 days from date of credit.
+                  </p>
                 </div>
-              </div>
-              <p className="text-[10px] text-white/70 mt-2 flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-green animate-pulse" />
-                10 credits per bid
-              </p>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            {/* Credit Balance (Paid Tokens) */}
+            <Card className="rounded-xl border bg-primary-purple min-w-[200px] overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2" />
+              <CardContent className="p-4 relative">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+                    <Coins className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/80 font-medium">Credit Balance</p>
+                    <p className="text-2xl font-bold text-white">{paidBalance}</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-white/70 mt-2 flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-green animate-pulse" />
+                  10 credits per bid
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         <Tabs defaultValue="my-bids" className="w-full">
