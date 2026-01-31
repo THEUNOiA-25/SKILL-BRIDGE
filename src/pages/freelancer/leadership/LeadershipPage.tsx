@@ -76,16 +76,16 @@ const LeadershipPage = () => {
   ];
 
   return (
-    <div className="relative flex flex-col w-full overflow-x-hidden font-display min-h-screen text-black bg-white">
+    <div className="relative flex flex-col w-full overflow-x-hidden font-display min-h-screen text-black">
       <main className="w-full">
         {/* Hero – full width, slightly reduced height */}
-        <section className="w-full bg-black relative overflow-hidden min-h-[300px] flex items-start">
+        <section className="w-full bg-black relative overflow-hidden min-h-[300px] flex items-end">
           <div className="absolute inset-0 hero-banner-mask" aria-hidden />
-          <div className="max-w-[1200px] mx-auto w-full px-6 md:px-8 pt-8 pb-6 relative z-10 flex items-center gap-4">
+          <div className="max-w-[1200px] mx-auto w-full px-6 md:px-8 pt-6 pb-14 relative z-10 flex items-center gap-4">
             <div className="relative flex-shrink-0">
-              <Avatar className="size-16 md:size-20 rounded-full border-2 border-white/20 overflow-hidden bg-slate-700 ring-2 ring-white">
+              <Avatar className="size-24 rounded-full border-2 border-white/20 overflow-hidden bg-slate-700 ring-2 ring-white">
                 <AvatarImage src={profile?.profile_picture_url ?? undefined} alt={displayName} className="object-cover" />
-                <AvatarFallback className="bg-primary text-white text-base font-black">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-primary text-white text-lg font-black">{initials}</AvatarFallback>
               </Avatar>
             </div>
             <div className="flex flex-col justify-center text-white">
