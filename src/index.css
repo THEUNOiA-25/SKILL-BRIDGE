@@ -192,6 +192,52 @@ All colors MUST be HSL.
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
+  /* Leadership / reference design – hero banner, container shadow, borders, stars */
+  .hero-banner-mask {
+    background-image: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        rgba(0, 0, 0, 0.1) 100%
+      ),
+      url("https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1600&q=80");
+    background-size: cover;
+    background-position: center 20%;
+  }
+
+  .deep-soft-shadow {
+    box-shadow: 0 25px 50px -12px rgba(126, 99, 248, 0.08);
+  }
+
+  .card-shadow {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .purple-border {
+    border-color: rgba(126, 99, 248, 0.1);
+  }
+
+  .slanted-card {
+    position: relative;
+    clip-path: polygon(0 0, 98% 0, 100% 50%, 98% 100%, 0 100%);
+    background: white;
+  }
+
+  @media (max-width: 768px) {
+    .slanted-card {
+      clip-path: none;
+    }
+  }
+
+  .star-filled {
+    color: #fbdd84;
+    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+  }
+
+  .star-empty {
+    color: rgba(126, 99, 248, 0.2);
+  }
+
   @keyframes bounce-welcome {
     0%, 100% {
       transform: translateY(0);

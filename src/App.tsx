@@ -144,6 +144,10 @@ const App = () => (
                   element={<RoleBasedRoute pageType="community" />} 
                 />
                 <Route 
+                  path="/leadership" 
+                  element={<RoleBasedRoute pageType="leadership" />} 
+                />
+                <Route 
                   path="/buy-credits" 
                   element={
                     <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>

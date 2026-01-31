@@ -8,13 +8,14 @@ const FreelancerDashboardPage = lazy(() => import("@/pages/freelancer/dashboard/
 const FreelancerProfilePage = lazy(() => import("@/pages/freelancer/profile/ProfilePage"));
 const FreelancerProjectsPage = lazy(() => import("@/pages/freelancer/projects/ProjectsPage"));
 const FreelancerCommunityPage = lazy(() => import("@/pages/freelancer/community/CommunityPage"));
+const FreelancerLeadershipPage = lazy(() => import("../pages/freelancer/leadership/LeadershipPage"));
 
 // Client pages
 const ClientDashboardPage = lazy(() => import("@/pages/client/dashboard/DashboardPage"));
 const ClientProfilePage = lazy(() => import("@/pages/client/profile/ProfilePage"));
 const ClientProjectsPage = lazy(() => import("@/pages/client/projects/ProjectsPage"));
 
-type PageType = 'dashboard' | 'profile' | 'projects' | 'community';
+type PageType = 'dashboard' | 'profile' | 'projects' | 'community' | 'leadership';
 
 interface RoleBasedRouteProps {
   pageType: PageType;
@@ -41,10 +42,18 @@ export const RoleBasedRoute = ({ pageType }: RoleBasedRouteProps) => {
     retry: 1,
   });
 
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
   }
@@ -73,6 +82,9 @@ export const RoleBasedRoute = ({ pageType }: RoleBasedRouteProps) => {
       case 'community':
         // Community is freelancer-only (students only)
         return <FreelancerCommunityPage />;
+      case 'leadership':
+        // Leadership Board is freelancer-only
+        return isClient ? <ClientDashboardPage /> : <FreelancerLeadershipPage />;
       default:
         return isClient ? <ClientDashboardPage /> : <FreelancerDashboardPage />;
     }

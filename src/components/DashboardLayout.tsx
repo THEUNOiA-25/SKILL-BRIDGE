@@ -363,6 +363,11 @@ export const DashboardLayout = () => {
               <DropdownMenuItem onClick={() => navigate('/profile')}>
                 Profile
               </DropdownMenuItem>
+              {!isClient && (
+                <DropdownMenuItem onClick={() => navigate('/leadership')}>
+                  Leadership Board
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                 Log out
