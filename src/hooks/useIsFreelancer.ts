@@ -13,14 +13,15 @@ export function useIsFreelancer() {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('user_type')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", data);
       console.log("Error:", error);
 
       if (error) throw error;
-      return data?.[0]?.user_type as string | null;
+      return data?.user_type as string | null;
     },
     enabled: !!user?.id,
   });

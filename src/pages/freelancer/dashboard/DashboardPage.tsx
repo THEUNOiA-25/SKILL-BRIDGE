@@ -346,14 +346,15 @@ const DashboardPage = () => {
         const { data, error } = await supabase
           .from('user_profiles')
           .select('first_name, last_name')
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .single();
 
         console.log("User ID:", user?.id);
         console.log("Data:", data);
         console.log("Error:", error);
 
         if (error) console.warn('Profile fetch error (e.g. after DB migration):', error);
-        setProfile(data?.[0] ?? null);
+        setProfile(data ?? null);
       } catch (error) {
         console.error('Error fetching profile:', error);
       }

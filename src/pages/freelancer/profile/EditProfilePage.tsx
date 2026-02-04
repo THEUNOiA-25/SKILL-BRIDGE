@@ -74,11 +74,12 @@ const EditProfilePage = () => {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .single();
 
       if (error) throw error;
 
-      const row = data?.[0];
+      const row = data;
       setProfile({
         ...fromAuth,
         gender: row?.gender || "",

@@ -101,17 +101,17 @@ const StudentVerificationPage = () => {
       // Fetch states first using RPC
       fetchStates();
       
-      const profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id);
+      const profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
       console.log("User ID:", user?.id);
       console.log("Data:", profileRes.data);
       console.log("Error:", profileRes.error);
 
-      const verificationRes = await supabase.from("student_verifications").select("*, colleges(*)").eq("user_id", user.id);
+      const verificationRes = await supabase.from("student_verifications").select("*, colleges(*)").eq("user_id", user.id).single();
       console.log("User ID:", user?.id);
       console.log("Data:", verificationRes.data);
       console.log("Error:", verificationRes.error);
 
-      const profileRow = profileRes.data?.[0];
+      const profileRow = profileRes.data;
       if (profileRow) {
         setProfile({
           firstName: profileRow.first_name || "",
@@ -120,7 +120,7 @@ const StudentVerificationPage = () => {
         });
       }
 
-      const verificationRow = verificationRes.data?.[0];
+      const verificationRow = verificationRes.data;
       if (verificationRow) {
         setVerification(verificationRow);
         setSelectedCollege(verificationRow.college_id || "");

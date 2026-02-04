@@ -48,8 +48,8 @@ const IndependentProjectsPage = () => {
     if (!user) return;
     const fromMeta = user.user_metadata as { firstName?: string; lastName?: string } | undefined;
     (async () => {
-      const { data } = await supabase.from("user_profiles").select("first_name, last_name").eq("user_id", user.id).limit(1);
-      const row = data?.[0] as { first_name?: string; last_name?: string } | undefined;
+      const { data } = await supabase.from("user_profiles").select("first_name, last_name").eq("user_id", user.id).single();
+      const row = data as { first_name?: string; last_name?: string } | undefined;
       setProfileName({
         first: row?.first_name ?? fromMeta?.firstName ?? "",
         last: row?.last_name ?? fromMeta?.lastName ?? "",

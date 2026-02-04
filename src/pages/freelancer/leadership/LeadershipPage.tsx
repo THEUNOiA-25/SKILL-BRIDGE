@@ -29,14 +29,15 @@ const LeadershipPage = () => {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("first_name, last_name, profile_picture_url, bio")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", data);
       console.log("Error:", error);
 
       if (error) throw error;
-      setProfile(data?.[0] ?? null);
+      setProfile(data ?? null);
     } catch {
       setProfile(null);
     }

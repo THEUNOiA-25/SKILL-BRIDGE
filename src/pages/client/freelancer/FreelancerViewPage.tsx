@@ -61,13 +61,14 @@ const FreelancerViewPage = () => {
         const { data: profileData, error: profileError } = await supabase
           .from("user_profiles")
           .select("user_id, first_name, last_name, profile_picture_url, bio, user_type")
-          .eq("user_id", userId);
+          .eq("user_id", userId)
+          .single();
 
         console.log("User ID:", userId);
         console.log("Data:", profileData);
         console.log("Error:", profileError);
 
-        const profileRow = profileData?.[0];
+        const profileRow = profileData;
         if (profileError || !profileRow) {
           setNotFound(true);
           setLoading(false);

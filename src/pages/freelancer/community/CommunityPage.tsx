@@ -60,7 +60,8 @@ export default function CommunityPage() {
       const { data: verification, error: verError } = await supabase
         .from('student_verifications')
         .select('verification_status, college_id, colleges(id, name, short_name, city, state)')
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", verification);
@@ -73,7 +74,7 @@ export default function CommunityPage() {
         return;
       }
 
-      const verificationRow = verification?.[0];
+      const verificationRow = verification;
       if (!verificationRow || verificationRow.verification_status !== 'approved') {
         setIsVerified(false);
         setLoading(false);

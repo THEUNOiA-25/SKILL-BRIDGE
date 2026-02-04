@@ -32,14 +32,15 @@ export const RoleBasedRoute = ({ pageType }: RoleBasedRouteProps) => {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("user_type, user_id, first_name, last_name")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", data);
       console.log("Error:", error);
 
       if (error) throw error;
-      return data?.[0] ?? null;
+      return data ?? null;
     },
     enabled: !!user?.id,
     retry: 1,

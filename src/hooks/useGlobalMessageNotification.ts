@@ -55,13 +55,14 @@ export const useGlobalMessageNotification = () => {
           const { data: senderProfile, error: senderError } = await supabase
             .from('user_profiles')
             .select('first_name, last_name')
-            .eq('user_id', newMessage.sender_id);
+            .eq('user_id', newMessage.sender_id)
+            .single();
 
           console.log("Sender ID:", newMessage.sender_id);
           console.log("Data:", senderProfile);
           console.log("Error:", senderError);
 
-          const senderRow = senderProfile?.[0];
+          const senderRow = senderProfile;
           const senderName = senderRow
             ? `${senderRow.first_name} ${senderRow.last_name}`.trim()
             : 'Someone';

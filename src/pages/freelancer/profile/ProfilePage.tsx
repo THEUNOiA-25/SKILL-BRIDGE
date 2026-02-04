@@ -216,14 +216,15 @@ const ProfilePage = () => {
       const { data, error } = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", data);
       console.log("Error:", error);
 
       if (error) console.warn("Profile fetch error (e.g. after DB migration):", error);
-      const row = (data?.[0] ?? null) as Record<string, unknown> | null;
+      const row = data as Record<string, unknown> | null;
       const fromMeta = user?.user_metadata as { firstName?: string; lastName?: string } | undefined;
       if (!row) {
         setProfile((prev) => ({
@@ -258,14 +259,15 @@ const ProfilePage = () => {
       const { data, error } = await supabase
         .from("student_verifications")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", data);
       console.log("Error:", error);
 
       if (error && error.code !== "PGRST116") throw error;
-      setVerification((data?.[0] ?? null) as VerificationState | null);
+      setVerification(data as VerificationState | null);
     } catch (error) {
       console.error("Error fetching verification:", error);
     }

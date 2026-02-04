@@ -44,13 +44,14 @@ const CheckoutPage = () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('first_name, last_name, email, city, pin_code')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", data);
       console.log("Error:", error);
 
-      const row = data?.[0];
+      const row = data;
       if (row) {
         setProfile({
           firstName: row.first_name,

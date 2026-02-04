@@ -32,14 +32,15 @@ const BlogDetailPage = () => {
         .from('blogs')
         .select('*')
         .eq('slug', slug)
-        .eq('status', 'published');
+        .eq('status', 'published')
+        .single();
 
       console.log("Slug:", slug);
       console.log("Data:", data);
       console.log("Error:", error);
 
       if (error) throw error;
-      return (data?.[0] ?? null) as Blog | null;
+      return (data ?? null) as Blog | null;
     },
     enabled: !!slug,
   });

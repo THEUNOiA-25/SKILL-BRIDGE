@@ -35,13 +35,14 @@ export default function MessagesPage() {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('first_name, last_name, profile_picture_url')
-        .eq('user_id', user?.id);
+        .eq('user_id', user?.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", data);
       console.log("Error:", error);
 
-      return data?.[0] ?? null;
+      return data ?? null;
     },
     enabled: !!user?.id,
   });
@@ -84,7 +85,8 @@ export default function MessagesPage() {
           const { data: profile, error: profileError } = await supabase
             .from('user_profiles')
             .select('first_name, last_name, profile_picture_url')
-            .eq('user_id', otherUserId);
+            .eq('user_id', otherUserId)
+            .single();
 
           console.log("User ID:", otherUserId);
           console.log("Data:", profile);
@@ -112,8 +114,8 @@ export default function MessagesPage() {
             project: convo.user_projects,
             project_title: convo.user_projects?.title || 'Unknown Project',
             other_user_id: otherUserId,
-            other_user_name: profile?.[0] ? `${profile[0].first_name} ${profile[0].last_name}` : 'Unknown User',
-            other_user_avatar: profile?.[0]?.profile_picture_url,
+            other_user_name: profile ? `${profile.first_name} ${profile.last_name}` : 'Unknown User',
+            other_user_avatar: profile?.profile_picture_url,
             last_message: lastMessage?.[0]?.content,
             last_message_at: convo.last_message_at,
             unread_count: unreadCount || 0,

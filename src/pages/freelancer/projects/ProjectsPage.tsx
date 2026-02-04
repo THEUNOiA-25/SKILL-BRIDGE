@@ -178,14 +178,15 @@ const ProjectsPage = () => {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('user_type')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", data);
       console.log("Error:", error);
 
       if (error) throw error;
-      const isStudent = data?.[0]?.user_type === 'student';
+      const isStudent = data?.user_type === 'student';
       setIsStudentUser(isStudent);
       
       // Set default tab based on user type
@@ -215,27 +216,29 @@ const ProjectsPage = () => {
       const { data: accessData, error: accessError } = await supabase
         .from('freelancer_access')
         .select('has_access')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", accessData);
       console.log("Error:", accessError);
 
       if (accessError) throw accessError;
-      setIsVerifiedStudent(accessData?.[0]?.has_access || false);
+      setIsVerifiedStudent(accessData?.has_access || false);
 
       // Get user's college ID for community tasks
       const { data: verificationData, error: verificationError } = await supabase
         .from('student_verifications')
         .select('college_id')
         .eq('user_id', user.id)
-        .eq('verification_status', 'approved');
+        .eq('verification_status', 'approved')
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", verificationData);
       console.log("Error:", verificationError);
 
-      setUserCollegeId(verificationData?.[0]?.college_id || null);
+      setUserCollegeId(verificationData?.college_id || null);
     } catch (error) {
       console.error('Error checking verification:', error);
     }
@@ -248,14 +251,15 @@ const ProjectsPage = () => {
       const { data, error } = await supabase
         .from('freelancer_credits')
         .select('balance')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .single();
 
       console.log("User ID:", user?.id);
       console.log("Data:", data);
       console.log("Error:", error);
 
       if (error) throw error;
-      setCreditBalance(data?.[0]?.balance || 0);
+      setCreditBalance(data?.balance || 0);
     } catch (error) {
       console.error('Error fetching credit balance:', error);
     }
