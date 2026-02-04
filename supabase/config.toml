@@ -1,4 +1,4 @@
-project_id = "dmcumwhvuavptqxscibe"
+project_id = "jelvbdvjjpnzxezbpndq"
 
 [functions.bulk-import-colleges]
 verify_jwt = true
