@@ -267,10 +267,11 @@ const ProjectsPage = () => {
 
   const fetchBrowseProjects = async () => {
     try {
+      // Fetch both work_requirement (freelancer posted) and client_project (client posted) types
       const { data: allData, error: allError } = await supabase
         .from("user_projects")
         .select("*")
-        .eq("project_type", "work_requirement")
+        .in("project_type", ["work_requirement", "client_project"])
         .eq("status", "open")
         .eq("is_community_task", false)
         .order("created_at", { ascending: false });
@@ -285,7 +286,7 @@ const ProjectsPage = () => {
         const { data: fallbackData, error: fallbackError } = await supabase
           .from("user_projects")
           .select("*")
-          .eq("project_type", "work_requirement")
+          .in("project_type", ["work_requirement", "client_project"])
           .eq("status", "open")
           .order("created_at", { ascending: false });
         if (!fallbackError) {

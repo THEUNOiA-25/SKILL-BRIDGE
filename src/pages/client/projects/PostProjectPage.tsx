@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,14 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileText, FolderTree, Calendar, Upload, X, Search } from "lucide-react";
+import { FileText, FolderTree, Calendar, Upload, X, Search, Loader2, IndianRupee } from "lucide-react";
 import { getCategoryList, getSubcategoriesForCategory } from "@/data/categories";
-import { FinancialProfileRequiredDialog } from "@/components/financial";
-import { useFinancialProfile } from "@/hooks/useFinancialProfile";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PostProjectPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState("");
@@ -27,12 +28,10 @@ const PostProjectPage = () => {
   const [subcategory, setSubcategory] = useState("");
   const [skillsInput, setSkillsInput] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
+  const [budget, setBudget] = useState("");
   const [biddingDeadline, setBiddingDeadline] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [financialDialogOpen, setFinancialDialogOpen] = useState(false);
-  
-  // Financial profile check
-  const { isComplete: hasFinancialProfile, isLoading: financialLoading } = useFinancialProfile();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categories = getCategoryList();
   const subcategories = primaryCategory
@@ -62,14 +61,7 @@ const PostProjectPage = () => {
     if (dropped) setFiles((prev) => [...prev, ...Array.from(dropped)]);
   };
 
-  const handlePublish = () => {
-    // TEMPORARILY DISABLED FOR TESTING - Re-enable when ready
-    // Check financial profile first
-    // if (!hasFinancialProfile && !financialLoading) {
-    //   setFinancialDialogOpen(true);
-    //   return;
-    // }
-    
+  const handlePublish = async () => {
     // Validate required fields
     if (!title.trim()) {
       toast.error("Please enter a project title");
@@ -83,20 +75,52 @@ const PostProjectPage = () => {
       toast.error("Please select a category");
       return;
     }
+    if (!user?.id) {
+      toast.error("You must be logged in to post a project");
+      return;
+    }
+
+    setIsSubmitting(true);
     
-    // Navigate to projects page (actual posting logic will be added with backend)
-    navigate("/projects");
+    try {
+      // Build the project data for insert
+      // Clients post projects for free (no credits required)
+      const projectData = {
+        user_id: user.id,
+        title: title.trim(),
+        description: description.trim(),
+        category: primaryCategory || null,
+        subcategory: subcategory || null,
+        skills_required: skills.length > 0 ? skills : null,
+        budget: budget ? parseFloat(budget) : null,
+        bidding_deadline: biddingDeadline ? new Date(biddingDeadline).toISOString() : null,
+        project_type: 'client_project',
+        status: 'open',
+        is_community_task: false,
+      };
+
+      const { error } = await supabase
+        .from("user_projects")
+        .insert(projectData);
+
+      if (error) {
+        console.error("Error posting project:", error);
+        toast.error(error.message || "Failed to post project");
+        return;
+      }
+
+      toast.success("Project posted successfully!");
+      navigate("/projects");
+    } catch (error) {
+      console.error("Error posting project:", error);
+      toast.error("An error occurred while posting your project");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#f6f5f8] dark:bg-background flex flex-col">
-      {/* Financial Profile Required Dialog */}
-      <FinancialProfileRequiredDialog
-        open={financialDialogOpen}
-        onOpenChange={setFinancialDialogOpen}
-        action="post_project"
-      />
-      
       <main className="flex-1 flex justify-center py-6 px-4">
         <div className="flex flex-col max-w-[700px] w-full gap-5">
           <div className="flex flex-col gap-1 px-1">
@@ -231,21 +255,45 @@ const PostProjectPage = () => {
 
             <section className="p-0 pb-5">
             <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-5 h-5 text-primary" />
+              <IndianRupee className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-bold leading-tight tracking-[-0.015em] text-[#121118] dark:text-white">
-                Bidding & Timeline
+                Budget & Timeline
               </h2>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-[#121118] dark:text-white text-sm font-medium">
-                Bidding Deadline
-              </Label>
-              <Input
-                type="date"
-                value={biddingDeadline}
-                onChange={(e) => setBiddingDeadline(e.target.value)}
-                className="rounded-lg border-[#dddbe6] h-11 px-3 text-sm focus:ring-2 focus:ring-primary max-w-[200px]"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-[#121118] dark:text-white text-sm font-medium">
+                  Project Budget (₹)
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#68608a] text-sm">₹</span>
+                  <Input
+                    type="number"
+                    value={budget}
+                    onChange={(e) => setBudget(e.target.value)}
+                    placeholder="e.g. 5000"
+                    min="0"
+                    className="rounded-lg border-[#dddbe6] h-11 pl-7 pr-3 text-sm focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <p className="text-[#68608a] text-[11px]">
+                  Enter your estimated budget for this project
+                </p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-[#121118] dark:text-white text-sm font-medium">
+                  Bidding Deadline
+                </Label>
+                <Input
+                  type="date"
+                  value={biddingDeadline}
+                  onChange={(e) => setBiddingDeadline(e.target.value)}
+                  className="rounded-lg border-[#dddbe6] h-11 px-3 text-sm focus:ring-2 focus:ring-primary"
+                />
+                <p className="text-[#68608a] text-[11px]">
+                  Last date for freelancers to submit bids
+                </p>
+              </div>
             </div>
             </section>
 
@@ -308,9 +356,17 @@ const PostProjectPage = () => {
               <Button
                 type="button"
                 onClick={handlePublish}
-                className="flex-1 md:flex-none h-10 px-8 rounded-full bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all"
+                disabled={isSubmitting}
+                className="flex-1 md:flex-none h-10 px-8 rounded-full bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Post Project
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Posting...
+                  </>
+                ) : (
+                  "Post Project"
+                )}
               </Button>
             </div>
             </section>

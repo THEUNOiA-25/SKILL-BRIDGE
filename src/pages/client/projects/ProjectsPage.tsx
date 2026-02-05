@@ -8,8 +8,12 @@ import {
   Users,
   TrendingUp,
   User,
+  Loader2,
+  IndianRupee,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Live countdown from now until endDate (ISO string). Updates every second.
 function useCountdown(endDate: string | null): { days: number; hours: number; minutes: number } | null {
@@ -46,6 +50,7 @@ interface ClientProject {
   phaseName: string | null;
   talentName: string | null;
   tags: string[];
+  budget: number | null;
 }
 
 // Public folder: images (poster/fallback) and all videos from public/Video
@@ -65,82 +70,6 @@ const PUBLIC_VIDEOS = [
   "/Video/New Project 29 [4ED1F2C].mp4",
 ];
 
-// Every card uses a video from public/Video; poster from public images. Reduced layout.
-const MOCK_PROJECTS: ClientProject[] = [
-  {
-    id: "1",
-    title: "Modern Fintech App UI/UX Design",
-    coverImageUrl: PUBLIC_IMAGES[0]!,
-    coverVideoUrl: PUBLIC_VIDEOS[0]!,
-    status: "open_for_bidding",
-    biddingDeadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 14 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
-    bidsReceived: 24,
-    phaseName: null,
-    talentName: null,
-    tags: ["Product Design", "Mobile"],
-  },
-  {
-    id: "2",
-    title: "E-commerce Brand Identity Redesign",
-    coverImageUrl: PUBLIC_IMAGES[1]!,
-    coverVideoUrl: PUBLIC_VIDEOS[1]!,
-    status: "in_progress",
-    biddingDeadline: null,
-    bidsReceived: 0,
-    phaseName: "Phase 2: Review",
-    talentName: "Alex Rivera",
-    tags: ["Branding", "Logo"],
-  },
-  {
-    id: "3",
-    title: "Motion Graphics Video Intro",
-    coverImageUrl: PUBLIC_IMAGES[2]!,
-    coverVideoUrl: PUBLIC_VIDEOS[2]!,
-    status: "open_for_bidding",
-    biddingDeadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000 + 12 * 60 * 1000).toISOString(),
-    bidsReceived: 8,
-    phaseName: null,
-    talentName: null,
-    tags: ["Animation", "Video"],
-  },
-  {
-    id: "4",
-    title: "Social Media Campaign Assets",
-    coverImageUrl: PUBLIC_IMAGES[3]!,
-    coverVideoUrl: PUBLIC_VIDEOS[3]!,
-    status: "in_progress",
-    biddingDeadline: null,
-    bidsReceived: 0,
-    phaseName: "Phase 1: Research",
-    talentName: "Sarah J.",
-    tags: ["Marketing", "Social"],
-  },
-  {
-    id: "5",
-    title: "Web3 Dashboard Visual Style",
-    coverImageUrl: PUBLIC_IMAGES[4]!,
-    coverVideoUrl: PUBLIC_VIDEOS[4]!,
-    status: "open_for_bidding",
-    biddingDeadline: new Date(Date.now() + 12 * 60 * 60 * 1000 + 45 * 60 * 1000).toISOString(),
-    bidsReceived: 42,
-    phaseName: null,
-    talentName: null,
-    tags: ["UI Design", "Blockchain"],
-  },
-  {
-    id: "6",
-    title: "Leadership Program Visuals",
-    coverImageUrl: PUBLIC_IMAGES[5]!,
-    coverVideoUrl: PUBLIC_VIDEOS[0]!,
-    status: "in_progress",
-    biddingDeadline: null,
-    bidsReceived: 0,
-    phaseName: "Phase 3: Delivery",
-    talentName: "Jordan Lee",
-    tags: ["Video", "Marketing"],
-  },
-];
-
 const TABS = [
   { value: "all", label: "All Projects" },
   { value: "active", label: "Active" },
@@ -149,17 +78,139 @@ const TABS = [
 ] as const;
 
 const ProjectsPage = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<typeof TABS[number]["value"]>("all");
+  const [projects, setProjects] = useState<ClientProject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch client's projects from database
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (!user?.id) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch projects posted by this client (work_requirement and client_project types)
+        const { data: projectsData, error: projectsError } = await supabase
+          .from("user_projects")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("project_type", ["work_requirement", "client_project"])
+          .order("created_at", { ascending: false });
+
+        if (projectsError) {
+          console.error("Error fetching projects:", projectsError);
+          setProjects([]);
+          return;
+        }
+
+        if (!projectsData || projectsData.length === 0) {
+          setProjects([]);
+          return;
+        }
+
+        // Get project IDs
+        const projectIds = projectsData.map((p) => p.id);
+
+        // Fetch bid counts for each project
+        const { data: bidsData } = await supabase
+          .from("bids")
+          .select("project_id")
+          .in("project_id", projectIds);
+
+        // Count bids per project
+        const bidCounts: Record<string, number> = {};
+        bidsData?.forEach((bid) => {
+          bidCounts[bid.project_id] = (bidCounts[bid.project_id] || 0) + 1;
+        });
+
+        // Fetch accepted bids to get freelancer info
+        const { data: acceptedBids } = await supabase
+          .from("bids")
+          .select("project_id, freelancer_id")
+          .in("project_id", projectIds)
+          .eq("status", "accepted");
+
+        // Get freelancer names for accepted bids
+        const freelancerMap: Record<string, string> = {};
+        if (acceptedBids && acceptedBids.length > 0) {
+          const freelancerIds = [...new Set(acceptedBids.map((b) => b.freelancer_id))];
+          const { data: profiles } = await supabase
+            .from("user_profiles")
+            .select("user_id, first_name, last_name")
+            .in("user_id", freelancerIds);
+
+          if (profiles) {
+            profiles.forEach((p) => {
+              const name = `${p.first_name} ${p.last_name}`.trim() || "Freelancer";
+              freelancerMap[p.user_id] = name;
+            });
+          }
+
+          acceptedBids.forEach((bid) => {
+            if (freelancerMap[bid.freelancer_id]) {
+              // Store project_id -> freelancer_name mapping
+              freelancerMap[`project_${bid.project_id}`] = freelancerMap[bid.freelancer_id];
+            }
+          });
+        }
+
+        // Transform database projects to ClientProject format
+        const transformedProjects: ClientProject[] = projectsData.map((p, index) => {
+          // Determine status
+          let status: ProjectStatus = "open_for_bidding";
+          const hasAcceptedBid = acceptedBids?.some((b) => b.project_id === p.id);
+          
+          if (p.status === "completed") {
+            status = "completed";
+          } else if (hasAcceptedBid || p.status === "in_progress") {
+            status = "in_progress";
+          } else if (p.status === "open") {
+            status = "open_for_bidding";
+          }
+
+          // Get freelancer name if bid was accepted
+          const acceptedBid = acceptedBids?.find((b) => b.project_id === p.id);
+          const freelancerName = acceptedBid ? freelancerMap[acceptedBid.freelancer_id] : null;
+
+          return {
+            id: p.id,
+            title: p.title,
+            coverImageUrl: p.cover_image_url || PUBLIC_IMAGES[index % PUBLIC_IMAGES.length],
+            coverVideoUrl: PUBLIC_VIDEOS[index % PUBLIC_VIDEOS.length],
+            status,
+            biddingDeadline: p.bidding_deadline,
+            bidsReceived: bidCounts[p.id] || 0,
+            phaseName: status === "in_progress" ? "In Progress" : null,
+            talentName: freelancerName || null,
+            tags: p.skills_required || [],
+            budget: p.budget || null,
+          };
+        });
+
+        setProjects(transformedProjects);
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+        setProjects([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [user?.id]);
 
   const filteredProjects = useMemo(() => {
-    return MOCK_PROJECTS.filter((p) => {
+    return projects.filter((p) => {
       if (activeTab === "all") return true;
       if (activeTab === "active") return p.status === "in_progress";
       if (activeTab === "bidding") return p.status === "open_for_bidding";
       if (activeTab === "completed") return p.status === "completed";
       return true;
     });
-  }, [activeTab]);
+  }, [activeTab, projects]);
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center py-6 px-4 sm:px-6 md:px-8">
@@ -214,24 +265,39 @@ const ProjectsPage = () => {
             </button>
           </div>
 
-          {/* Project cards grid: 3 per row, reduced gap and card size */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-            {/* New Project card — smaller to match */}
-            <Link
-              to="/projects/new"
-              className="group bg-transparent border-2 border-dashed border-[#68608a]/30 rounded-xl flex flex-col items-center justify-center min-h-[280px] cursor-pointer hover:border-primary/50 hover:bg-white transition-all duration-300"
-            >
-              <div className="flex flex-col items-center gap-3 text-[#68608a] group-hover:text-primary">
-                <div className="size-12 rounded-full bg-white shadow-sm flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                  <Plus className="w-6 h-6" />
-                </div>
-                <p className="text-base font-bold">New Project</p>
+          {/* Loading state */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+          ) : filteredProjects.length === 0 ? (
+            /* Empty state */
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Plus className="w-8 h-8 text-primary" />
               </div>
-            </Link>
-          </div>
+              <h3 className="text-lg font-bold text-[#121118] mb-2">No projects yet</h3>
+              <p className="text-[#68608a] text-sm mb-4 max-w-md">
+                Post your first project and get matched with vetted freelancers
+              </p>
+              <Button
+                className="rounded-xl h-10 px-6 bg-primary text-white text-sm font-bold"
+                asChild
+              >
+                <Link to="/projects/post-project">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Post Project
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            /* Project cards grid: 3 per row, reduced gap and card size */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredProjects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -289,6 +355,16 @@ function ProjectCard({ project }: { project: ClientProject }) {
             {statusLabel}
           </span>
         </div>
+
+        {/* Budget display */}
+        {project.budget && (
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold text-[#68608a] uppercase tracking-wide">Budget</span>
+            <span className="text-sm font-extrabold text-primary">
+              ₹{project.budget.toLocaleString()}
+            </span>
+          </div>
+        )}
 
         {/* Gray container: Ends in + Bids received, or Status + Freelancer */}
         <div className="bg-[#f1f0f5] rounded-lg p-3 flex flex-col gap-2">
