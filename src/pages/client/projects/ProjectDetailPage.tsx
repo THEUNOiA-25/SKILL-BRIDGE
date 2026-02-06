@@ -10,7 +10,7 @@ import {
   FileText, CheckCircle2, MapPin as LocationIcon, Calendar,
   Star, Paperclip, Download, MessageSquare, User, Eye
 } from "lucide-react";
-import { ProjectTrackingBoard } from "@/pages/freelancer/projects/ProjectTracking/ProjectTrackingBoard";
+import { ClientProjectTrackingBoard } from "@/pages/client/projects/ProjectTracking/ClientProjectTrackingBoard";
 import { getPhasesForCategory } from "@/pages/shared/projects/ProjectTracking/phaseMapping";
 import { getPhasePaymentStatus } from "@/pages/shared/projects/ProjectTracking/phaseLockingLogic";
 
@@ -213,6 +213,36 @@ const ClientProjectDetailPage = () => {
   };
 
   const isProjectOpen = project?.status === 'open';
+  
+  // Determine if bidding is closed
+  // Bidding is closed if:
+  // 1. A bid has been accepted (project status is 'in_progress' or 'completed')
+  // 2. The bidding deadline has passed
+  const isBiddingClosed = (() => {
+    if (!project) return false;
+    
+    // Check if a bid has been accepted (project moved to in_progress or completed)
+    if (project.status === 'in_progress' || project.status === 'completed') {
+      return true;
+    }
+    
+    // Check if any bid is accepted
+    const hasAcceptedBid = bids.some(bid => bid.status === 'accepted');
+    if (hasAcceptedBid) {
+      return true;
+    }
+    
+    // Check if bidding deadline has passed
+    if (project.bidding_deadline) {
+      const deadline = new Date(project.bidding_deadline);
+      const now = new Date();
+      if (deadline < now) {
+        return true;
+      }
+    }
+    
+    return false;
+  })();
 
   if (loading) {
     return (
@@ -265,8 +295,18 @@ const ClientProjectDetailPage = () => {
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4.5">
               <div className="flex-1 max-w-3xl">
                 <div className="flex gap-1.5 mb-3.5">
+                  {/* Project Status Badge */}
                   <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1">
                     <span className="size-1.5 rounded-full bg-[#145214]"></span> {project.status === 'open' ? 'Active Project' : project.status === 'in_progress' ? 'In Progress' : 'Completed'}
+                  </span>
+                  {/* Bidding Status Badge */}
+                  <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full flex items-center gap-1 ${
+                    isBiddingClosed 
+                      ? 'bg-red-100 text-red-700' 
+                      : 'bg-secondary-yellow text-[#73480d]'
+                  }`}>
+                    <span className={`size-1.5 rounded-full ${isBiddingClosed ? 'bg-red-500' : 'bg-[#73480d]'}`}></span>
+                    {isBiddingClosed ? 'Closed for Bidding' : 'Open for Bidding'}
                   </span>
                   {project.category && (
                     <span className="px-2.5 py-0.5 bg-secondary-yellow text-[#73480d] text-[9px] font-extrabold uppercase tracking-widest rounded-full">
@@ -352,7 +392,7 @@ const ClientProjectDetailPage = () => {
 
         {/* Main Content */}
         {activeTab === 'tracking' ? (
-          <ProjectTrackingBoard 
+          <ClientProjectTrackingBoard 
             projectId={project?.id || ''} 
             projectCategory={project?.category || null}
           />
@@ -634,8 +674,8 @@ const ClientProjectDetailPage = () => {
                             {/* Accept - Green */}
                             <Button
                               size="sm"
-                              onClick={() => bid.status === 'pending' && isProjectOpen && handleAcceptBid(bid.id)}
-                              disabled={bid.status !== 'pending' || !isProjectOpen}
+                              onClick={() => bid.status === 'pending' && !isBiddingClosed && handleAcceptBid(bid.id)}
+                              disabled={bid.status !== 'pending' || isBiddingClosed}
                               className="h-7 text-[10px] font-semibold bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Accept
@@ -645,8 +685,8 @@ const ClientProjectDetailPage = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => bid.status === 'pending' && isProjectOpen && handleRejectBid(bid.id)}
-                              disabled={bid.status !== 'pending' || !isProjectOpen}
+                              onClick={() => bid.status === 'pending' && !isBiddingClosed && handleRejectBid(bid.id)}
+                              disabled={bid.status !== 'pending' || isBiddingClosed}
                               className="h-7 text-[10px] font-semibold border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Reject

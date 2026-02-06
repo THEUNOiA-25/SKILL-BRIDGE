@@ -761,7 +761,14 @@ const ProjectsPage = () => {
   const renderProjectCard = (project: Project | BidProject, showActions: boolean = false, isFeatured: boolean = false) => {
     const bidProject = project as BidProject;
     const hasBidInfo = 'bidStatus' in project;
-    const biddingClosed = project.bidding_deadline ? new Date(project.bidding_deadline) < new Date() : false;
+    
+    // Bidding is closed if:
+    // 1. Project status is 'in_progress' or 'completed' (a bid has been accepted)
+    // 2. Bidding deadline has passed
+    const biddingClosed = 
+      project.status === 'in_progress' || 
+      project.status === 'completed' || 
+      (project.bidding_deadline ? new Date(project.bidding_deadline) < new Date() : false);
     
     // Calculate time ago
     const timeAgo = format(new Date(project.created_at), "d 'days ago'");
@@ -857,13 +864,28 @@ const ProjectsPage = () => {
     );
   };
 
-  const renderRecommendedCard = (project: Project) => (
+  const renderRecommendedCard = (project: Project) => {
+    // Bidding is closed if:
+    // 1. Project status is 'in_progress' or 'completed' (a bid has been accepted)
+    // 2. Bidding deadline has passed
+    const biddingClosed = 
+      project.status === 'in_progress' || 
+      project.status === 'completed' || 
+      (project.bidding_deadline ? new Date(project.bidding_deadline) < new Date() : false);
+    
+    return (
     <div key={project.id} className="min-w-[270px] bg-white dark:bg-white/5 rounded-[9px] p-5 border border-[#f1f0f5] dark:border-white/5 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between h-[180px] cursor-pointer" onClick={() => navigate(`/projects/${project.id}`)}>
       <div className="flex-1 flex flex-col">
         <div className="mb-3 flex items-center justify-between">
-          <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1 w-fit">
-            <span className="size-1.5 rounded-full bg-[#145214]"></span> Bid Open
-          </span>
+          {biddingClosed ? (
+            <span className="px-2 py-0.5 bg-gray-100 dark:bg-white/10 text-[#121118] dark:text-white text-[9px] font-bold rounded-full flex items-center gap-1 w-fit">
+              <span className="size-1.5 rounded-full bg-[#68608a]"></span> Bid Closed
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 bg-accent-green text-[#052005] text-[9px] font-bold rounded-full flex items-center gap-1 w-fit">
+              <span className="size-1.5 rounded-full bg-[#145214]"></span> Bid Open
+            </span>
+          )}
           <span className="px-2 py-0.5 bg-secondary-yellow text-[#121118] text-[9px] font-bold rounded-full">
             {format(new Date(project.created_at), "d MMM")}
           </span>
@@ -886,7 +908,8 @@ const ProjectsPage = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   const renderPortfolioCard = (project: Project, showActions: boolean = false) => (
     <div key={project.id} className="group bg-white dark:bg-white/5 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#f1f0f5] dark:border-white/5 flex flex-col h-full">
