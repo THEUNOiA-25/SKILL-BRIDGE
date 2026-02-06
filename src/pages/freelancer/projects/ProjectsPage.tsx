@@ -340,7 +340,7 @@ const ProjectsPage = () => {
           .in("id", projectIds);
 
         if (projectsError) throw projectsError;
-        const projects = (projectsData || []) as Project[];
+        const projects = (projectsData || []) as unknown as Project[];
         const projectMap: Record<string, Project> = {};
         projects.forEach((p) => { projectMap[p.id] = p; });
 

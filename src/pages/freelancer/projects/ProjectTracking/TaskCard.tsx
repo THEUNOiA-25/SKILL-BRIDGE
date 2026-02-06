@@ -1,4 +1,4 @@
-import { Task, TaskPriority, TaskStatus } from './types';
+import { Task, TaskPriority, TaskStatus } from '@/pages/shared/projects/ProjectTracking/types';
 import { format } from 'date-fns';
 import { MessageCircle, Eye } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

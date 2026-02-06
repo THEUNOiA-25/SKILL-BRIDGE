@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TaskPriority, TaskStatus } from './types';
+import { TaskPriority, TaskStatus } from '@/pages/shared/projects/ProjectTracking/types';
 import { X } from 'lucide-react';
 
 interface TaskFormProps {

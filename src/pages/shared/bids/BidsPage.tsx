@@ -130,7 +130,8 @@ export default function BidsPage() {
       if (bidUpdateError) throw bidUpdateError;
 
       // If bid is accepted, update project status to 'in_progress'
-      if (status === 'accepted' && bidData?.project_id) {
+      if (status === 'accepted' && bidData && bidData.length > 0) {
+        const projectId = bidData[0].project_id;
         const { error: projectUpdateError } = await supabase
           .from('user_projects')
           .update({ status: 'in_progress' })
