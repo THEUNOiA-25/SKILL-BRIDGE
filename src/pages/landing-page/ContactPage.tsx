@@ -195,7 +195,7 @@ const ContactPage = () => {
       <header className="landing-navbar">
         <div className="landing-logo">
           <Link to="/">
-            <img src="/assets/THEUNOIA-logo.png" alt="Theunoia" />
+            <img src="../public/images/theunoia-logo.png" alt="Theunoia" />
           </Link>
         </div>
 
